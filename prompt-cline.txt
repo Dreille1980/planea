@@ -1,0 +1,76 @@
+Tu es un assistant de développement senior iOS nommé Cline. 
+Je veux que tu construises une application iOS native appelée **Planea**.
+
+### 🎯 Objectif général
+Créer une app de planification de repas pour les familles, 100 % locale (pas de login, pas de base de données distante),
+qui communique seulement avec un petit service Replit stateless pour générer des recettes ou des plans via IA.
+Tout le reste (famille, membres, recettes, plans, listes d’épicerie) est sauvegardé localement sur l’appareil
+avec Core Data (ou SwiftData si iOS 17+). App bilingue FR/EN et sélection fine des repas (21 combinaisons).
+
+### ⚙️ Architecture
+- Langage : Swift 5.10+
+- Framework : SwiftUI
+- Pattern : MVVM
+- Persistance : Core Data (Store local)
+- Réseau : URLSession + Codable
+- Compatibilité : iOS 16+
+- Unités : métrique/impérial (choisie par l’utilisateur)
+- IA endpoint : API FastAPI stateless (mockée pour l’instant)
+
+### 🧩 Fonctionnalités MVP
+1. Famille & Membres (préférences/évictions au niveau Membre; fusion/union pour la famille)
+2. Génération de plan (7 jours) à partir d’un sous-ensemble de 21 slots (7 jours x 3 types: breakfast/lunch/dinner)
+3. Détail d’un repas (recette complète) + régénération
+4. Liste d’épicerie (agrégation, conversion unités, tri, cases à cocher, export texte)
+5. Recette ad hoc (prompt libre)
+
+### 📁 Structure projet souhaitée
+Planea-iOS/
+ ├── PlaneaApp.swift
+ ├── Models/
+ │    ├── Enums.swift
+ │    ├── Family.swift
+ │    ├── Member.swift
+ │    ├── MealPlan.swift
+ │    ├── Recipe.swift
+ │    └── ShoppingList.swift
+ ├── ViewModels/
+ │    ├── FamilyViewModel.swift
+ │    ├── PlanViewModel.swift
+ │    ├── RecipeViewModel.swift
+ │    └── ShoppingViewModel.swift
+ ├── Views/
+ │    ├── OnboardingView.swift
+ │    ├── PlanWeekView.swift
+ │    ├── RecipeDetailView.swift
+ │    ├── ShoppingListView.swift
+ │    └── AdHocRecipeView.swift
+ ├── Services/
+ │    ├── IAService.swift
+ │    └── UnitConverter.swift
+ ├── Resources/
+ │    └── Localizable.strings (FR/EN)
+ └── Persistence/
+      └── PersistenceController.swift
+
+### 🌐 API Mock (Replit stateless)
+/ai/plan  → renvoie un plan hebdo JSON pour les slots demandés
+/ai/recipe → renvoie une recette unique
+Aucune persistance. Fournir un mini FastAPI pour stub local.
+
+### 🗓️ Sélection fine des repas (21 combinaisons)
+- L’utilisateur choisit par jour et par type (breakfast/lunch/dinner) ce qu’il veut générer.
+- Envoyer au backend une liste explicite de slots (weekday + meal_type).
+
+### 🌍 Internationalisation (FR/EN)
+- Localizable.strings fr/en ; usage de String(localized:) ; runtime switch
+- Clés pour jours, types de repas, actions courantes.
+
+### ✅ Contraintes
+- Hors ligne total sauf appels IA
+- Aucun identifiant personnel envoyé
+- Pas d’authentification
+- Code propre, commenté, prêt à ouvrir dans Xcode
+
+Quand tu es prêt, commence par créer la structure de fichiers et les modèles Codable/Identifiable.
+Ensuite, implémente les ViewModels, Services, et une version minimaliste des vues qui compile.

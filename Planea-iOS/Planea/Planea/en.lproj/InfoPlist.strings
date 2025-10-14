@@ -1,0 +1,3 @@
+/* Localized versions of Info.plist keys */
+
+NSRemindersUsageDescription = "Planea needs access to your reminders to export your shopping list.";

@@ -1,0 +1,141 @@
+"tab.onboarding" = "Family";
+"tab.plan" = "Plan";
+"tab.shopping" = "Groceries";
+"tab.favorites" = "Favorites";
+"tab.settings" = "Settings";
+
+"onboarding.title" = "Setup Family";
+"onboarding.family" = "Family";
+"onboarding.familyName" = "Family name";
+"onboarding.hint" = "Add members, allergies and preferences in the next step.";
+
+"plan.title" = "Week Plan";
+"plan.selectSlots" = "Select slots to generate";
+
+"week.monday" = "Monday";
+"week.tuesday" = "Tuesday";
+"week.wednesday" = "Wednesday";
+"week.thursday" = "Thursday";
+"week.friday" = "Friday";
+"week.saturday" = "Saturday";
+"week.sunday" = "Sunday";
+
+"meal.breakfast" = "Breakfast";
+"meal.lunch" = "Lunch";
+"meal.dinner" = "Dinner";
+"meal.snack" = "Snack";
+
+"action.generatePlan" = "Generate Plan";
+"action.generateRecipe" = "Generate Recipe";
+"action.exportText" = "Export (text)";
+
+"recipe.info" = "Information";
+"recipe.servings" = "Servings";
+"recipe.time" = "Total time";
+"recipe.ingredients" = "Ingredients";
+"recipe.steps" = "Steps";
+
+"shopping.title" = "Shopping List";
+
+"adhoc.title" = "Ad hoc recipe";
+"adhoc.promptPlaceholder" = "e.g., chicken + broccoli, 30 min, 4 servings";
+
+"settings.units" = "Units";
+"settings.language" = "Language";
+"settings.family" = "Family";
+"settings.manageFamily" = "Manage Family";
+"settings.members" = "member(s)";
+"settings.preferences" = "Preferences";
+
+"units.metric" = "Metric";
+"units.imperial" = "Imperial";
+
+"lang.system" = "System";
+
+"member.name" = "Name";
+"member.memberName" = "Member name";
+"member.dietaryPreferences" = "Dietary Preferences";
+"member.allergens" = "Allergens";
+"member.dislikes" = "Dislikes";
+"member.addDislike" = "Add dislike";
+"member.editMember" = "Edit Member";
+
+"family.members" = "Members";
+"family.addMember" = "Add Member";
+"family.management" = "Family Management";
+
+"onboarding.welcome" = "Welcome to Planea";
+"onboarding.members" = "Members";
+"onboarding.continue" = "Continue";
+
+"action.save" = "Save Changes";
+"action.cancel" = "Cancel";
+"action.add" = "Add";
+"action.done" = "Done";
+"action.refresh" = "Refresh";
+"action.export" = "Export";
+"action.newPlan" = "New Plan";
+
+"plan.planYourWeek" = "Plan your week";
+"plan.error" = "Error";
+"plan.creating" = "Creating";
+"plan.meals" = "meals";
+
+"generating.exploring" = "Exploring flavors...";
+"generating.chefs" = "Our chefs are working on your plan...";
+"generating.discovering" = "Discovering recipes from around the world...";
+"generating.creating" = "Creating your personalized menu...";
+"generating.balancing" = "Balancing flavors and nutrients...";
+"generating.finishing" = "Final touches to your plan...";
+
+"shopping.noList" = "No shopping list";
+"shopping.generatedOn" = "Generated on";
+"shopping.order" = "Order";
+"shopping.export" = "Export to";
+"shopping.exportAppleNotes" = "Apple Notes";
+"shopping.exportReminders" = "Apple Reminders";
+"shopping.exportShare" = "Share (Google Keep, etc.)";
+"shopping.exportCopy" = "Copy text";
+"shopping.exportTitle" = "Export";
+"shopping.accessDenied" = "Access to reminders denied. Please allow access in Settings.";
+"shopping.errorSaving" = "Error saving";
+"shopping.copied" = "List copied to clipboard";
+
+"adhoc.recipeIdea" = "Recipe Idea";
+"adhoc.servings" = "Servings";
+"adhoc.servingsCount" = "servings";
+
+"count.diets" = "diet(s)";
+"count.allergens" = "allergen(s)";
+"count.dislikes" = "dislike(s)";
+
+"plan.selectMeals" = "Select the meals to plan";
+"plan.generating" = "Generating...";
+"plan.generateList" = "Generate list";
+"plan.mealsSelected" = "meals selected";
+
+"shopping.generateFirst" = "Generate a meal plan first, then come back here to see your shopping list.";
+"shopping.itemsAdded" = "items added to Reminders";
+
+"add_meal.title" = "Add Meal";
+"add_meal.day" = "Day";
+"add_meal.select_day" = "Select Day";
+"add_meal.meal_type" = "Meal Type";
+"add_meal.select_meal_type" = "Select Meal Type";
+"add_meal.manual_entry" = "Manual Entry";
+"add_meal.enter_title" = "Enter recipe title";
+"add_meal.generate_from_title" = "Generate from Title";
+"add_meal.manual_entry_footer" = "Enter a recipe name and AI will generate the complete recipe.";
+"add_meal.ai_generation" = "AI Generation";
+"add_meal.generate_with_ai" = "Generate with AI";
+"add_meal.ai_generation_footer" = "Generate a completely random recipe for this slot.";
+"add_meal.conflict_title" = "Meal Already Exists";
+"add_meal.conflict_message" = "A meal already exists for this day and time. What would you like to do?";
+"add_meal.replace" = "Replace";
+"add_meal.add_anyway" = "Add Anyway";
+
+"favorites.title" = "Saved Recipes";
+"favorites.empty" = "No saved recipes yet";
+"favorites.empty_description" = "Save your favorite recipes by tapping the heart icon when viewing a recipe.";
+"action.save_to_favorites" = "Save to Favorites";
+"action.remove_from_favorites" = "Remove from Favorites";

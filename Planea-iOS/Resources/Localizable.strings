@@ -1,0 +1,45 @@
+"tab.onboarding" = "Famille";
+"tab.plan" = "Plan";
+"tab.shopping" = "Épicerie";
+"tab.settings" = "Réglages";
+
+"onboarding.title" = "Configurer la famille";
+"onboarding.family" = "Famille";
+"onboarding.familyName" = "Nom de la famille";
+"onboarding.hint" = "Ajoutez vos membres, allergies et préférences dans la prochaine étape.";
+
+"plan.title" = "Plan de la semaine";
+"plan.selectSlots" = "Sélectionne les repas à générer";
+
+"week.monday" = "Lundi";
+"week.tuesday" = "Mardi";
+"week.wednesday" = "Mercredi";
+"week.thursday" = "Jeudi";
+"week.friday" = "Vendredi";
+"week.saturday" = "Samedi";
+"week.sunday" = "Dimanche";
+
+"meal.breakfast" = "Déjeuner";
+"meal.lunch" = "Dîner";
+"meal.dinner" = "Souper";
+
+"action.generatePlan" = "Générer le plan";
+"action.generateRecipe" = "Générer la recette";
+"action.exportText" = "Exporter (texte)";
+
+"recipe.info" = "Informations";
+"recipe.servings" = "Portions";
+"recipe.time" = "Temps total";
+"recipe.ingredients" = "Ingrédients";
+"recipe.steps" = "Étapes";
+
+"shopping.title" = "Liste d'épicerie";
+
+"adhoc.title" = "Recette ad hoc";
+"adhoc.promptPlaceholder" = "Ex.: poulet + brocoli, 30 min, 4 portions";
+
+"settings.units" = "Unités";
+"settings.language" = "Langue";
+"units.metric" = "Métrique";
+"units.imperial" = "Impérial";
+"lang.system" = "Système";

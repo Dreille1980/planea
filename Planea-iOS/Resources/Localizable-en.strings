@@ -1,0 +1,45 @@
+"tab.onboarding" = "Family";
+"tab.plan" = "Plan";
+"tab.shopping" = "Groceries";
+"tab.settings" = "Settings";
+
+"onboarding.title" = "Setup Family";
+"onboarding.family" = "Family";
+"onboarding.familyName" = "Family name";
+"onboarding.hint" = "Add members, allergies and preferences in the next step.";
+
+"plan.title" = "Week Plan";
+"plan.selectSlots" = "Select slots to generate";
+
+"week.monday" = "Monday";
+"week.tuesday" = "Tuesday";
+"week.wednesday" = "Wednesday";
+"week.thursday" = "Thursday";
+"week.friday" = "Friday";
+"week.saturday" = "Saturday";
+"week.sunday" = "Sunday";
+
+"meal.breakfast" = "Breakfast";
+"meal.lunch" = "Lunch";
+"meal.dinner" = "Dinner";
+
+"action.generatePlan" = "Generate Plan";
+"action.generateRecipe" = "Generate Recipe";
+"action.exportText" = "Export (text)";
+
+"recipe.info" = "Information";
+"recipe.servings" = "Servings";
+"recipe.time" = "Total time";
+"recipe.ingredients" = "Ingredients";
+"recipe.steps" = "Steps";
+
+"shopping.title" = "Shopping List";
+
+"adhoc.title" = "Ad hoc recipe";
+"adhoc.promptPlaceholder" = "e.g., chicken + broccoli, 30 min, 4 servings";
+
+"settings.units" = "Units";
+"settings.language" = "Language";
+"units.metric" = "Metric";
+"units.imperial" = "Imperial";
+"lang.system" = "System";
