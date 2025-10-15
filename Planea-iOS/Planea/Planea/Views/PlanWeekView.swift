@@ -200,7 +200,7 @@ struct PlanWeekView: View {
         errorMessage = nil
         
         do {
-            let service = IAService(baseURL: URL(string: "http://localhost:8000")!)
+            let service = IAService(baseURL: URL(string: Config.baseURL)!)
             let units = UnitSystem(rawValue: unitSystem) ?? .metric
             let constraints = familyVM.aggregatedConstraints()
             let constraintsDict: [String: Any] = [
@@ -253,7 +253,7 @@ struct PlanWeekView: View {
         regeneratingMealId = mealItem.id
         
         do {
-            let service = IAService(baseURL: URL(string: "http://localhost:8000")!)
+            let service = IAService(baseURL: URL(string: Config.baseURL)!)
             let units = UnitSystem(rawValue: unitSystem) ?? .metric
             let constraints = familyVM.aggregatedConstraints()
             let constraintsDict: [String: Any] = [
