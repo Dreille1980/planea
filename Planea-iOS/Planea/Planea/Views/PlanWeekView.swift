@@ -237,7 +237,21 @@ struct PlanWeekView: View {
             // Record generation usage
             usageVM.recordGenerations(count: plan.items.count)
         } catch {
-            errorMessage = "\("plan.error".localized): \(error.localizedDescription)"
+            // Provide more helpful error messages
+            if let urlError = error as? URLError {
+                switch urlError.code {
+                case .notConnectedToInternet:
+                    errorMessage = "Aucune connexion Internet. Vérifiez votre WiFi ou données cellulaires."
+                case .timedOut:
+                    errorMessage = "Le serveur ne répond pas. Réessayez dans quelques instants."
+                case .cannotFindHost, .cannotConnectToHost:
+                    errorMessage = "Impossible de contacter le serveur. Vérifiez votre connexion."
+                default:
+                    errorMessage = "Erreur réseau: \(urlError.localizedDescription)"
+                }
+            } else {
+                errorMessage = "\("plan.error".localized): \(error.localizedDescription)"
+            }
         }
         
         isGenerating = false
