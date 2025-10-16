@@ -1,9 +1,20 @@
 import Foundation
 
 enum SortOrder: String, Codable, CaseIterable {
-    case alphabetical = "Alphabétique"
-    case storeLayout = "Ordre d'épicerie"
-    case custom = "Personnalisé"
+    case alphabetical = "alphabetical"
+    case storeLayout = "storeLayout"
+    case custom = "custom"
+    
+    var localizedName: String {
+        switch self {
+        case .alphabetical:
+            return "shopping.sort.alphabetical"
+        case .storeLayout:
+            return "shopping.sort.storeLayout"
+        case .custom:
+            return "shopping.sort.custom"
+        }
+    }
 }
 
 struct ShoppingList: Identifiable, Codable {

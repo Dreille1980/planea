@@ -6,8 +6,15 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		21D272C42E9F2CFF00B5A329 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21D272C32E9F2CFF00B5A329 /* StoreKit.framework */; };
+		21D272C82E9F2D9300B5A329 /* Planea.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 21D272C72E9F2D9300B5A329 /* Planea.storekit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		21463BD82E98922300C17D17 /* Planea.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Planea.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		21D272C32E9F2CFF00B5A329 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		21D272C72E9F2D9300B5A329 /* Planea.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = Planea.storekit; path = Planea/Planea.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -36,6 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				21D272C42E9F2CFF00B5A329 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -45,7 +53,9 @@
 		21463BCF2E98922300C17D17 = {
 			isa = PBXGroup;
 			children = (
+				21D272C72E9F2D9300B5A329 /* Planea.storekit */,
 				21463BDA2E98922300C17D17 /* Planea */,
+				21D272C22E9F2CFE00B5A329 /* Frameworks */,
 				21463BD92E98922300C17D17 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -56,6 +66,14 @@
 				21463BD82E98922300C17D17 /* Planea.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		21D272C22E9F2CFE00B5A329 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				21D272C32E9F2CFF00B5A329 /* StoreKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -123,6 +141,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				21D272C82E9F2D9300B5A329 /* Planea.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

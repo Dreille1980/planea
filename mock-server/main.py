@@ -83,6 +83,9 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
     if constraints.get("evict"):
         allergies = ", ".join(constraints["evict"])
         constraints_text += f"Allergies/Éviter: {allergies}. "
+    # IMPORTANT: Include user preferences from "extra" field
+    if constraints.get("extra"):
+        constraints_text += f"\n\nPRÉFÉRENCES UTILISATEUR (À RESPECTER STRICTEMENT):\n{constraints['extra']}\n"
     
     # Build diversity instructions with enhanced variety prompts
     diversity_text = "\n\nIMPORTANT - DIVERSITÉ ET ORIGINALITÉ:\n"
@@ -348,6 +351,9 @@ async def ai_recipe(req: RecipeRequest):
         if req.constraints.get("evict"):
             allergies = ", ".join(req.constraints["evict"])
             constraints_text += f"Allergies/Avoid: {allergies}. "
+        # IMPORTANT: Include user preferences
+        if req.constraints.get("extra"):
+            constraints_text += f"\n\nUSER PREFERENCES (MUST BE STRICTLY RESPECTED):\n{req.constraints['extra']}\n"
         
         unit_system = "metric (grams, ml)" if req.units == "METRIC" else "imperial (oz, cups)"
         
@@ -395,6 +401,9 @@ IMPORTANT: Generate at least 5-7 detailed steps with EXPLICIT preparation steps 
         if req.constraints.get("evict"):
             allergies = ", ".join(req.constraints["evict"])
             constraints_text += f"Allergies/Éviter: {allergies}. "
+        # IMPORTANT: Include user preferences
+        if req.constraints.get("extra"):
+            constraints_text += f"\n\nPRÉFÉRENCES UTILISATEUR (À RESPECTER STRICTEMENT):\n{req.constraints['extra']}\n"
         
         unit_system = "métrique (grammes, ml)" if req.units == "METRIC" else "impérial (oz, cups)"
         
@@ -480,6 +489,9 @@ async def ai_recipe_from_title(req: RecipeFromTitleRequest):
         if req.constraints.get("evict"):
             allergies = ", ".join(req.constraints["evict"])
             constraints_text += f"Allergies/Avoid: {allergies}. "
+        # IMPORTANT: Include user preferences
+        if req.constraints.get("extra"):
+            constraints_text += f"\n\nUSER PREFERENCES (MUST BE STRICTLY RESPECTED):\n{req.constraints['extra']}\n"
         
         unit_system = "metric (grams, ml)" if req.units == "METRIC" else "imperial (oz, cups)"
         
@@ -530,6 +542,9 @@ IMPORTANT:
         if req.constraints.get("evict"):
             allergies = ", ".join(req.constraints["evict"])
             constraints_text += f"Allergies/Éviter: {allergies}. "
+        # IMPORTANT: Include user preferences
+        if req.constraints.get("extra"):
+            constraints_text += f"\n\nPRÉFÉRENCES UTILISATEUR (À RESPECTER STRICTEMENT):\n{req.constraints['extra']}\n"
         
         unit_system = "métrique (grammes, ml)" if req.units == "METRIC" else "impérial (oz, cups)"
         
@@ -613,3 +628,13 @@ IMPORTANT:
 @app.get("/")
 def root():
     return {"message": "Planea AI Server with OpenAI - Ready!"}
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

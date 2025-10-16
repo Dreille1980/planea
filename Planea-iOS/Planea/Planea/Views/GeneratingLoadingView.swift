@@ -7,12 +7,12 @@ struct GeneratingLoadingView: View {
     @State private var rotation: Double = 0
     
     let messages = [
-        ("🔍", String(localized: "generating.exploring")),
-        ("👨‍🍳", String(localized: "generating.chefs")),
-        ("🌍", String(localized: "generating.discovering")),
-        ("✨", String(localized: "generating.creating")),
-        ("🎯", String(localized: "generating.balancing")),
-        ("📝", String(localized: "generating.finishing"))
+        ("🔍", "generating.exploring".localized),
+        ("👨‍🍳", "generating.chefs".localized),
+        ("🌍", "generating.discovering".localized),
+        ("✨", "generating.creating".localized),
+        ("🎯", "generating.balancing".localized),
+        ("📝", "generating.finishing".localized)
     ]
     
     var body: some View {
@@ -62,7 +62,7 @@ struct GeneratingLoadingView: View {
                     ))
                     .id(currentMessageIndex)
                 
-                Text("\(String(localized: "plan.creating")) \(totalItems) \(String(localized: "plan.meals"))")
+                Text("\("plan.creating".localized) \(totalItems) \("plan.meals".localized)")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

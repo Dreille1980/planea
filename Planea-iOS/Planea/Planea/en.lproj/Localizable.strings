@@ -36,6 +36,9 @@
 "recipe.steps" = "Steps";
 
 "shopping.title" = "Shopping List";
+"shopping.sort.alphabetical" = "Alphabetical";
+"shopping.sort.storeLayout" = "Store Layout";
+"shopping.sort.custom" = "Custom";
 
 "adhoc.title" = "Ad hoc recipe";
 "adhoc.promptPlaceholder" = "e.g., chicken + broccoli, 30 min, 4 servings";
@@ -139,3 +142,125 @@
 "favorites.empty_description" = "Save your favorite recipes by tapping the heart icon when viewing a recipe.";
 "action.save_to_favorites" = "Save to Favorites";
 "action.remove_from_favorites" = "Remove from Favorites";
+"action.validate" = "Validate";
+
+// Subscription
+"settings.subscription" = "Subscription";
+"subscription.title" = "Planea Premium";
+"subscription.status" = "Status";
+"subscription.status.active" = "Active";
+"subscription.status.trial" = "Trial";
+"subscription.status.free" = "Free";
+"subscription.status.developer" = "Developer";
+"subscription.trialEnded" = "Your free trial has ended";
+"subscription.monthly" = "Monthly";
+"subscription.yearly" = "Annual";
+"subscription.monthly.description" = "Full access to all features";
+"subscription.yearly.description" = "Best value - Save $10 per year";
+"subscription.save" = "Save %@";
+"subscription.subscribe" = "Subscribe";
+"subscription.subscribe.now" = "Subscribe Now";
+"subscription.restore" = "Restore Purchases";
+"subscription.restore.notfound" = "No purchases found to restore";
+"subscription.manage" = "Manage Subscription";
+"subscription.terms" = "Terms of Service";
+"subscription.privacy" = "Privacy Policy";
+"subscription.error" = "Error";
+"subscription.error.verification" = "Failed to verify purchase";
+"subscription.error.purchase" = "Purchase failed";
+"subscription.error.notfound" = "Product not found";
+"subscription.period.day" = "day";
+"subscription.period.days" = "days";
+"subscription.period.week" = "week";
+"subscription.period.weeks" = "weeks";
+"subscription.period.month" = "month";
+"subscription.period.months" = "months";
+"subscription.period.year" = "year";
+"subscription.period.years" = "years";
+
+// Lock overlay
+"subscription.locked.title" = "Premium Feature";
+"subscription.locked.description" = "Subscribe to unlock all features and start planning your meals!";
+"subscription.unlock" = "Subscribe Now";
+"subscription.trial.days" = "%d days free trial";
+"subscription.trial.weeks" = "%d weeks free trial";
+"subscription.trial.months" = "%d months free trial";
+"subscription.trial.years" = "%d years free trial";
+"subscription.trial.remaining" = "Trial Days Remaining";
+"subscription.trial.daysLeft" = "days";
+"subscription.welcome" = "🎉 7 Days Free!";
+"subscription.welcome.message" = "Enjoy all features free for 7 days";
+"subscription.feature.planning" = "Weekly meal planning with AI";
+"subscription.feature.shopping" = "Smart shopping lists";
+"subscription.feature.ai" = "AI-powered recipe generation";
+"subscription.feature.family" = "Unlimited family members";
+"subscription.developer.code" = "Developer Access Code";
+"subscription.developer.remove" = "Remove Developer Access";
+"settings.version" = "Version";
+
+// Legal
+"legal.title" = "Legal";
+"legal.terms.title" = "Terms and Conditions";
+"legal.privacy.title" = "Privacy Policy";
+"legal.terms.content" = "TERMS AND CONDITIONS\n\nLast updated: January 2025\n\n1. ACCEPTANCE OF TERMS\n\nBy downloading, accessing, or using Planea (\"the App\"), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use the App.\n\n2. DESCRIPTION OF SERVICE\n\nPlanea is a meal planning application that uses artificial intelligence to generate personalized meal plans, recipes, and shopping lists based on user preferences, dietary restrictions, and family profiles.\n\n3. USER ACCOUNTS\n\n3.1 You are responsible for maintaining the confidentiality of your account information.\n3.2 You agree to provide accurate, current, and complete information.\n3.3 You are responsible for all activities that occur under your account.\n\n4. SUBSCRIPTION AND PAYMENT\n\n4.1 The App offers subscription plans with a free trial period.\n4.2 Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current period.\n4.3 Payment will be charged to your iTunes Account at confirmation of purchase.\n4.4 You can manage or cancel your subscription through your App Store account settings.\n\n5. AI-GENERATED CONTENT\n\n5.1 The App uses AI to generate meal plans and recipes.\n5.2 While we strive for accuracy, we do not guarantee the nutritional accuracy or suitability of generated content.\n5.3 Users with severe allergies or specific dietary requirements should verify all recipes and ingredients.\n5.4 We are not responsible for any health issues arising from following AI-generated recipes.\n\n6. USER CONTENT\n\n6.1 You retain ownership of any content you create within the App.\n6.2 By using the App, you grant us a license to use your data to improve our services.\n6.3 We may use anonymized data for research and development purposes.\n\n7. INTELLECTUAL PROPERTY\n\n7.1 The App and its original content, features, and functionality are owned by Planea and are protected by international copyright, trademark, and other intellectual property laws.\n\n8. PROHIBITED USES\n\nYou may not:\n- Use the App for any illegal purpose\n- Attempt to gain unauthorized access to the App or its systems\n- Interfere with or disrupt the App or servers\n- Reverse engineer or attempt to extract the source code\n\n9. DISCLAIMER OF WARRANTIES\n\nThe App is provided \"as is\" and \"as available\" without warranties of any kind, either express or implied.\n\n10. LIMITATION OF LIABILITY\n\nTo the maximum extent permitted by law, Planea shall not be liable for any indirect, incidental, special, consequential, or punitive damages.\n\n11. CHANGES TO TERMS\n\nWe reserve the right to modify these terms at any time. Continued use of the App after changes constitutes acceptance of the new terms.\n\n12. GOVERNING LAW\n\nThese terms shall be governed by and construed in accordance with the laws of Canada.\n\n13. CONTACT\n\nFor questions about these Terms, please contact us through the App's feedback feature or at dreyerfred+planea@gmail.com.";
+"legal.privacy.content" = "PRIVACY POLICY\n\nLast updated: January 2025\n\n1. INTRODUCTION\n\nPlanea (\"we,\" \"our,\" or \"us\") respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, and protect your information when you use our App.\n\n2. INFORMATION WE COLLECT\n\n2.1 Information You Provide:\n- Family profile information (names, dietary preferences, allergies, dislikes)\n- Meal plans and recipes you create or save\n- Shopping lists\n- App preferences and settings\n\n2.2 Automatically Collected Information:\n- Device information (iOS version, device model)\n- App usage data (features used, time spent)\n- Crash reports and performance data\n\n2.3 AI Service Data:\n- Recipe generation prompts\n- Meal planning preferences\n- This data is processed by our AI service provider (OpenAI/Anthropic) according to their privacy policies\n\n3. HOW WE USE YOUR INFORMATION\n\nWe use your information to:\n- Provide and improve the App's functionality\n- Generate personalized meal plans and recipes\n- Process your subscription\n- Send important updates about the App\n- Analyze usage patterns to improve our services\n- Provide customer support\n\n4. DATA STORAGE AND SECURITY\n\n4.1 Your data is primarily stored locally on your device using Apple's Core Data framework.\n4.2 Subscription information is managed through Apple's App Store.\n4.3 AI-generated content requests are sent to our service providers with appropriate security measures.\n4.4 We implement industry-standard security measures to protect your data.\n\n5. DATA SHARING\n\nWe do not sell your personal information. We may share data with:\n- AI service providers (OpenAI/Anthropic) for recipe generation\n- Apple for subscription management\n- Analytics services (anonymized data only)\n\n6. YOUR RIGHTS\n\nYou have the right to:\n- Access your personal data\n- Correct inaccurate data\n- Delete your data (by deleting the App)\n- Export your data\n- Opt out of analytics\n\n7. CHILDREN'S PRIVACY\n\nOur App is not intended for children under 13. We do not knowingly collect data from children under 13.\n\n8. THIRD-PARTY SERVICES\n\n8.1 OpenAI/Anthropic API: Used for AI recipe generation. Their privacy policies apply to data sent to their services.\n8.2 Apple Services: Subscription and payment data is handled by Apple according to their privacy policy.\n\n9. DATA RETENTION\n\nWe retain your data as long as you use the App. When you delete the App, all locally stored data is removed from your device.\n\n10. INTERNATIONAL DATA TRANSFERS\n\nYour data may be processed in countries outside your country of residence, including the United States, where our AI service providers operate.\n\n11. CHANGES TO THIS POLICY\n\nWe may update this Privacy Policy from time to time. We will notify you of significant changes through the App.\n\n12. COOKIES AND TRACKING\n\nWe do not use cookies or web tracking technologies. All data is stored locally on your device.\n\n13. CONTACT US\n\nFor questions about this Privacy Policy or to exercise your rights, please contact us:\n- Through the App's feedback feature\n- Email: dreyerfred+privacyplanea@gmail.com\n\n14. GDPR COMPLIANCE (FOR EU USERS)\n\nIf you are in the European Union, you have additional rights under GDPR:\n- Right to data portability\n- Right to restriction of processing\n- Right to object to processing\n- Right to lodge a complaint with a supervisory authority";
+
+// Usage Tracking
+"usage.limit_reached" = "Monthly limit reached";
+"usage.limit_message" = "You've used your 15 free recipes this month. Upgrade to Premium for unlimited access.";
+"usage.remaining" = "%d/15 recipes";
+"usage.unlimited" = "Unlimited ✨";
+"usage.premium_feature" = "Premium Feature";
+"usage.monthly" = "Monthly Usage";
+
+// Generation Preferences (Premium Feature)
+"prefs.generation" = "Generation Preferences";
+"prefs.title" = "Recipe Preferences";
+"prefs.time" = "Cooking Time";
+"prefs.time.footer" = "Maximum cooking time for weekdays and weekends";
+"prefs.weekday" = "Weekday Maximum";
+"prefs.weekend" = "Weekend Maximum";
+"prefs.spice" = "Spice Level";
+"prefs.proteins" = "Preferred Proteins";
+"prefs.proteins.footer" = "Select your preferred protein sources";
+"prefs.appliances" = "Available Equipment";
+"prefs.appliances.footer" = "Equipment you have available for cooking";
+"prefs.options" = "Additional Options";
+"prefs.kidfriendly" = "Kid-Friendly Meals";
+"prefs.kidfriendly.footer" = "Prefer meals suitable for children";
+"prefs.reset" = "Reset to Defaults";
+
+// Spice Levels
+"spice.none" = "None";
+"spice.mild" = "Mild";
+"spice.medium" = "Medium";
+"spice.hot" = "Hot";
+
+// Appliances
+"appliance.oven" = "Oven";
+"appliance.bbq" = "BBQ/Grill";
+"appliance.airfryer" = "Air Fryer";
+"appliance.slowcooker" = "Slow Cooker";
+"appliance.instapot" = "Instant Pot";
+"appliance.microwave" = "Microwave";
+
+// Proteins
+"protein.chicken" = "Chicken";
+"protein.beef" = "Beef";
+"protein.pork" = "Pork";
+"protein.fish" = "Fish";
+"protein.seafood" = "Seafood";
+"protein.tofu" = "Tofu";
+"protein.legumes" = "Legumes";
+"protein.eggs" = "Eggs";
+
+// Contact & Support
+"settings.support" = "Support & Feedback";
+"settings.contact" = "Contact Us";
+"settings.feedback" = "Send Feedback";
+"settings.reportBug" = "Report a Bug";
+"settings.featureRequest" = "Suggest a Feature";
+"feedback.subject" = "Feedback - Planea iOS";
+"feedback.body" = "Please share your feedback or report any issues:\n\n\n\n---\nApp Version: %@\niOS Version: %@\nDevice: %@";
+"feedback.sent" = "Thank you for your feedback!";
+"feedback.error" = "Could not open email. Please email us at dreyerfred+planea@gmail.com";

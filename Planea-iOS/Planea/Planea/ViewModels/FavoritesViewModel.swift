@@ -3,14 +3,20 @@ import CoreData
 
 class FavoritesViewModel: ObservableObject {
     @Published var savedRecipes: [Recipe] = []
+    @Published var showPaywall = false
     
     private let persistenceController: PersistenceController
     private let container: NSPersistentContainer
+    private var usageVM: UsageViewModel?
     
     init(persistenceController: PersistenceController = .shared) {
         self.persistenceController = persistenceController
         self.container = persistenceController.container
         loadSavedRecipes()
+    }
+    
+    func setUsageViewModel(_ usageVM: UsageViewModel) {
+        self.usageVM = usageVM
     }
     
     func loadSavedRecipes() {
@@ -43,7 +49,14 @@ class FavoritesViewModel: ObservableObject {
         }
     }
     
+    @MainActor
     func saveRecipe(_ recipe: Recipe) {
+        // Check if user has free plan restrictions
+        if let usageVM = usageVM, usageVM.hasFreePlanRestrictions {
+            showPaywall = true
+            return
+        }
+        
         let context = container.viewContext
         
         // Check if already saved

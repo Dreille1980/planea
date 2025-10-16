@@ -4,6 +4,7 @@ struct AddMealSheet: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var familyVM: FamilyViewModel
     @EnvironmentObject var planVM: PlanViewModel
+    @EnvironmentObject var usageVM: UsageViewModel
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
     @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
     
@@ -13,6 +14,7 @@ struct AddMealSheet: View {
     @State private var isGenerating: Bool = false
     @State private var errorMessage: String?
     @State private var showConflictAlert: Bool = false
+    @State private var showPaywall: Bool = false
     @State private var conflictAction: ConflictAction = .replace
     @State private var generatedRecipe: Recipe?
     
@@ -28,18 +30,18 @@ struct AddMealSheet: View {
             Form {
                 // Day selection
                 Section {
-                    Picker(String(localized: "add_meal.select_day"), selection: $selectedDay) {
+                    Picker("add_meal.select_day".localized, selection: $selectedDay) {
                         ForEach(weekdays, id: \.self) { day in
                             Text(dayLabel(for: day)).tag(day)
                         }
                     }
                 } header: {
-                    Text(String(localized: "add_meal.day"))
+                    Text("add_meal.day".localized)
                 }
                 
                 // Meal type selection
                 Section {
-                    Picker(String(localized: "add_meal.select_meal_type"), selection: $selectedMealType) {
+                    Picker("add_meal.select_meal_type".localized, selection: $selectedMealType) {
                         ForEach(mealTypes, id: \.self) { type in
                             HStack {
                                 Image(systemName: iconName(for: type))
@@ -49,12 +51,12 @@ struct AddMealSheet: View {
                         }
                     }
                 } header: {
-                    Text(String(localized: "add_meal.meal_type"))
+                    Text("add_meal.meal_type".localized)
                 }
                 
                 // Manual entry section
                 Section {
-                    TextField(String(localized: "add_meal.enter_title"), text: $customTitle)
+                    TextField("add_meal.enter_title".localized, text: $customTitle)
                     
                     Button(action: {
                         Task {
@@ -67,16 +69,16 @@ struct AddMealSheet: View {
                                     .progressViewStyle(.circular)
                             } else {
                                 Image(systemName: "text.badge.sparkles")
-                                Text(String(localized: "add_meal.generate_from_title"))
+                                Text("add_meal.generate_from_title".localized)
                             }
                         }
                         .frame(maxWidth: .infinity)
                     }
                     .disabled(customTitle.isEmpty || isGenerating)
                 } header: {
-                    Text(String(localized: "add_meal.manual_entry"))
+                    Text("add_meal.manual_entry".localized)
                 } footer: {
-                    Text(String(localized: "add_meal.manual_entry_footer"))
+                    Text("add_meal.manual_entry_footer".localized)
                         .font(.caption)
                 }
                 
@@ -93,16 +95,16 @@ struct AddMealSheet: View {
                                     .progressViewStyle(.circular)
                             } else {
                                 Image(systemName: "sparkles")
-                                Text(String(localized: "add_meal.generate_with_ai"))
+                                Text("add_meal.generate_with_ai".localized)
                             }
                         }
                         .frame(maxWidth: .infinity)
                     }
                     .disabled(isGenerating)
                 } header: {
-                    Text(String(localized: "add_meal.ai_generation"))
+                    Text("add_meal.ai_generation".localized)
                 } footer: {
-                    Text(String(localized: "add_meal.ai_generation_footer"))
+                    Text("add_meal.ai_generation_footer".localized)
                         .font(.caption)
                 }
                 
@@ -115,35 +117,44 @@ struct AddMealSheet: View {
                     }
                 }
             }
-            .navigationTitle(String(localized: "add_meal.title"))
+            .navigationTitle("add_meal.title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(String(localized: "action.cancel")) {
+                    Button("action.cancel".localized) {
                         dismiss()
                     }
                 }
             }
-            .alert(String(localized: "add_meal.conflict_title"), isPresented: $showConflictAlert) {
-                Button(String(localized: "add_meal.replace"), role: .destructive) {
+            .alert("add_meal.conflict_title".localized, isPresented: $showConflictAlert) {
+                Button("add_meal.replace".localized, role: .destructive) {
                     conflictAction = .replace
                     addMealToPlan()
                 }
-                Button(String(localized: "add_meal.add_anyway")) {
+                Button("add_meal.add_anyway".localized) {
                     conflictAction = .add
                     addMealToPlan()
                 }
-                Button(String(localized: "action.cancel"), role: .cancel) {
+                Button("action.cancel".localized, role: .cancel) {
                     generatedRecipe = nil
                 }
             } message: {
-                Text(String(localized: "add_meal.conflict_message"))
+                Text("add_meal.conflict_message".localized)
+            }
+            .sheet(isPresented: $showPaywall) {
+                SubscriptionPaywallView(limitReached: true)
             }
         }
     }
     
     func generateFromTitle() async {
         guard !customTitle.isEmpty else { return }
+        
+        // Check if user can generate
+        guard usageVM.canGenerate(count: 1) else {
+            showPaywall = true
+            return
+        }
         
         isGenerating = true
         errorMessage = nil
@@ -168,16 +179,23 @@ struct AddMealSheet: View {
             )
             
             generatedRecipe = recipe
+            usageVM.recordGenerations(count: 1)
             checkForConflictAndAdd()
             
         } catch {
-            errorMessage = "\(String(localized: "plan.error")): \(error.localizedDescription)"
+            errorMessage = "\("plan.error".localized): \(error.localizedDescription)"
         }
         
         isGenerating = false
     }
     
     func generateWithAI() async {
+        // Check if user can generate
+        guard usageVM.canGenerate(count: 1) else {
+            showPaywall = true
+            return
+        }
+        
         isGenerating = true
         errorMessage = nil
         
@@ -203,10 +221,11 @@ struct AddMealSheet: View {
             )
             
             generatedRecipe = recipe
+            usageVM.recordGenerations(count: 1)
             checkForConflictAndAdd()
             
         } catch {
-            errorMessage = "\(String(localized: "plan.error")): \(error.localizedDescription)"
+            errorMessage = "\("plan.error".localized): \(error.localizedDescription)"
         }
         
         isGenerating = false
@@ -250,22 +269,22 @@ struct AddMealSheet: View {
     
     func dayLabel(for day: Weekday) -> String {
         switch day {
-        case .monday: return String(localized: "week.monday")
-        case .tuesday: return String(localized: "week.tuesday")
-        case .wednesday: return String(localized: "week.wednesday")
-        case .thursday: return String(localized: "week.thursday")
-        case .friday: return String(localized: "week.friday")
-        case .saturday: return String(localized: "week.saturday")
-        case .sunday: return String(localized: "week.sunday")
+        case .monday: return "week.monday".localized
+        case .tuesday: return "week.tuesday".localized
+        case .wednesday: return "week.wednesday".localized
+        case .thursday: return "week.thursday".localized
+        case .friday: return "week.friday".localized
+        case .saturday: return "week.saturday".localized
+        case .sunday: return "week.sunday".localized
         }
     }
     
     func mealLabel(for type: MealType) -> String {
         switch type {
-        case .breakfast: return String(localized: "meal.breakfast")
-        case .lunch: return String(localized: "meal.lunch")
-        case .dinner: return String(localized: "meal.dinner")
-        case .snack: return String(localized: "meal.snack")
+        case .breakfast: return "meal.breakfast".localized
+        case .lunch: return "meal.lunch".localized
+        case .dinner: return "meal.dinner".localized
+        case .snack: return "meal.snack".localized
         }
     }
     

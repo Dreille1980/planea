@@ -14,11 +14,11 @@ struct SavedRecipesView: View {
                             .foregroundStyle(.secondary)
                         
                         VStack(spacing: 8) {
-                            Text(String(localized: "favorites.empty"))
+                            Text("favorites.empty".localized)
                                 .font(.title3)
                                 .bold()
                             
-                            Text(String(localized: "favorites.empty_description"))
+                            Text("favorites.empty_description".localized)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
@@ -45,7 +45,7 @@ struct SavedRecipesView: View {
                     }
                 }
             }
-            .navigationTitle(String(localized: "favorites.title"))
+            .navigationTitle("favorites.title".localized)
             .navigationBarTitleDisplayMode(.inline)
         }
     }

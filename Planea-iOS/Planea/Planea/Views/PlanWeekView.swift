@@ -3,12 +3,14 @@ import SwiftUI
 struct PlanWeekView: View {
     @EnvironmentObject var familyVM: FamilyViewModel
     @EnvironmentObject var planVM: PlanViewModel
+    @EnvironmentObject var usageVM: UsageViewModel
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
     @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
     @State private var isGenerating = false
     @State private var errorMessage: String?
     @State private var regeneratingMealId: UUID?
     @State private var showAddMealSheet = false
+    @State private var showPaywall = false
     
     let weekdays: [Weekday] = [.monday,.tuesday,.wednesday,.thursday,.friday,.saturday,.sunday]
     let mealTypes: [MealType] = [.breakfast,.lunch,.dinner]
@@ -54,7 +56,7 @@ struct PlanWeekView: View {
                                     planVM.slots.removeAll()
                                 }
                             }) {
-                                Label(String(localized: "action.newPlan"), systemImage: "arrow.counterclockwise")
+                                Label("action.newPlan".localized, systemImage: "arrow.counterclockwise")
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 12)
                             }
@@ -69,11 +71,11 @@ struct PlanWeekView: View {
                             VStack(spacing: 16) {
                                 // Header
                                 VStack(spacing: 4) {
-                                    Text(String(localized: "plan.planYourWeek"))
+                                    Text("plan.planYourWeek".localized)
                                         .font(.title3)
                                         .bold()
                                     
-                                    Text(String(localized: "plan.selectMeals"))
+                                    Text("plan.selectMeals".localized)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -119,7 +121,7 @@ struct PlanWeekView: View {
                                         } else {
                                             Image(systemName: "sparkles")
                                         }
-                                        Text(isGenerating ? String(localized: "plan.generating") : String(localized: "action.generatePlan"))
+                                        Text(isGenerating ? "plan.generating".localized : "action.generatePlan".localized)
                                             .bold()
                                     }
                                     .frame(maxWidth: .infinity)
@@ -129,7 +131,7 @@ struct PlanWeekView: View {
                                 .disabled(planVM.slots.isEmpty || isGenerating)
                                 
                                 if !planVM.slots.isEmpty {
-                                    Text("\(planVM.slots.count) \(String(localized: "plan.mealsSelected"))")
+                                    Text("\(planVM.slots.count) \("plan.mealsSelected".localized)")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -176,12 +178,15 @@ struct PlanWeekView: View {
                     }
                 }
             }
-            .navigationTitle(String(localized: "plan.title"))
+            .navigationTitle("plan.title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showAddMealSheet) {
                 AddMealSheet()
                     .environmentObject(familyVM)
                     .environmentObject(planVM)
+            }
+            .sheet(isPresented: $showPaywall) {
+                SubscriptionPaywallView(limitReached: true)
             }
         }
     }
@@ -196,6 +201,13 @@ struct PlanWeekView: View {
     }
     
     func generatePlan() async {
+        // Check if user can generate this many recipes
+        let slotCount = planVM.slots.count
+        guard usageVM.canGenerate(count: slotCount) else {
+            showPaywall = true
+            return
+        }
+        
         isGenerating = true
         errorMessage = nil
         
@@ -221,8 +233,11 @@ struct PlanWeekView: View {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 planVM.currentPlan = plan
             }
+            
+            // Record generation usage
+            usageVM.recordGenerations(count: plan.items.count)
         } catch {
-            errorMessage = "\(String(localized: "plan.error")): \(error.localizedDescription)"
+            errorMessage = "\("plan.error".localized): \(error.localizedDescription)"
         }
         
         isGenerating = false
@@ -230,26 +245,32 @@ struct PlanWeekView: View {
     
     func dayLabel(for wd: Weekday) -> String {
         switch wd {
-        case .monday: return String(localized: "week.monday")
-        case .tuesday: return String(localized: "week.tuesday")
-        case .wednesday: return String(localized: "week.wednesday")
-        case .thursday: return String(localized: "week.thursday")
-        case .friday: return String(localized: "week.friday")
-        case .saturday: return String(localized: "week.saturday")
-        case .sunday: return String(localized: "week.sunday")
+        case .monday: return "week.monday".localized
+        case .tuesday: return "week.tuesday".localized
+        case .wednesday: return "week.wednesday".localized
+        case .thursday: return "week.thursday".localized
+        case .friday: return "week.friday".localized
+        case .saturday: return "week.saturday".localized
+        case .sunday: return "week.sunday".localized
         }
     }
     
     func label(for mt: MealType) -> String {
         switch mt {
-        case .breakfast: return String(localized: "meal.breakfast")
-        case .lunch: return String(localized: "meal.lunch")
-        case .dinner: return String(localized: "meal.dinner")
-        case .snack: return String(localized: "meal.snack")
+        case .breakfast: return "meal.breakfast".localized
+        case .lunch: return "meal.lunch".localized
+        case .dinner: return "meal.dinner".localized
+        case .snack: return "meal.snack".localized
         }
     }
     
     func regenerateMeal(_ mealItem: MealItem) async {
+        // Check if user can regenerate
+        guard usageVM.canGenerate(count: 1) else {
+            showPaywall = true
+            return
+        }
+        
         regeneratingMealId = mealItem.id
         
         do {
@@ -276,6 +297,9 @@ struct PlanWeekView: View {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 planVM.regenerateMeal(mealItem: mealItem, newRecipe: newRecipe)
             }
+            
+            // Record generation usage
+            usageVM.recordGenerations(count: 1)
         } catch {
             errorMessage = "Erreur: \(error.localizedDescription)"
         }

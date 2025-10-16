@@ -36,6 +36,9 @@
 "recipe.steps" = "Étapes";
 
 "shopping.title" = "Liste d'épicerie";
+"shopping.sort.alphabetical" = "Alphabétique";
+"shopping.sort.storeLayout" = "Ordre d'épicerie";
+"shopping.sort.custom" = "Personnalisé";
 
 "adhoc.title" = "Recette ad hoc";
 "adhoc.promptPlaceholder" = "Ex.: poulet + brocoli, 30 min, 4 portions";
@@ -139,3 +142,125 @@
 "favorites.empty_description" = "Sauvegardez vos recettes préférées en appuyant sur l'icône cœur lors de la consultation d'une recette.";
 "action.save_to_favorites" = "Sauvegarder aux favoris";
 "action.remove_from_favorites" = "Retirer des favoris";
+"action.validate" = "Valider";
+
+// Abonnement
+"settings.subscription" = "Abonnement";
+"subscription.title" = "Planea Premium";
+"subscription.status" = "Statut";
+"subscription.status.active" = "Actif";
+"subscription.status.trial" = "Essai";
+"subscription.status.free" = "Gratuit";
+"subscription.status.developer" = "Développeur";
+"subscription.trialEnded" = "Votre essai gratuit est terminé";
+"subscription.monthly" = "Mensuel";
+"subscription.yearly" = "Annuel";
+"subscription.monthly.description" = "Accès complet à toutes les fonctionnalités";
+"subscription.yearly.description" = "Meilleure valeur - Économisez 10$ par année";
+"subscription.save" = "Économisez %@";
+"subscription.subscribe" = "S'abonner";
+"subscription.subscribe.now" = "S'abonner maintenant";
+"subscription.restore" = "Restaurer les achats";
+"subscription.restore.notfound" = "Aucun achat trouvé à restaurer";
+"subscription.manage" = "Gérer l'abonnement";
+"subscription.terms" = "Conditions d'utilisation";
+"subscription.privacy" = "Politique de confidentialité";
+"subscription.error" = "Erreur";
+"subscription.error.verification" = "Échec de la vérification de l'achat";
+"subscription.error.purchase" = "L'achat a échoué";
+"subscription.error.notfound" = "Produit non trouvé";
+"subscription.period.day" = "jour";
+"subscription.period.days" = "jours";
+"subscription.period.week" = "semaine";
+"subscription.period.weeks" = "semaines";
+"subscription.period.month" = "mois";
+"subscription.period.months" = "mois";
+"subscription.period.year" = "année";
+"subscription.period.years" = "années";
+"subscription.trial.days" = "%d jours d'essai gratuit";
+"subscription.trial.weeks" = "%d semaines d'essai gratuit";
+"subscription.trial.months" = "%d mois d'essai gratuit";
+"subscription.trial.years" = "%d années d'essai gratuit";
+"subscription.trial.remaining" = "Jours d'essai restants";
+"subscription.trial.daysLeft" = "jours";
+"subscription.welcome" = "🎉 7 jours gratuits !";
+"subscription.welcome.message" = "Profitez de toutes les fonctionnalités gratuitement pendant 7 jours";
+"subscription.feature.planning" = "Planification hebdomadaire des repas avec IA";
+"subscription.feature.shopping" = "Listes d'épicerie intelligentes";
+"subscription.feature.ai" = "Génération de recettes par IA";
+"subscription.feature.family" = "Membres de famille illimités";
+"subscription.developer.code" = "Code d'accès développeur";
+"subscription.developer.remove" = "Retirer l'accès développeur";
+"settings.version" = "Version";
+
+// Lock overlay
+"subscription.locked.title" = "Fonctionnalité Premium";
+"subscription.locked.description" = "Abonnez-vous pour débloquer toutes les fonctionnalités et commencer à planifier vos repas!";
+"subscription.unlock" = "S'abonner maintenant";
+
+// Légal
+"legal.title" = "Légal";
+"legal.terms.title" = "Conditions d'utilisation";
+"legal.privacy.title" = "Politique de confidentialité";
+"legal.terms.content" = "CONDITIONS D'UTILISATION\n\nDernière mise à jour : Janvier 2025\n\n1. ACCEPTATION DES CONDITIONS\n\nEn téléchargeant, accédant ou utilisant Planea (\"l'Application\"), vous acceptez d'être lié par ces Conditions d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser l'Application.\n\n2. DESCRIPTION DU SERVICE\n\nPlanea est une application de planification de repas qui utilise l'intelligence artificielle pour générer des plans de repas personnalisés, des recettes et des listes d'épicerie basés sur les préférences de l'utilisateur, les restrictions alimentaires et les profils familiaux.\n\n3. COMPTES UTILISATEUR\n\n3.1 Vous êtes responsable du maintien de la confidentialité des informations de votre compte.\n3.2 Vous acceptez de fournir des informations exactes, à jour et complètes.\n3.3 Vous êtes responsable de toutes les activités qui se produisent sous votre compte.\n\n4. ABONNEMENT ET PAIEMENT\n\n4.1 L'Application offre des plans d'abonnement avec une période d'essai gratuite.\n4.2 Les abonnements se renouvellent automatiquement sauf annulation au moins 24 heures avant la fin de la période en cours.\n4.3 Le paiement sera débité de votre compte iTunes à la confirmation de l'achat.\n4.4 Vous pouvez gérer ou annuler votre abonnement via les paramètres de votre compte App Store.\n\n5. CONTENU GÉNÉRÉ PAR IA\n\n5.1 L'Application utilise l'IA pour générer des plans de repas et des recettes.\n5.2 Bien que nous nous efforcions d'être précis, nous ne garantissons pas l'exactitude nutritionnelle ou la pertinence du contenu généré.\n5.3 Les utilisateurs ayant des allergies graves ou des exigences alimentaires spécifiques doivent vérifier toutes les recettes et ingrédients.\n5.4 Nous ne sommes pas responsables des problèmes de santé résultant de recettes générées par IA.\n\n6. CONTENU UTILISATEUR\n\n6.1 Vous conservez la propriété de tout contenu que vous créez dans l'Application.\n6.2 En utilisant l'Application, vous nous accordez une licence d'utilisation de vos données pour améliorer nos services.\n6.3 Nous pouvons utiliser des données anonymisées à des fins de recherche et développement.\n\n7. PROPRIÉTÉ INTELLECTUELLE\n\n7.1 L'Application et son contenu original, ses fonctionnalités et ses fonctions sont la propriété de Planea et sont protégés par les lois internationales sur le droit d'auteur, les marques de commerce et autres lois sur la propriété intellectuelle.\n\n8. UTILISATIONS INTERDITES\n\nVous ne pouvez pas :\n- Utiliser l'Application à des fins illégales\n- Tenter d'obtenir un accès non autorisé à l'Application ou à ses systèmes\n- Interférer avec ou perturber l'Application ou les serveurs\n- Faire de l'ingénierie inverse ou tenter d'extraire le code source\n\n9. CLAUSE DE NON-GARANTIE\n\nL'Application est fournie \"telle quelle\" et \"selon disponibilité\" sans garanties d'aucune sorte, expresses ou implicites.\n\n10. LIMITATION DE RESPONSABILITÉ\n\nDans toute la mesure permise par la loi, Planea ne sera pas responsable des dommages indirects, accessoires, spéciaux, consécutifs ou punitifs.\n\n11. MODIFICATIONS DES CONDITIONS\n\nNous nous réservons le droit de modifier ces conditions à tout moment. L'utilisation continue de l'Application après les modifications constitue l'acceptation des nouvelles conditions.\n\n12. LOI APPLICABLE\n\nCes conditions seront régies et interprétées conformément aux lois du Canada.\n\n13. CONTACT\n\nPour toute question concernant ces Conditions, veuillez nous contacter via la fonction de feedback de l'Application ou à dreyerfred+planea@gmail.com.";
+"legal.privacy.content" = "POLITIQUE DE CONFIDENTIALITÉ\n\nDernière mise à jour : Janvier 2025\n\n1. INTRODUCTION\n\nPlanea (\"nous\", \"notre\" ou \"nos\") respecte votre vie privée et s'engage à protéger vos données personnelles. Cette Politique de confidentialité explique comment nous collectons, utilisons et protégeons vos informations lorsque vous utilisez notre Application.\n\n2. INFORMATIONS QUE NOUS COLLECTONS\n\n2.1 Informations que vous fournissez :\n- Informations de profil familial (noms, préférences alimentaires, allergies, aliments non aimés)\n- Plans de repas et recettes que vous créez ou sauvegardez\n- Listes d'épicerie\n- Préférences et paramètres de l'application\n\n2.2 Informations collectées automatiquement :\n- Informations sur l'appareil (version iOS, modèle d'appareil)\n- Données d'utilisation de l'application (fonctionnalités utilisées, temps passé)\n- Rapports de plantage et données de performance\n\n2.3 Données du service IA :\n- Demandes de génération de recettes\n- Préférences de planification de repas\n- Ces données sont traitées par notre fournisseur de services IA (OpenAI/Anthropic) selon leurs politiques de confidentialité\n\n3. COMMENT NOUS UTILISONS VOS INFORMATIONS\n\nNous utilisons vos informations pour :\n- Fournir et améliorer les fonctionnalités de l'Application\n- Générer des plans de repas et recettes personnalisés\n- Traiter votre abonnement\n- Envoyer des mises à jour importantes concernant l'Application\n- Analyser les modèles d'utilisation pour améliorer nos services\n- Fournir un support client\n\n4. STOCKAGE ET SÉCURITÉ DES DONNÉES\n\n4.1 Vos données sont principalement stockées localement sur votre appareil en utilisant le framework Core Data d'Apple.\n4.2 Les informations d'abonnement sont gérées via l'App Store d'Apple.\n4.3 Les demandes de contenu généré par IA sont envoyées à nos fournisseurs de services avec des mesures de sécurité appropriées.\n4.4 Nous mettons en œuvre des mesures de sécurité standard de l'industrie pour protéger vos données.\n\n5. PARTAGE DE DONNÉES\n\nNous ne vendons pas vos informations personnelles. Nous pouvons partager des données avec :\n- Fournisseurs de services IA (OpenAI/Anthropic) pour la génération de recettes\n- Apple pour la gestion des abonnements\n- Services d'analyse (données anonymisées uniquement)\n\n6. VOS DROITS\n\nVous avez le droit de :\n- Accéder à vos données personnelles\n- Corriger les données inexactes\n- Supprimer vos données (en supprimant l'Application)\n- Exporter vos données\n- Refuser les analyses\n\n7. CONFIDENTIALITÉ DES ENFANTS\n\nNotre Application n'est pas destinée aux enfants de moins de 13 ans. Nous ne collectons pas sciemment de données auprès d'enfants de moins de 13 ans.\n\n8. SERVICES TIERS\n\n8.1 API OpenAI/Anthropic : Utilisée pour la génération de recettes par IA. Leurs politiques de confidentialité s'appliquent aux données envoyées à leurs services.\n8.2 Services Apple : Les données d'abonnement et de paiement sont gérées par Apple selon leur politique de confidentialité.\n\n9. CONSERVATION DES DONNÉES\n\nNous conservons vos données tant que vous utilisez l'Application. Lorsque vous supprimez l'Application, toutes les données stockées localement sont supprimées de votre appareil.\n\n10. TRANSFERTS INTERNATIONAUX DE DONNÉES\n\nVos données peuvent être traitées dans des pays en dehors de votre pays de résidence, y compris aux États-Unis, où nos fournisseurs de services IA opèrent.\n\n11. MODIFICATIONS DE CETTE POLITIQUE\n\nNous pouvons mettre à jour cette Politique de confidentialité de temps en temps. Nous vous informerons des modifications importantes via l'Application.\n\n12. COOKIES ET SUIVI\n\nNous n'utilisons pas de cookies ou de technologies de suivi web. Toutes les données sont stockées localement sur votre appareil.\n\n13. NOUS CONTACTER\n\nPour toute question concernant cette Politique de confidentialité ou pour exercer vos droits, veuillez nous contacter :\n- Via la fonction de feedback de l'Application\n- Courriel : dreyerfred+privacyplanea@gmail.com\n\n14. CONFORMITÉ RGPD (POUR LES UTILISATEURS DE L'UE)\n\nSi vous êtes dans l'Union européenne, vous disposez de droits supplémentaires en vertu du RGPD :\n- Droit à la portabilité des données\n- Droit à la limitation du traitement\n- Droit d'opposition au traitement\n- Droit de déposer une plainte auprès d'une autorité de contrôle";
+
+// Suivi d'utilisation
+"usage.limit_reached" = "Limite mensuelle atteinte";
+"usage.limit_message" = "Vous avez utilisé vos 15 recettes gratuites ce mois-ci. Passez à Premium pour un accès illimité.";
+"usage.remaining" = "%d/15 recettes";
+"usage.unlimited" = "Illimité ✨";
+"usage.premium_feature" = "Fonction Premium";
+"usage.monthly" = "Utilisation mensuelle";
+
+// Préférences de génération (Fonctionnalité Premium)
+"prefs.generation" = "Préférences de génération";
+"prefs.title" = "Préférences de recettes";
+"prefs.time" = "Temps de cuisson";
+"prefs.time.footer" = "Temps de cuisson maximum pour la semaine et les weekends";
+"prefs.weekday" = "Maximum semaine";
+"prefs.weekend" = "Maximum weekend";
+"prefs.spice" = "Niveau d'épices";
+"prefs.proteins" = "Protéines préférées";
+"prefs.proteins.footer" = "Sélectionnez vos sources de protéines préférées";
+"prefs.appliances" = "Équipement disponible";
+"prefs.appliances.footer" = "Équipement dont vous disposez pour cuisiner";
+"prefs.options" = "Options additionnelles";
+"prefs.kidfriendly" = "Repas adaptés aux enfants";
+"prefs.kidfriendly.footer" = "Préférer des repas adaptés aux enfants";
+"prefs.reset" = "Réinitialiser par défaut";
+
+// Niveaux d'épices
+"spice.none" = "Aucun";
+"spice.mild" = "Doux";
+"spice.medium" = "Moyen";
+"spice.hot" = "Fort";
+
+// Appareils
+"appliance.oven" = "Four";
+"appliance.bbq" = "BBQ/Gril";
+"appliance.airfryer" = "Friteuse à air";
+"appliance.slowcooker" = "Mijoteuse";
+"appliance.instapot" = "Instant Pot";
+"appliance.microwave" = "Micro-ondes";
+
+// Protéines
+"protein.chicken" = "Poulet";
+"protein.beef" = "Bœuf";
+"protein.pork" = "Porc";
+"protein.fish" = "Poisson";
+"protein.seafood" = "Fruits de mer";
+"protein.tofu" = "Tofu";
+"protein.legumes" = "Légumineuses";
+"protein.eggs" = "Œufs";
+
+// Contact et support
+"settings.support" = "Support et commentaires";
+"settings.contact" = "Nous contacter";
+"settings.feedback" = "Envoyer un commentaire";
+"settings.reportBug" = "Signaler un bug";
+"settings.featureRequest" = "Suggérer une fonctionnalité";
+"feedback.subject" = "Commentaire - Planea iOS";
+"feedback.body" = "Veuillez partager vos commentaires ou signaler tout problème :\n\n\n\n---\nVersion de l'app : %@\nVersion iOS : %@\nAppareil : %@";
+"feedback.sent" = "Merci pour votre commentaire !";
+"feedback.error" = "Impossible d'ouvrir l'email. Veuillez nous écrire à dreyerfred+planea@gmail.com";

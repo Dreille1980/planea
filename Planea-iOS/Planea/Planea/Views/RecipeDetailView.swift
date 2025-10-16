@@ -2,15 +2,15 @@ import SwiftUI
 
 struct RecipeDetailView: View {
     var recipe: Recipe = Recipe(title: "Exemple", servings: 4, totalMinutes: 30, ingredients: [], steps: [])
-    @StateObject private var favoritesVM = FavoritesViewModel()
+    @EnvironmentObject var favoritesVM: FavoritesViewModel
     
     var body: some View {
         List {
-            Section(header: Text(String(localized: "recipe.info"))) {
-                HStack { Text(String(localized: "recipe.servings")); Spacer(); Text("\(recipe.servings)") }
-                HStack { Text(String(localized: "recipe.time")); Spacer(); Text("\(recipe.totalMinutes) min") }
+            Section(header: Text("recipe.info".localized)) {
+                HStack { Text("recipe.servings".localized); Spacer(); Text("\(recipe.servings)") }
+                HStack { Text("recipe.time".localized); Spacer(); Text("\(recipe.totalMinutes) min") }
             }
-            Section(header: Text(String(localized: "recipe.ingredients"))) {
+            Section(header: Text("recipe.ingredients".localized)) {
                 ForEach(recipe.ingredients) { ing in
                     HStack {
                         Text(ing.name.capitalized)
@@ -19,7 +19,7 @@ struct RecipeDetailView: View {
                     }
                 }
             }
-            Section(header: Text(String(localized: "recipe.steps"))) {
+            Section(header: Text("recipe.steps".localized)) {
                 ForEach(Array(recipe.steps.enumerated()), id: \.offset) { idx, step in
                     Text("\(idx+1). \(step)")
                 }
@@ -41,6 +41,9 @@ struct RecipeDetailView: View {
                         .foregroundStyle(favoritesVM.isRecipeSaved(recipe) ? .red : .primary)
                 }
             }
+        }
+        .sheet(isPresented: $favoritesVM.showPaywall) {
+            SubscriptionPaywallView(limitReached: false)
         }
     }
 }

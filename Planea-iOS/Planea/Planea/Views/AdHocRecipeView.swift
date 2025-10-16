@@ -3,6 +3,7 @@ import SwiftUI
 struct AdHocRecipeView: View {
     @EnvironmentObject var familyVM: FamilyViewModel
     @EnvironmentObject var recipeVM: RecipeViewModel
+    @EnvironmentObject var usageVM: UsageViewModel
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
     @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
     @State private var prompt: String = ""
@@ -10,20 +11,21 @@ struct AdHocRecipeView: View {
     @State private var isGenerating = false
     @State private var errorMessage: String?
     @State private var showingRecipe = false
+    @State private var showPaywall = false
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
         NavigationStack {
             ZStack {
                 Form {
-                    Section(header: Text(String(localized: "adhoc.recipeIdea"))) {
-                        TextField(String(localized: "adhoc.promptPlaceholder"), text: $prompt, axis: .vertical)
+                    Section(header: Text("adhoc.recipeIdea".localized)) {
+                        TextField("adhoc.promptPlaceholder".localized, text: $prompt, axis: .vertical)
                             .lineLimit(3...6)
                             .focused($isTextFieldFocused)
                     }
                     
-                    Section(header: Text(String(localized: "adhoc.servings"))) {
-                        Stepper("\(servings) \(String(localized: "adhoc.servingsCount"))", value: $servings, in: 1...12)
+                    Section(header: Text("adhoc.servings".localized)) {
+                        Stepper("\(servings) \("adhoc.servingsCount".localized)", value: $servings, in: 1...12)
                     }
                     
                     if let error = errorMessage {
@@ -35,8 +37,20 @@ struct AdHocRecipeView: View {
                     }
                     
                     Section {
-                        Button(String(localized: "action.generateRecipe")) {
-                            Task { await generateRecipe() }
+                        Button(action: {
+                            if usageVM.hasFreePlanRestrictions {
+                                showPaywall = true
+                            } else {
+                                Task { await generateRecipe() }
+                            }
+                        }) {
+                            HStack {
+                                Text("action.generateRecipe".localized)
+                                if usageVM.hasFreePlanRestrictions {
+                                    Image(systemName: "lock.fill")
+                                        .font(.caption)
+                                }
+                            }
                         }
                         .buttonStyle(.borderedProminent)
                         .disabled(prompt.isEmpty || isGenerating)
@@ -59,11 +73,11 @@ struct AdHocRecipeView: View {
                         .transition(.scale.combined(with: .opacity))
                 }
             }
-            .navigationTitle(Text(String(localized: "adhoc.title")))
+            .navigationTitle(Text("adhoc.title".localized))
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
-                    Button(String(localized: "action.done")) {
+                    Button("action.done".localized) {
                         isTextFieldFocused = false
                     }
                 }
@@ -72,6 +86,9 @@ struct AdHocRecipeView: View {
                 if let recipe = recipeVM.currentRecipe {
                     RecipeDetailView(recipe: recipe)
                 }
+            }
+            .sheet(isPresented: $showPaywall) {
+                SubscriptionPaywallView(limitReached: false)
             }
         }
     }
@@ -102,7 +119,7 @@ struct AdHocRecipeView: View {
             recipeVM.currentRecipe = recipe
             showingRecipe = true
         } catch {
-            errorMessage = "\(String(localized: "plan.error")): \(error.localizedDescription)"
+            errorMessage = "\("plan.error".localized): \(error.localizedDescription)"
         }
         
         isGenerating = false

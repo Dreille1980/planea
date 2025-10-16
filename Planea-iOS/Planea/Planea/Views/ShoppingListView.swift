@@ -4,11 +4,13 @@ import EventKit
 struct ShoppingListView: View {
     @EnvironmentObject var planVM: PlanViewModel
     @EnvironmentObject var shoppingVM: ShoppingViewModel
+    @EnvironmentObject var usageVM: UsageViewModel
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
     @State private var shoppingList: ShoppingList?
     @State private var showingSortOptions = false
     @State private var showingExportOptions = false
     @State private var showingAlert = false
+    @State private var showPaywall = false
     @State private var alertMessage = ""
     
     var body: some View {
@@ -17,7 +19,7 @@ struct ShoppingListView: View {
                 if let list = shoppingList {
                     VStack(spacing: 0) {
                         // Sort picker
-                        Picker(String(localized: "shopping.order"), selection: Binding(
+                        Picker("shopping.order".localized, selection: Binding(
                             get: { list.sortOrder },
                             set: { newValue in
                                 shoppingList?.sortOrder = newValue
@@ -25,7 +27,7 @@ struct ShoppingListView: View {
                             }
                         )) {
                             ForEach(SortOrder.allCases, id: \.self) { order in
-                                Text(order.rawValue).tag(order)
+                                Text(order.localizedName.localized).tag(order)
                             }
                         }
                         .pickerStyle(.segmented)
@@ -63,9 +65,21 @@ struct ShoppingListView: View {
                         .environment(\.editMode, shoppingList?.sortOrder == .custom ? .constant(.active) : .constant(.inactive))
                         
                         // Export button
-                        Button(action: { showingExportOptions = true }) {
-                            Label(String(localized: "action.export"), systemImage: "square.and.arrow.up")
-                                .frame(maxWidth: .infinity)
+                        Button(action: {
+                            if usageVM.hasFreePlanRestrictions {
+                                showPaywall = true
+                            } else {
+                                showingExportOptions = true
+                            }
+                        }) {
+                            HStack {
+                                Label("action.export".localized, systemImage: "square.and.arrow.up")
+                                if usageVM.hasFreePlanRestrictions {
+                                    Image(systemName: "lock.fill")
+                                        .font(.caption)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
                         .padding()
@@ -76,17 +90,17 @@ struct ShoppingListView: View {
                             .font(.system(size: 60))
                             .foregroundStyle(.secondary)
                         
-                        Text(String(localized: "shopping.noList"))
+                        Text("shopping.noList".localized)
                             .font(.headline)
                         
-                        Text(String(localized: "shopping.generateFirst"))
+                        Text("shopping.generateFirst".localized)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                         
                         if let plan = planVM.currentPlan {
-                            Button(String(localized: "plan.generateList")) {
+                            Button("plan.generateList".localized) {
                                 generateShoppingList(from: plan)
                             }
                             .buttonStyle(.borderedProminent)
@@ -95,35 +109,38 @@ struct ShoppingListView: View {
                     .padding()
                 }
             }
-            .navigationTitle(String(localized: "shopping.title"))
+            .navigationTitle("shopping.title".localized)
             .toolbar {
                 if shoppingList != nil {
-                    Button(String(localized: "action.refresh")) {
+                    Button("action.refresh".localized) {
                         if let plan = planVM.currentPlan {
                             generateShoppingList(from: plan)
                         }
                     }
                 }
             }
-            .confirmationDialog(String(localized: "shopping.export"), isPresented: $showingExportOptions, titleVisibility: .visible) {
-                Button(String(localized: "shopping.exportAppleNotes")) {
+            .confirmationDialog("shopping.export".localized, isPresented: $showingExportOptions, titleVisibility: .visible) {
+                Button("shopping.exportAppleNotes".localized) {
                     exportToNotes()
                 }
-                Button(String(localized: "shopping.exportReminders")) {
+                Button("shopping.exportReminders".localized) {
                     exportToReminders()
                 }
-                Button(String(localized: "shopping.exportShare")) {
+                Button("shopping.exportShare".localized) {
                     exportViaShare()
                 }
-                Button(String(localized: "shopping.exportCopy")) {
+                Button("shopping.exportCopy".localized) {
                     copyToClipboard()
                 }
-                Button(String(localized: "action.cancel"), role: .cancel) { }
+                Button("action.cancel".localized, role: .cancel) { }
             }
-            .alert(String(localized: "shopping.exportTitle"), isPresented: $showingAlert) {
+            .alert("shopping.exportTitle".localized, isPresented: $showingAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text(alertMessage)
+            }
+            .sheet(isPresented: $showPaywall) {
+                SubscriptionPaywallView(limitReached: false)
             }
         }
         .onAppear {
@@ -209,8 +226,8 @@ struct ShoppingListView: View {
     func getListText() -> String {
         guard let list = shoppingList else { return "" }
         
-        var text = "\(String(localized: "shopping.title"))\n"
-        text += "\(String(localized: "shopping.generatedOn")) \(list.generatedAt.formatted(date: .abbreviated, time: .shortened))\n\n"
+        var text = "\("shopping.title".localized)\n"
+        text += "\("shopping.generatedOn".localized) \(list.generatedAt.formatted(date: .abbreviated, time: .shortened))\n\n"
         
         let sortedItems = getSortedItems()
         var currentSection = ""
@@ -254,7 +271,7 @@ struct ShoppingListView: View {
         eventStore.requestAccess(to: .reminder) { granted, error in
             DispatchQueue.main.async {
                 guard granted, error == nil else {
-                    alertMessage = String(localized: "shopping.accessDenied")
+                    alertMessage = "shopping.accessDenied".localized
                     showingAlert = true
                     return
                 }
@@ -281,10 +298,10 @@ struct ShoppingListView: View {
                 
                 do {
                     try eventStore.commit()
-                    alertMessage = "\(successCount) \(String(localized: "shopping.itemsAdded"))"
+                    alertMessage = "\(successCount) \("shopping.itemsAdded".localized)"
                     showingAlert = true
                 } catch {
-                    alertMessage = "\(String(localized: "shopping.errorSaving")): \(error.localizedDescription)"
+                    alertMessage = "\("shopping.errorSaving".localized): \(error.localizedDescription)"
                     showingAlert = true
                 }
             }
@@ -315,7 +332,7 @@ struct ShoppingListView: View {
     func copyToClipboard() {
         let text = getListText()
         UIPasteboard.general.string = text
-        alertMessage = String(localized: "shopping.copied")
+        alertMessage = "shopping.copied".localized
         showingAlert = true
     }
 }

@@ -25,12 +25,12 @@ struct MemberDetailView: View {
     
     var body: some View {
         Form {
-            Section(header: Text(String(localized: "member.name"))) {
-                TextField(String(localized: "member.memberName"), text: $name)
+            Section(header: Text("member.name".localized)) {
+                TextField("member.memberName".localized, text: $name)
                     .focused($isTextFieldFocused)
             }
             
-            Section(header: Text(String(localized: "member.dietaryPreferences"))) {
+            Section(header: Text("member.dietaryPreferences".localized)) {
                 ForEach(availableDiets, id: \.self) { diet in
                     Toggle(diet.capitalized, isOn: Binding(
                         get: { selectedDiets.contains(diet) },
@@ -45,7 +45,7 @@ struct MemberDetailView: View {
                 }
             }
             
-            Section(header: Text(String(localized: "member.allergens"))) {
+            Section(header: Text("member.allergens".localized)) {
                 ForEach(availableAllergens, id: \.self) { allergen in
                     Toggle(allergen.capitalized, isOn: Binding(
                         get: { selectedAllergens.contains(allergen) },
@@ -60,7 +60,7 @@ struct MemberDetailView: View {
                 }
             }
             
-            Section(header: Text(String(localized: "member.dislikes"))) {
+            Section(header: Text("member.dislikes".localized)) {
                 ForEach(dislikes.indices, id: \.self) { index in
                     HStack {
                         Text(dislikes[index])
@@ -75,7 +75,7 @@ struct MemberDetailView: View {
                 }
                 
                 HStack {
-                    TextField(String(localized: "member.addDislike"), text: $newDislike)
+                    TextField("member.addDislike".localized, text: $newDislike)
                         .focused($isTextFieldFocused)
                     Button(action: {
                         if !newDislike.isEmpty {
@@ -90,19 +90,19 @@ struct MemberDetailView: View {
             }
             
             Section {
-                Button(String(localized: "action.save")) {
+                Button("action.save".localized) {
                     saveMember()
                 }
                 .frame(maxWidth: .infinity)
                 .buttonStyle(.borderedProminent)
             }
         }
-        .navigationTitle(String(localized: "member.editMember"))
+        .navigationTitle("member.editMember".localized)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button(String(localized: "action.done")) {
+                Button("action.done".localized) {
                     isTextFieldFocused = false
                 }
             }
