@@ -209,9 +209,13 @@ Possible ingredient categories: vegetables, fruits, meats, fish, dairy, dry good
 IMPORTANT: Generate at least 6-8 detailed steps with EXPLICIT preparation steps at the beginning."""
 
     else:
+        # Use the actual time constraint in the example
+        example_time = max_minutes if max_minutes else 30
+        time_constraint_text = f"\n\nCRITICAL TIME CONSTRAINT: The total_minutes field MUST be {example_time} or LESS. This is MANDATORY." if max_minutes else ""
+        
         prompt = f"""Génère une recette de {meal_type_fr} en français pour {servings} personnes.
 
-{constraints_text}{diversity_text}
+{constraints_text}{diversity_text}{time_constraint_text}
 
 CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
 - Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
@@ -223,7 +227,7 @@ Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte (sans texte
 {{
     "title": "Nom créatif et appétissant de la recette",
     "servings": {servings},
-    "total_minutes": 30,
+    "total_minutes": {example_time},
     "ingredients": [
         {{"name": "ingrédient", "quantity": 200, "unit": "g", "category": "légumes"}}
     ],
@@ -241,7 +245,8 @@ Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte (sans texte
 Utilise le système {unit_system}.
 Catégories d'ingrédients possibles: légumes, fruits, viandes, poissons, produits laitiers, sec, condiments, conserves.
 
-IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de préparation EXPLICITES au début."""
+IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de préparation EXPLICITES au début.
+RAPPEL CRITIQUE: total_minutes doit être {example_time} maximum."""
 
     max_retries = 3
     for attempt in range(max_retries):
@@ -267,18 +272,17 @@ IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de prépa
             
             recipe_data = json.loads(content)
             
-            # CRITICAL: Validate time constraint if specified
+            # CRITICAL: ALWAYS enforce time constraint if specified
             if max_minutes is not None:
                 recipe_time = recipe_data.get("total_minutes", 999)
                 if recipe_time > max_minutes:
+                    print(f"Recipe time {recipe_time} exceeds max {max_minutes}, forcing to {max_minutes}")
+                    recipe_data["total_minutes"] = max_minutes
+                    
+                    # If this isn't the last attempt, retry to get a naturally shorter recipe
                     if attempt < max_retries - 1:
-                        print(f"Recipe time {recipe_time} exceeds max {max_minutes}, retrying (attempt {attempt + 1}/{max_retries})")
-                        # Retry with even more explicit time constraint
+                        print(f"Retrying for naturally shorter recipe (attempt {attempt + 1}/{max_retries})")
                         continue
-                    else:
-                        # Last attempt: force the time to be within limit
-                        recipe_data["total_minutes"] = max_minutes
-                        print(f"Forced recipe time to {max_minutes} minutes after {max_retries} attempts")
             
             # Ensure all ingredients have required fields
             for ingredient in recipe_data.get("ingredients", []):
