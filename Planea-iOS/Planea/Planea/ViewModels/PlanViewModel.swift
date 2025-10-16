@@ -8,7 +8,9 @@ final class PlanViewModel: ObservableObject {
     private let persistence = PersistenceController.shared
     
     init() {
-        loadLatestPlan()
+        // Load latest plan silently - no error if none exists
+        let plans = persistence.loadMealPlans()
+        currentPlan = plans.first
     }
     
     func select(_ slot: SlotSelection) {
@@ -24,10 +26,6 @@ final class PlanViewModel: ObservableObject {
         persistence.saveMealPlan(plan)
     }
     
-    func loadLatestPlan() {
-        let plans = persistence.loadMealPlans()
-        currentPlan = plans.first
-    }
     
     func regenerateMeal(mealItem: MealItem, newRecipe: Recipe) {
         guard var plan = currentPlan else { return }

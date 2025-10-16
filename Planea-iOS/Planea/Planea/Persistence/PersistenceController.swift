@@ -100,15 +100,20 @@ final class PersistenceController: ObservableObject {
         let request: NSFetchRequest<MealPlanEntity> = MealPlanEntity.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \MealPlanEntity.weekStart, ascending: false)]
         
-        let entities = try? context.fetch(request)
-        return entities?.compactMap { entity -> MealPlan? in
-            guard let id = entity.id,
-                  let familyId = entity.familyId,
-                  let weekStart = entity.weekStart,
-                  let itemsData = entity.itemsData,
-                  let items = try? JSONDecoder().decode([MealItem].self, from: itemsData) else { return nil }
-            
-            return MealPlan(id: id, familyId: familyId, weekStart: weekStart, items: items)
-        } ?? []
+        do {
+            let entities = try context.fetch(request)
+            return entities.compactMap { entity -> MealPlan? in
+                guard let id = entity.id,
+                      let familyId = entity.familyId,
+                      let weekStart = entity.weekStart,
+                      let itemsData = entity.itemsData,
+                      let items = try? JSONDecoder().decode([MealItem].self, from: itemsData) else { return nil }
+                
+                return MealPlan(id: id, familyId: familyId, weekStart: weekStart, items: items)
+            }
+        } catch {
+            print("Error loading meal plans: \(error.localizedDescription)")
+            return []
+        }
     }
 }
