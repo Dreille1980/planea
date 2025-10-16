@@ -72,22 +72,39 @@ class RecipeRequest(BaseModel):
     language: str = "fr"
 
 
-async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: str, servings: int = 4, previous_recipes: List[str] = None, diversity_seed: int = 0, language: str = "fr", use_fast_model: bool = False) -> Recipe:
+async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: str, servings: int = 4, previous_recipes: List[str] = None, diversity_seed: int = 0, language: str = "fr", use_fast_model: bool = False, weekday: str = None) -> Recipe:
     """Generate a single recipe using OpenAI with diversity awareness (async).
     
     Args:
         use_fast_model: If True, uses gpt-4o (faster, more expensive). If False, uses gpt-4o-mini (balanced).
+        weekday: The day of the week (Mon, Tue, Wed, etc.) to determine time constraints
     """
     
     # Extract time constraints from extra field if present
+    # Need to check if it's a weekend or weekday to apply correct time limit
     max_minutes = None
     if constraints.get("extra"):
         extra_text = constraints["extra"]
-        # Try to extract max time constraint (e.g., "30 minutes", "Max 30 minutes")
         import re
-        time_match = re.search(r'(?:max|maximum|NO MORE than)\s+(\d+)\s+minutes', extra_text, re.IGNORECASE)
-        if time_match:
-            max_minutes = int(time_match.group(1))
+        
+        # Determine if this is a weekend meal based on weekday parameter
+        is_weekend = weekday and (weekday == "Sat" or weekday == "Sun")
+        
+        # Extract weekday and weekend time constraints separately
+        weekday_match = re.search(r'Monday through Friday.*?(\d+)\s+minutes', extra_text, re.IGNORECASE | re.DOTALL)
+        weekend_match = re.search(r'Saturday and Sunday.*?(\d+)\s+minutes', extra_text, re.IGNORECASE | re.DOTALL)
+        
+        if is_weekend and weekend_match:
+            max_minutes = int(weekend_match.group(1))
+            print(f"Weekend recipe ({weekday}): using {max_minutes} minutes limit")
+        elif not is_weekend and weekday_match:
+            max_minutes = int(weekday_match.group(1))
+            print(f"Weekday recipe ({weekday}): using {max_minutes} minutes limit")
+        else:
+            # Fallback to generic time constraint
+            time_match = re.search(r'(?:max|maximum|NO MORE than)\s+(\d+)\s+minutes', extra_text, re.IGNORECASE)
+            if time_match:
+                max_minutes = int(time_match.group(1))
     
     # Build constraints text
     constraints_text = ""
@@ -333,7 +350,8 @@ async def ai_plan(req: PlanRequest):
             servings=4,
             previous_recipes=None,
             diversity_seed=idx,  # Each recipe gets a different seed for variety
-            language=req.language
+            language=req.language,
+            weekday=slot.weekday  # Pass weekday for time constraints
         )
         for idx, slot in enumerate(req.slots)
     ]
@@ -375,7 +393,8 @@ async def regenerate_meal(req: RegenerateMealRequest):
         previous_recipes=None,
         diversity_seed=req.diversity_seed,
         language=req.language,
-        use_fast_model=True  # Use gpt-4o for faster individual regenerations
+        use_fast_model=True,  # Use gpt-4o for faster individual regenerations
+        weekday=req.weekday  # Pass weekday for time constraints
     )
 
 
