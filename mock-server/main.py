@@ -72,8 +72,12 @@ class RecipeRequest(BaseModel):
     language: str = "fr"
 
 
-async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: str, servings: int = 4, previous_recipes: List[str] = None, diversity_seed: int = 0, language: str = "fr") -> Recipe:
-    """Generate a single recipe using OpenAI with diversity awareness (async)."""
+async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: str, servings: int = 4, previous_recipes: List[str] = None, diversity_seed: int = 0, language: str = "fr", use_fast_model: bool = False) -> Recipe:
+    """Generate a single recipe using OpenAI with diversity awareness (async).
+    
+    Args:
+        use_fast_model: If True, uses gpt-4o (faster, more expensive). If False, uses gpt-4o-mini (balanced).
+    """
     
     # Extract time constraints from extra field if present
     max_minutes = None
@@ -248,11 +252,14 @@ Catégories d'ingrédients possibles: légumes, fruits, viandes, poissons, produ
 IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de préparation EXPLICITES au début.
 RAPPEL CRITIQUE: total_minutes doit être {example_time} maximum."""
 
+    # Select model based on use_fast_model flag
+    model = "gpt-4o" if use_fast_model else "gpt-4o-mini"
+    
     max_retries = 3
     for attempt in range(max_retries):
         try:
             response = await client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=model,
                 messages=[
                     {"role": "system", "content": "Tu es un chef cuisinier créatif et expert qui génère des recettes uniques et détaillées en JSON. Tu varies toujours les ingrédients, cuisines et techniques. Tu RESPECTES TOUJOURS les contraintes de temps données."},
                     {"role": "user", "content": prompt}
@@ -359,7 +366,7 @@ class RegenerateMealRequest(BaseModel):
 
 @app.post("/ai/regenerate-meal", response_model=Recipe)
 async def regenerate_meal(req: RegenerateMealRequest):
-    """Regenerate a single meal with diversity."""
+    """Regenerate a single meal with diversity using fast model (gpt-4o)."""
     return await generate_recipe_with_openai(
         meal_type=req.meal_type,
         constraints=req.constraints,
@@ -367,13 +374,14 @@ async def regenerate_meal(req: RegenerateMealRequest):
         servings=req.servings,
         previous_recipes=None,
         diversity_seed=req.diversity_seed,
-        language=req.language
+        language=req.language,
+        use_fast_model=True  # Use gpt-4o for faster individual regenerations
     )
 
 
 @app.post("/ai/recipe", response_model=Recipe)
 async def ai_recipe(req: RecipeRequest):
-    """Generate a single recipe from a prompt using OpenAI (async)."""
+    """Generate a single recipe from a prompt using fast model (gpt-4o)."""
     
     # Language-specific handling
     if req.language == "en":
@@ -475,7 +483,7 @@ IMPORTANT: Génère au moins 5-7 étapes détaillées avec des étapes de prépa
 
     try:
         response = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",  # Use fast model for ad-hoc recipes
             messages=[
                 {"role": "system", "content": "Tu es un chef cuisinier créatif et expert qui génère des recettes uniques et détaillées en JSON."},
                 {"role": "user", "content": prompt}
@@ -511,7 +519,7 @@ class RecipeFromTitleRequest(BaseModel):
 
 @app.post("/ai/recipe-from-title", response_model=Recipe)
 async def ai_recipe_from_title(req: RecipeFromTitleRequest):
-    """Generate a complete recipe from just a title using OpenAI."""
+    """Generate a complete recipe from just a title using fast model (gpt-4o)."""
     
     # Language-specific handling
     if req.language == "en":
@@ -621,7 +629,7 @@ IMPORTANT:
 
     try:
         response = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o",  # Use fast model for ad-hoc recipe from title
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
