@@ -22,7 +22,7 @@ struct PlanWeekView: View {
                     if let plan = planVM.currentPlan {
                         // Show generated plan with modern card design
                         ScrollView {
-                            VStack(spacing: 16) {
+                            LazyVStack(spacing: 12) {
                                 ForEach(weekdays, id: \.self) { day in
                                     if let dayMeals = mealsForDay(day, in: plan) {
                                         DayCardView(
@@ -43,7 +43,8 @@ struct PlanWeekView: View {
                                     }
                                 }
                             }
-                            .padding()
+                            .padding(.horizontal)
+                            .padding(.vertical, 12)
                         }
                         
                         // Bottom action button
@@ -68,7 +69,7 @@ struct PlanWeekView: View {
                     } else {
                         // Modern slot selection UI
                         ScrollView {
-                            VStack(spacing: 16) {
+                            VStack(spacing: 12) {
                                 // Header
                                 VStack(spacing: 4) {
                                     Text("plan.planYourWeek".localized)
@@ -79,10 +80,10 @@ struct PlanWeekView: View {
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
-                                .padding(.top, 8)
+                                .padding(.top, 4)
                                 
                                 // Days list
-                                VStack(spacing: 8) {
+                                LazyVStack(spacing: 8) {
                                     ForEach(weekdays, id: \.self) { day in
                                         DaySelectionRow(
                                             day: day,
@@ -93,9 +94,9 @@ struct PlanWeekView: View {
                                         )
                                     }
                                 }
-                                .padding(.horizontal)
                             }
-                            .padding(.bottom, 100) // Space for bottom button
+                            .padding(.horizontal)
+                            .padding(.bottom, 12)
                         }
                         
                         // Bottom action area
@@ -152,34 +153,23 @@ struct PlanWeekView: View {
                         .transition(.scale.combined(with: .opacity))
                 }
                 
-                // Floating add button - only visible when plan exists
+            }
+            .navigationTitle("plan.title".localized)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
                 if planVM.currentPlan != nil {
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            Button(action: {
-                                showAddMealSheet = true
-                            }) {
-                                Image(systemName: "plus")
-                                    .font(.title2)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.white)
-                                    .frame(width: 60, height: 60)
-                                    .background(
-                                        Circle()
-                                            .fill(Color.accentColor.gradient)
-                                            .shadow(color: .black.opacity(0.25), radius: 8, x: 0, y: 4)
-                                    )
-                            }
-                            .padding(.trailing, 20)
-                            .padding(.bottom, 90)
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
+                            impactGenerator.impactOccurred()
+                            showAddMealSheet = true
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title3)
                         }
                     }
                 }
             }
-            .navigationTitle("plan.title".localized)
-            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showAddMealSheet) {
                 AddMealSheet()
                     .environmentObject(familyVM)
@@ -222,10 +212,14 @@ struct PlanWeekView: View {
             
             let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
             
+            // Calculate servings based on number of family members (minimum 1)
+            let servings = max(1, familyVM.members.count)
+            
             let plan = try await service.generatePlan(
                 weekStart: Date(),
                 slots: Array(planVM.slots),
                 constraints: constraintsDict,
+                servings: servings,
                 units: units,
                 language: String(language)
             )
@@ -298,11 +292,14 @@ struct PlanWeekView: View {
             
             let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
             
+            // Calculate servings based on number of family members (minimum 1)
+            let servings = max(1, familyVM.members.count)
+            
             let newRecipe = try await service.regenerateMeal(
                 weekday: mealItem.weekday,
                 mealType: mealItem.mealType,
                 constraints: constraintsDict,
-                servings: 4,
+                servings: servings,
                 units: units,
                 language: String(language),
                 diversitySeed: Int.random(in: 0...1000)
@@ -358,9 +355,11 @@ struct DaySelectionRow: View {
             }
         }
         .padding(12)
-        .background(Color(.systemBackground))
-        .cornerRadius(10)
-        .shadow(color: .black.opacity(0.04), radius: 6, x: 0, y: 2)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color(.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
+        )
     }
 }
 
@@ -448,9 +447,11 @@ struct DayCardView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
+        )
     }
 }
 
@@ -483,7 +484,7 @@ struct MealRowView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
+        NavigationLink(destination: RecipeDetailView(recipe: mealItem.recipe)) {
             HStack(spacing: 12) {
                 // Icon
                 Image(systemName: iconName)
@@ -508,13 +509,19 @@ struct MealRowView: View {
                 
                 Spacer()
                 
-                // Remove button
-                Button(action: onRemove) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(.red.opacity(0.8))
-                }
-                
+                // Navigate icon
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .frame(width: 20)
+            }
+            .padding(12)
+            .background(Color(.systemGray6))
+            .cornerRadius(10)
+        }
+        .buttonStyle(.plain)
+        .overlay(alignment: .topTrailing) {
+            HStack(spacing: 8) {
                 // Regenerate button
                 Button(action: onRegenerate) {
                     HStack(spacing: 4) {
@@ -534,17 +541,14 @@ struct MealRowView: View {
                 }
                 .disabled(isRegenerating)
                 
-                // Navigate icon
-                NavigationLink(destination: RecipeDetailView(recipe: mealItem.recipe)) {
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .frame(width: 20)
+                // Remove button
+                Button(action: onRemove) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.red.opacity(0.8))
                 }
             }
             .padding(12)
         }
-        .background(Color(.systemGray6))
-        .cornerRadius(10)
     }
 }

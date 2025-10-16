@@ -39,6 +39,7 @@ class PlanRequest(BaseModel):
     units: Literal["METRIC", "IMPERIAL"]
     slots: List[Slot]
     constraints: dict = Field(default_factory=dict)
+    servings: int = 4
     language: str = "fr"
 
 class Ingredient(BaseModel):
@@ -402,7 +403,7 @@ async def ai_plan(req: PlanRequest):
             meal_type=slot.meal_type,
             constraints=req.constraints,
             units=req.units,
-            servings=4,
+            servings=req.servings,
             previous_recipes=None,
             diversity_seed=idx,  # Each recipe gets a different seed for variety
             language=req.language,

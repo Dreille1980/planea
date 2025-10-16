@@ -90,7 +90,7 @@ struct IAService {
     }
     
     @MainActor
-    func generatePlan(weekStart: Date, slots: [SlotSelection], constraints: [String: Any], units: UnitSystem, language: String) async throws -> MealPlan {
+    func generatePlan(weekStart: Date, slots: [SlotSelection], constraints: [String: Any], servings: Int, units: UnitSystem, language: String) async throws -> MealPlan {
         let url = baseURL.appendingPathComponent("/ai/plan")
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
@@ -126,6 +126,7 @@ struct IAService {
             "units": units.rawValue,
             "slots": slots.map { ["weekday": $0.weekday.rawValue, "meal_type": $0.mealType.rawValue] },
             "constraints": mergedConstraints,
+            "servings": servings,
             "language": language
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)

@@ -170,9 +170,12 @@ struct AddMealSheet: View {
             
             let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
             
+            // Calculate servings based on number of family members (minimum 1)
+            let servings = max(1, familyVM.members.count)
+            
             let recipe = try await service.generateRecipeFromTitle(
                 title: customTitle,
-                servings: 4,
+                servings: servings,
                 constraints: constraintsDict,
                 units: units,
                 language: String(language)
@@ -210,11 +213,14 @@ struct AddMealSheet: View {
             
             let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
             
+            // Calculate servings based on number of family members (minimum 1)
+            let servings = max(1, familyVM.members.count)
+            
             let recipe = try await service.regenerateMeal(
                 weekday: selectedDay,
                 mealType: selectedMealType,
                 constraints: constraintsDict,
-                servings: 4,
+                servings: servings,
                 units: units,
                 language: String(language),
                 diversitySeed: Int.random(in: 0...1000)
