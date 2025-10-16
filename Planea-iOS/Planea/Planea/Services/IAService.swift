@@ -20,6 +20,44 @@ private struct PlanItemResponse: Codable {
 struct IAService {
     var baseURL: URL
     
+    // Custom URLSession with extended timeout for serverless environments
+    private static let urlSession: URLSession = {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 120 // 2 minutes for cold starts
+        configuration.timeoutIntervalForResource = 180 // 3 minutes total
+        return URLSession(configuration: configuration)
+    }()
+    
+    // Helper to perform requests with retry logic for cold starts
+    private func performRequest(request: URLRequest, maxRetries: Int = 2) async throws -> (Data, URLResponse) {
+        var lastError: Error?
+        
+        for attempt in 0..<maxRetries {
+            do {
+                let (data, response) = try await Self.urlSession.data(for: request)
+                return (data, response)
+            } catch let error as URLError {
+                lastError = error
+                
+                // Retry on timeout or network errors (likely cold start)
+                if error.code == .timedOut || error.code == .cannotConnectToHost || error.code == .networkConnectionLost {
+                    print("⚠️ Request attempt \(attempt + 1) failed with: \(error.localizedDescription)")
+                    
+                    if attempt < maxRetries - 1 {
+                        // Wait before retrying (exponential backoff)
+                        let delay = pow(2.0, Double(attempt)) * 5.0 // 5s, 10s
+                        print("⏳ Waiting \(delay)s before retry...")
+                        try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                        continue
+                    }
+                }
+                throw error
+            }
+        }
+        
+        throw lastError ?? URLError(.unknown)
+    }
+    
     // Helper to merge preferences into constraints
     private func mergePreferences(into constraints: [String: Any], weekday: Weekday? = nil, hasPremium: Bool) -> [String: Any] {
         var merged = constraints
@@ -91,7 +129,9 @@ struct IAService {
             "language": language
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
-        let (data, _) = try await URLSession.shared.data(for: req)
+        
+        print("🚀 Generating meal plan...")
+        let (data, _) = try await performRequest(request: req)
         
         // Decode the API response
         let response = try JSONDecoder().decode(PlanResponse.self, from: data)
@@ -135,7 +175,9 @@ struct IAService {
             "diversity_seed": diversitySeed
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
-        let (data, _) = try await URLSession.shared.data(for: req)
+        
+        print("🔄 Regenerating meal...")
+        let (data, _) = try await performRequest(request: req)
         let decoded = try JSONDecoder().decode(Recipe.self, from: data)
         return decoded
     }
@@ -147,19 +189,20 @@ struct IAService {
         req.httpMethod = "POST"
         req.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // Merge preferences into constraints
-        let hasPremium = StoreManager.shared.hasActiveSubscription
-        let mergedConstraints = mergePreferences(into: constraints, hasPremium: hasPremium)
+        // DO NOT merge preferences for ad hoc recipes - use constraints as-is
+        // Ad hoc recipes should not be restricted by time or other preferences
         
         let payload: [String: Any] = [
             "idea": prompt,
-            "constraints": mergedConstraints,
+            "constraints": constraints,
             "servings": servings,
             "units": units.rawValue,
             "language": language
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
-        let (data, _) = try await URLSession.shared.data(for: req)
+        
+        print("🍳 Generating recipe from prompt...")
+        let (data, _) = try await performRequest(request: req)
         let decoded = try JSONDecoder().decode(Recipe.self, from: data)
         return decoded
     }
@@ -171,19 +214,20 @@ struct IAService {
         req.httpMethod = "POST"
         req.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // Merge preferences into constraints
-        let hasPremium = StoreManager.shared.hasActiveSubscription
-        let mergedConstraints = mergePreferences(into: constraints, hasPremium: hasPremium)
+        // DO NOT merge preferences for ad hoc recipes - use constraints as-is
+        // Ad hoc recipes should not be restricted by time or other preferences
         
         let payload: [String: Any] = [
             "title": title,
             "servings": servings,
-            "constraints": mergedConstraints,
+            "constraints": constraints,
             "units": units.rawValue,
             "language": language
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
-        let (data, _) = try await URLSession.shared.data(for: req)
+        
+        print("📝 Generating recipe from title...")
+        let (data, _) = try await performRequest(request: req)
         let decoded = try JSONDecoder().decode(Recipe.self, from: data)
         return decoded
     }

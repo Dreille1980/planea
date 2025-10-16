@@ -37,5 +37,7 @@
 	<string>Planea needs access to your reminders to export your grocery list.</string>
 	<key>NSRemindersUsageDescription_fr</key>
 	<string>Planea a besoin d'accéder à vos rappels pour exporter votre liste d'épicerie.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

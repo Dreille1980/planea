@@ -5,7 +5,7 @@ struct Config {
         #if DEBUG
         return "http://localhost:8000"
         #else
-        return "https://planea-production.up.railway.app"
+        return "https://planea-backend.onrender.com"
         #endif
     }
 }

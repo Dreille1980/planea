@@ -18,6 +18,8 @@
   ],
   "settings" : {
     "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
     "_storeKitErrors" : [
       {
         "current" : null,
@@ -86,10 +88,9 @@
           "groupNumber" : 1,
           "internalID" : "0132D71E",
           "introductoryOffer" : {
-            "displayPrice" : "0.99",
             "internalID" : "B7BFF0F8",
             "paymentMode" : "free",
-            "subscriptionPeriod" : "P1M"
+            "subscriptionPeriod" : "P1W"
           },
           "localizations" : [
             {
@@ -119,10 +120,9 @@
           "groupNumber" : 1,
           "internalID" : "B0D56253",
           "introductoryOffer" : {
-            "displayPrice" : "0.99",
             "internalID" : "CB146B95",
             "paymentMode" : "free",
-            "subscriptionPeriod" : "P1M"
+            "subscriptionPeriod" : "P1W"
           },
           "localizations" : [
             {
