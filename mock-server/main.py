@@ -156,10 +156,44 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
     # Add meal-specific guidance for appropriate meal types
     meal_guidance = ""
     if meal_type == "BREAKFAST":
+        # Define specific breakfast types for variety based on diversity_seed
+        breakfast_types_fr = [
+            "omelette aux légumes",
+            "crêpes",
+            "gaufres",
+            "pain doré",
+            "bol de gruau",
+            "parfait au yogourt et granola",
+            "bol smoothie",
+            "bagel garni",
+            "muffins maison",
+            "œufs bénédictine",
+            "frittata",
+            "sandwich déjeuner",
+            "burrito déjeuner"
+        ]
+        breakfast_types_en = [
+            "vegetable omelette",
+            "pancakes",
+            "waffles",
+            "french toast",
+            "oatmeal bowl",
+            "yogurt parfait with granola",
+            "smoothie bowl",
+            "loaded bagel",
+            "homemade muffins",
+            "eggs benedict",
+            "frittata",
+            "breakfast sandwich",
+            "breakfast burrito"
+        ]
+        
         if language == "en":
-            meal_guidance = "\n\nIMPORTANT - BREAKFAST MEAL REQUIREMENTS:\n- This MUST be an appropriate breakfast meal (morning meal)\n- Suitable options include: eggs dishes, omelettes, pancakes, waffles, french toast, breakfast burritos, bagels, muffins, granola, yogurt parfaits, smoothie bowls, oatmeal, breakfast sandwiches\n- Should be energizing for starting the day\n- Avoid heavy dinner-style dishes, roasted meats, or elaborate multi-course meals\n- Focus on classic, morning-appropriate breakfast foods"
+            breakfast_type = breakfast_types_en[diversity_seed % len(breakfast_types_en)]
+            meal_guidance = f"\n\nIMPORTANT - BREAKFAST MEAL REQUIREMENTS:\n- This MUST be a {breakfast_type} recipe (morning meal)\n- Create a UNIQUE variation of {breakfast_type}\n- Should be energizing for starting the day\n- Avoid heavy dinner-style dishes, roasted meats, or elaborate multi-course meals\n- Focus on classic, morning-appropriate breakfast foods\n- DO NOT create a burrito if you've been asked for something else"
         else:
-            meal_guidance = "\n\nIMPORTANT - EXIGENCES POUR LE DÉJEUNER:\n- Ceci DOIT être un repas approprié pour le déjeuner (repas du matin / petit-déjeuner)\n- Options appropriées: œufs (brouillés, pochés, omelettes), crêpes, gaufres, pain doré, burritos déjeuner, bagels, muffins, granola, parfaits au yogourt, bols smoothie, gruau, sandwichs déjeuner\n- Doit être énergisant pour commencer la journée\n- Éviter les plats de type souper, viandes rôties ou repas élaborés\n- Concentre-toi sur des aliments classiques appropriés pour le matin"
+            breakfast_type = breakfast_types_fr[diversity_seed % len(breakfast_types_fr)]
+            meal_guidance = f"\n\nIMPORTANT - EXIGENCES POUR LE DÉJEUNER:\n- Ceci DOIT être une recette de {breakfast_type} (repas du matin)\n- Crée une variation UNIQUE de {breakfast_type}\n- Doit être énergisant pour commencer la journée\n- Éviter les plats de type souper, viandes rôties ou repas élaborés\n- Concentre-toi sur des aliments classiques appropriés pour le matin\n- NE crée PAS un burrito si on te demande autre chose"
     elif meal_type == "LUNCH":
         if language == "en":
             meal_guidance = "\n\nIMPORTANT - LUNCH MEAL REQUIREMENTS:\n- This MUST be an appropriate lunch meal (midday meal)\n- Suitable options include: salads, sandwiches, wraps, pasta dishes, grain bowls, soups, quiches, light protein dishes\n- Should be lighter than dinner, easy to prepare and serve\n- Avoid heavy roasted meats or elaborate dinner-style dishes\n- Focus on fresh, balanced, midday-appropriate meals"
