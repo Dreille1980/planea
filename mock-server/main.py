@@ -384,7 +384,7 @@ class RegenerateMealRequest(BaseModel):
 
 @app.post("/ai/regenerate-meal", response_model=Recipe)
 async def regenerate_meal(req: RegenerateMealRequest):
-    """Regenerate a single meal with diversity using fast model (gpt-4o)."""
+    """Regenerate a single meal with diversity."""
     return await generate_recipe_with_openai(
         meal_type=req.meal_type,
         constraints=req.constraints,
@@ -393,14 +393,13 @@ async def regenerate_meal(req: RegenerateMealRequest):
         previous_recipes=None,
         diversity_seed=req.diversity_seed,
         language=req.language,
-        use_fast_model=True,  # Use gpt-4o for faster individual regenerations
         weekday=req.weekday  # Pass weekday for time constraints
     )
 
 
 @app.post("/ai/recipe", response_model=Recipe)
 async def ai_recipe(req: RecipeRequest):
-    """Generate a single recipe from a prompt using fast model (gpt-4o)."""
+    """Generate a single recipe from a prompt."""
     
     # Language-specific handling
     if req.language == "en":
@@ -502,7 +501,7 @@ IMPORTANT: Génère au moins 5-7 étapes détaillées avec des étapes de prépa
 
     try:
         response = await client.chat.completions.create(
-            model="gpt-4o",  # Use fast model for ad-hoc recipes
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "Tu es un chef cuisinier créatif et expert qui génère des recettes uniques et détaillées en JSON."},
                 {"role": "user", "content": prompt}
@@ -538,7 +537,7 @@ class RecipeFromTitleRequest(BaseModel):
 
 @app.post("/ai/recipe-from-title", response_model=Recipe)
 async def ai_recipe_from_title(req: RecipeFromTitleRequest):
-    """Generate a complete recipe from just a title using fast model (gpt-4o)."""
+    """Generate a complete recipe from just a title."""
     
     # Language-specific handling
     if req.language == "en":
@@ -648,7 +647,7 @@ IMPORTANT:
 
     try:
         response = await client.chat.completions.create(
-            model="gpt-4o",  # Use fast model for ad-hoc recipe from title
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
