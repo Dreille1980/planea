@@ -75,6 +75,16 @@ class RecipeRequest(BaseModel):
 async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: str, servings: int = 4, previous_recipes: List[str] = None, diversity_seed: int = 0, language: str = "fr") -> Recipe:
     """Generate a single recipe using OpenAI with diversity awareness (async)."""
     
+    # Extract time constraints from extra field if present
+    max_minutes = None
+    if constraints.get("extra"):
+        extra_text = constraints["extra"]
+        # Try to extract max time constraint (e.g., "30 minutes", "Max 30 minutes")
+        import re
+        time_match = re.search(r'(?:max|maximum|NO MORE than)\s+(\d+)\s+minutes', extra_text, re.IGNORECASE)
+        if time_match:
+            max_minutes = int(time_match.group(1))
+    
     # Build constraints text
     constraints_text = ""
     if constraints.get("diet"):
@@ -233,51 +243,70 @@ Catégories d'ingrédients possibles: légumes, fruits, viandes, poissons, produ
 
 IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de préparation EXPLICITES au début."""
 
-    try:
-        response = await client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "Tu es un chef cuisinier créatif et expert qui génère des recettes uniques et détaillées en JSON. Tu varies toujours les ingrédients, cuisines et techniques."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.9,  # Increased for more creativity and diversity
-            max_tokens=1200  # Increased for detailed steps
-        )
-        
-        content = response.choices[0].message.content.strip()
-        
-        # Remove markdown code blocks if present
-        if content.startswith("```"):
-            content = content.split("```")[1]
-            if content.startswith("json"):
-                content = content[4:]
-            content = content.strip()
-        
-        recipe_data = json.loads(content)
-        
-        # Ensure all ingredients have required fields
-        for ingredient in recipe_data.get("ingredients", []):
-            if "unit" not in ingredient or not ingredient.get("unit"):
-                ingredient["unit"] = "unité"
-            if "category" not in ingredient or not ingredient.get("category"):
-                ingredient["category"] = "autre"
-        
-        return Recipe(**recipe_data)
-        
-    except Exception as e:
-        print(f"Error generating recipe with OpenAI: {e}")
-        # Fallback to a simple recipe
-        return Recipe(
-            title=f"Recette simple de {meal_type_fr}",
-            servings=servings,
-            total_minutes=30,
-            ingredients=[
-                Ingredient(name="ingrédient principal", quantity=500, unit="g" if units == "METRIC" else "oz", category="sec")
-            ],
-            steps=["Préparer les ingrédients", "Cuire selon les instructions"],
-            equipment=["poêle"],
-            tags=["simple"]
-        )
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            response = await client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "Tu es un chef cuisinier créatif et expert qui génère des recettes uniques et détaillées en JSON. Tu varies toujours les ingrédients, cuisines et techniques. Tu RESPECTES TOUJOURS les contraintes de temps données."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.9,  # Increased for more creativity and diversity
+                max_tokens=1200  # Increased for detailed steps
+            )
+            
+            content = response.choices[0].message.content.strip()
+            
+            # Remove markdown code blocks if present
+            if content.startswith("```"):
+                content = content.split("```")[1]
+                if content.startswith("json"):
+                    content = content[4:]
+                content = content.strip()
+            
+            recipe_data = json.loads(content)
+            
+            # CRITICAL: Validate time constraint if specified
+            if max_minutes is not None:
+                recipe_time = recipe_data.get("total_minutes", 999)
+                if recipe_time > max_minutes:
+                    if attempt < max_retries - 1:
+                        print(f"Recipe time {recipe_time} exceeds max {max_minutes}, retrying (attempt {attempt + 1}/{max_retries})")
+                        # Retry with even more explicit time constraint
+                        continue
+                    else:
+                        # Last attempt: force the time to be within limit
+                        recipe_data["total_minutes"] = max_minutes
+                        print(f"Forced recipe time to {max_minutes} minutes after {max_retries} attempts")
+            
+            # Ensure all ingredients have required fields
+            for ingredient in recipe_data.get("ingredients", []):
+                if "unit" not in ingredient or not ingredient.get("unit"):
+                    ingredient["unit"] = "unité"
+                if "category" not in ingredient or not ingredient.get("category"):
+                    ingredient["category"] = "autre"
+            
+            return Recipe(**recipe_data)
+            
+        except Exception as e:
+            if attempt < max_retries - 1:
+                print(f"Error on attempt {attempt + 1}/{max_retries}: {e}, retrying...")
+                continue
+            else:
+                print(f"Error generating recipe with OpenAI after {max_retries} attempts: {e}")
+                # Fallback to a simple recipe
+                return Recipe(
+                    title=f"Recette simple de {meal_type_fr}",
+                    servings=servings,
+                    total_minutes=max_minutes if max_minutes else 30,
+                    ingredients=[
+                        Ingredient(name="ingrédient principal", quantity=500, unit="g" if units == "METRIC" else "oz", category="sec")
+                    ],
+                    steps=["Préparer les ingrédients", "Cuire selon les instructions"],
+                    equipment=["poêle"],
+                    tags=["simple"]
+                )
 
 
 @app.post("/ai/plan", response_model=PlanResponse)

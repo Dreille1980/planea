@@ -64,9 +64,24 @@ struct IAService {
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
         
-        // Merge preferences into constraints
+        // IMPORTANT: Create a COMPREHENSIVE preference string for the entire week
         let hasPremium = StoreManager.shared.hasActiveSubscription
-        let mergedConstraints = mergePreferences(into: constraints, hasPremium: hasPremium)
+        var mergedConstraints = constraints
+        
+        if hasPremium {
+            let prefs = PreferencesService.shared.loadPreferences()
+            
+            // Build a detailed constraints string that covers ALL days
+            var prefsString = prefs.toPromptString()
+            
+            // Add explicit timing constraints for weekdays vs weekends
+            prefsString += "\n\nIMPORTANT TIMING CONSTRAINTS:"
+            prefsString += "\n- Monday through Friday recipes MUST take NO MORE than \(prefs.weekdayMaxMinutes) minutes total cooking time."
+            prefsString += "\n- Saturday and Sunday recipes can take up to \(prefs.weekendMaxMinutes) minutes."
+            prefsString += "\n- These time limits are STRICT and MUST be respected."
+            
+            mergedConstraints["extra"] = prefsString
+        }
         
         let payload: [String: Any] = [
             "week_start": dateFormatter.string(from: weekStart),
