@@ -148,10 +148,18 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
     unit_system = "métrique (grammes, ml)" if units == "METRIC" else "impérial (oz, cups)"
     
     meal_type_fr = {
-        "BREAKFAST": "petit-déjeuner",
-        "LUNCH": "lunch",
+        "BREAKFAST": "déjeuner",
+        "LUNCH": "dîner",
         "DINNER": "souper"
     }.get(meal_type, "repas")
+    
+    # Add meal-specific guidance for appropriate meal types
+    meal_guidance = ""
+    if meal_type == "LUNCH":
+        if language == "en":
+            meal_guidance = "\n\nIMPORTANT - LUNCH MEAL REQUIREMENTS:\n- This MUST be an appropriate lunch meal (midday meal)\n- Suitable options include: salads, sandwiches, wraps, pasta dishes, grain bowls, soups, quiches, light protein dishes\n- Should be lighter than dinner, easy to prepare and serve\n- Avoid heavy roasted meats or elaborate dinner-style dishes\n- Focus on fresh, balanced, midday-appropriate meals"
+        else:
+            meal_guidance = "\n\nIMPORTANT - EXIGENCES POUR LE DÎNER:\n- Ceci DOIT être un repas approprié pour le dîner (repas du midi)\n- Options appropriées: salades, sandwichs, wraps, plats de pâtes, bols de grains, soupes, quiches, plats légers avec protéines\n- Doit être plus léger que le souper, facile à préparer et servir\n- Éviter les viandes rôties lourdes ou les plats élaborés de type souper\n- Concentre-toi sur des repas frais, équilibrés et appropriés pour le midi"
     
     # Language-specific prompts
     if language == "en":
@@ -197,13 +205,17 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
         
         prompt = f"""Generate a {meal_type_name} recipe in English for {servings} people.
 
-{constraints_text_en}{diversity_text_en}
+{constraints_text_en}{diversity_text_en}{meal_guidance}
 
 CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
 - First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
 - Be specific about cuts: "dice carrots into 1cm cubes", "grate 100g cheese", "finely chop 2 onions"
 - Include prep for ALL ingredients before cooking steps
 - Then include cooking/assembly steps with exact times, temperatures, and techniques
+
+TEMPERATURE FORMAT: When mentioning temperatures, ALWAYS include both Celsius and Fahrenheit in parentheses.
+- Format: "180°C (350°F)" or "température de 180°C (350°F)"
+- This applies to ALL temperature mentions (oven, cooking, serving temperatures, etc.)
 
 Return ONLY a valid JSON object with this exact structure (no text before or after):
 {{
@@ -236,13 +248,17 @@ IMPORTANT: Generate at least 6-8 detailed steps with EXPLICIT preparation steps 
         
         prompt = f"""Génère une recette de {meal_type_fr} en français pour {servings} personnes.
 
-{constraints_text}{diversity_text}{time_constraint_text}
+{constraints_text}{diversity_text}{meal_guidance}{time_constraint_text}
 
 CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
 - Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
 - Sois précis sur les coupes: "couper les carottes en dés de 1cm", "râper 100g de fromage", "émincer finement 2 oignons"
 - Inclure la préparation de TOUS les ingrédients avant les étapes de cuisson
 - Ensuite inclure les étapes de cuisson/assemblage avec temps exacts, températures et techniques
+
+FORMAT DES TEMPÉRATURES: Lors de la mention de températures, TOUJOURS inclure Celsius ET Fahrenheit entre parenthèses.
+- Format: "180°C (350°F)" ou "à une température de 180°C (350°F)"
+- Ceci s'applique à TOUTES les mentions de température (four, cuisson, service, etc.)
 
 Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte (sans texte avant ou après):
 {{
@@ -427,6 +443,10 @@ CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation st
 - Include prep for ALL ingredients before cooking steps
 - Then include cooking/assembly steps with exact times, temperatures, and techniques
 
+TEMPERATURE FORMAT: When mentioning temperatures, ALWAYS include both Celsius and Fahrenheit in parentheses.
+- Format: "180°C (350°F)" or "at 180°C (350°F)"
+- This applies to ALL temperature mentions (oven, cooking, serving temperatures, etc.)
+
 Return ONLY a valid JSON object with this exact structure:
 {{
     "title": "Recipe name",
@@ -476,6 +496,10 @@ CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de
 - Sois précis sur les coupes: "couper les carottes en dés de 1cm", "râper 100g de fromage", "émincer finement 2 oignons"
 - Inclure la préparation de TOUS les ingrédients avant les étapes de cuisson
 - Ensuite inclure les étapes de cuisson/assemblage avec temps exacts, températures et techniques
+
+FORMAT DES TEMPÉRATURES: Lors de la mention de températures, TOUJOURS inclure Celsius ET Fahrenheit entre parenthèses.
+- Format: "180°C (350°F)" ou "à 180°C (350°F)"
+- Ceci s'applique à TOUTES les mentions de température (four, cuisson, service, etc.)
 
 Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte:
 {{
@@ -565,6 +589,10 @@ CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation st
 - Include prep for ALL ingredients before cooking steps
 - Then include cooking/assembly steps with exact times, temperatures, and techniques
 
+TEMPERATURE FORMAT: When mentioning temperatures, ALWAYS include both Celsius and Fahrenheit in parentheses.
+- Format: "180°C (350°F)" or "at 180°C (350°F)"
+- This applies to ALL temperature mentions (oven, cooking, serving temperatures, etc.)
+
 Return ONLY a valid JSON object with this exact structure:
 {{
     "title": "{req.title}",
@@ -617,6 +645,10 @@ CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de
 - Sois précis sur les coupes: "couper les carottes en dés de 1cm", "râper 100g de fromage", "émincer finement 2 oignons"
 - Inclure la préparation de TOUS les ingrédients avant les étapes de cuisson
 - Ensuite inclure les étapes de cuisson/assemblage avec temps exacts, températures et techniques
+
+FORMAT DES TEMPÉRATURES: Lors de la mention de températures, TOUJOURS inclure Celsius ET Fahrenheit entre parenthèses.
+- Format: "180°C (350°F)" ou "à 180°C (350°F)"
+- Ceci s'applique à TOUTES les mentions de température (four, cuisson, service, etc.)
 
 Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte:
 {{
