@@ -41,7 +41,14 @@
 "shopping.sort.custom" = "Custom";
 
 "adhoc.title" = "Ad hoc recipe";
+"adhoc.modeText" = "Text";
+"adhoc.modePhoto" = "Photo";
 "adhoc.promptPlaceholder" = "e.g., chicken + broccoli, 30 min, 4 servings";
+"adhoc.fridgePhoto" = "Fridge Photo";
+"adhoc.takePhoto" = "Take a Photo";
+"adhoc.choosePhoto" = "Choose a Photo";
+"adhoc.analyzingPhoto" = "Analyzing photo...";
+"adhoc.imageError" = "Error processing image";
 
 "settings.units" = "Units";
 "settings.language" = "Language";
@@ -68,8 +75,11 @@
 "family.management" = "Family Management";
 
 "onboarding.welcome" = "Welcome to Planea";
-"onboarding.members" = "Members";
+"onboarding.members" = "Family Members";
+"onboarding.members.description" = "Add people in your household who will eat these meals. You can then set their allergies and preferences.";
 "onboarding.continue" = "Continue";
+"onboarding.requirement.familyName" = "Please enter a family name to continue";
+"onboarding.requirement.members" = "Please add at least one member to continue";
 
 "action.save" = "Save Changes";
 "action.cancel" = "Cancel";
@@ -107,6 +117,8 @@
 "adhoc.recipeIdea" = "Recipe Idea";
 "adhoc.servings" = "Servings";
 "adhoc.servingsCount" = "servings";
+
+"recipe.detectedIngredients" = "Detected Ingredients";
 
 "count.diets" = "diet(s)";
 "count.allergens" = "allergen(s)";

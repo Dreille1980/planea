@@ -65,8 +65,8 @@ enum StoreSection: String, CaseIterable {
         case .vegetables: return 1
         case .meat: return 2
         case .fish: return 3
-        case .dairy: return 4
-        case .bakery: return 5
+        case .bakery: return 4
+        case .dairy: return 5
         case .grains: return 6
         case .pasta: return 7
         case .canned: return 8

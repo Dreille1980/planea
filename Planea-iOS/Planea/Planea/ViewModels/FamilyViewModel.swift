@@ -2,7 +2,7 @@ import Foundation
 import Combine
 
 final class FamilyViewModel: ObservableObject {
-    @Published var family = Family(name: "Famille")
+    @Published var family = Family(name: "")
     @Published var members: [Member] = []
     
     private let persistence = PersistenceController.shared

@@ -599,6 +599,14 @@ class RecipeFromTitleRequest(BaseModel):
     language: str = "fr"
 
 
+class RecipeFromImageRequest(BaseModel):
+    image_base64: str
+    constraints: dict = Field(default_factory=dict)
+    servings: int = 4
+    units: Literal["METRIC", "IMPERIAL"] = "METRIC"
+    language: str = "fr"
+
+
 @app.post("/ai/recipe-from-title", response_model=Recipe)
 async def ai_recipe_from_title(req: RecipeFromTitleRequest):
     """Generate a complete recipe from just a title."""
@@ -754,6 +762,176 @@ IMPORTANT:
     except Exception as e:
         print(f"Error generating recipe from title: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate recipe: {str(e)}")
+
+
+@app.post("/ai/recipe-from-image", response_model=Recipe)
+async def ai_recipe_from_image(req: RecipeFromImageRequest):
+    """Generate a recipe from a fridge photo using GPT-4o Vision."""
+    
+    # Language-specific handling
+    if req.language == "en":
+        constraints_text = ""
+        if req.constraints.get("diet"):
+            diets = ", ".join(req.constraints["diet"])
+            constraints_text += f"Dietary requirements: {diets}. "
+        if req.constraints.get("evict"):
+            allergies = ", ".join(req.constraints["evict"])
+            constraints_text += f"Allergies/Avoid: {allergies}. "
+        
+        unit_system = "metric (grams, ml)" if req.units == "METRIC" else "imperial (oz, cups)"
+        
+        prompt = f"""Analyze this fridge/pantry photo and create a delicious recipe using the visible ingredients.
+
+For {req.servings} people.
+{constraints_text}
+
+STEP 1 - IDENTIFY INGREDIENTS: List all food items you can clearly identify in the image.
+
+STEP 2 - CREATE RECIPE: Based on the identified ingredients, generate a creative and practical recipe.
+
+CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
+- First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
+- Be specific about cuts: "dice carrots into 1cm cubes", "grate 100g cheese", "finely chop 2 onions"
+- Include prep for ALL ingredients before cooking steps
+- Then include cooking/assembly steps with exact times, temperatures, and techniques
+
+TEMPERATURE FORMAT: When mentioning temperatures, ALWAYS include both Celsius and Fahrenheit in parentheses.
+- Format: "180°C (350°F)" or "at 180°C (350°F)"
+- This applies to ALL temperature mentions (oven, cooking, serving temperatures, etc.)
+
+Return ONLY a valid JSON object with this exact structure:
+{{
+    "title": "Creative recipe name based on identified ingredients",
+    "servings": {req.servings},
+    "total_minutes": 30,
+    "ingredients": [
+        {{"name": "ingredient", "quantity": 200, "unit": "g", "category": "vegetables"}}
+    ],
+    "steps": [
+        "Preparation: Dice the carrots into 1cm cubes. Finely chop the onion...",
+        "Heat oil in a large pan...",
+        "Add ingredients and cook..."
+    ],
+    "equipment": ["pan", "pot"],
+    "tags": ["easy", "from-fridge"],
+    "detected_ingredients": "List of main ingredients detected in the photo (comma-separated)"
+}}
+
+Use the {unit_system} system.
+Categories: vegetables, fruits, meats, fish, dairy, dry goods, condiments, canned goods.
+
+IMPORTANT: 
+- Generate at least 5-7 detailed steps with EXPLICIT preparation steps at the beginning
+- The "detected_ingredients" field should list the main ingredients you identified in the photo
+- Use realistic quantities based on what you see in the image"""
+        
+        system_prompt = "You are a creative chef who analyzes fridge photos and creates delicious, practical recipes using available ingredients."
+        
+    else:
+        # French version
+        constraints_text = ""
+        if req.constraints.get("diet"):
+            diets = ", ".join(req.constraints["diet"])
+            constraints_text += f"Régimes alimentaires: {diets}. "
+        if req.constraints.get("evict"):
+            allergies = ", ".join(req.constraints["evict"])
+            constraints_text += f"Allergies/Éviter: {allergies}. "
+        
+        unit_system = "métrique (grammes, ml)" if req.units == "METRIC" else "impérial (oz, cups)"
+        
+        prompt = f"""Analyse cette photo de frigo/garde-manger et crée une délicieuse recette utilisant les ingrédients visibles.
+
+Pour {req.servings} personnes.
+{constraints_text}
+
+ÉTAPE 1 - IDENTIFIER LES INGRÉDIENTS: Liste tous les aliments que tu peux clairement identifier dans l'image.
+
+ÉTAPE 2 - CRÉER LA RECETTE: Basé sur les ingrédients identifiés, génère une recette créative et pratique.
+
+CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
+- Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
+- Sois précis sur les coupes: "couper les carottes en dés de 1cm", "râper 100g de fromage", "émincer finement 2 oignons"
+- Inclure la préparation de TOUS les ingrédients avant les étapes de cuisson
+- Ensuite inclure les étapes de cuisson/assemblage avec temps exacts, températures et techniques
+
+FORMAT DES TEMPÉRATURES: Lors de la mention de températures, TOUJOURS inclure Celsius ET Fahrenheit entre parenthèses.
+- Format: "180°C (350°F)" ou "à 180°C (350°F)"
+- Ceci s'applique à TOUTES les mentions de température (four, cuisson, service, etc.)
+
+Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte:
+{{
+    "title": "Nom créatif de la recette basé sur les ingrédients identifiés",
+    "servings": {req.servings},
+    "total_minutes": 30,
+    "ingredients": [
+        {{"name": "ingrédient", "quantity": 200, "unit": "g", "category": "légumes"}}
+    ],
+    "steps": [
+        "Préparation: Couper les carottes en dés de 1cm. Émincer finement l'oignon...",
+        "Faire chauffer l'huile dans une grande poêle...",
+        "Ajouter les ingrédients et cuire..."
+    ],
+    "equipment": ["poêle", "casserole"],
+    "tags": ["facile", "du-frigo"],
+    "detected_ingredients": "Liste des principaux ingrédients détectés dans la photo (séparés par des virgules)"
+}}
+
+Utilise le système {unit_system}.
+Catégories: légumes, fruits, viandes, poissons, produits laitiers, sec, condiments, conserves.
+
+IMPORTANT: 
+- Génère au moins 5-7 étapes détaillées avec des étapes de préparation EXPLICITES au début
+- Le champ "detected_ingredients" doit lister les principaux ingrédients que tu as identifiés dans la photo
+- Utilise des quantités réalistes basées sur ce que tu vois dans l'image"""
+        
+        system_prompt = "Tu es un chef créatif qui analyse des photos de frigo et crée des recettes délicieuses et pratiques en utilisant les ingrédients disponibles."
+
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o",  # Use GPT-4o for vision capabilities
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{req.image_base64}",
+                                "detail": "high"  # High detail for better ingredient identification
+                            }
+                        }
+                    ]
+                }
+            ],
+            temperature=0.7,
+            max_tokens=1500
+        )
+        
+        content = response.choices[0].message.content.strip()
+        
+        # Remove markdown code blocks if present
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        
+        recipe_data = json.loads(content)
+        
+        # Ensure all ingredients have required fields
+        for ingredient in recipe_data.get("ingredients", []):
+            if "unit" not in ingredient or not ingredient.get("unit"):
+                ingredient["unit"] = "unité" if req.language == "fr" else "unit"
+            if "category" not in ingredient or not ingredient.get("category"):
+                ingredient["category"] = "autre" if req.language == "fr" else "other"
+        
+        return Recipe(**recipe_data)
+        
+    except Exception as e:
+        print(f"Error generating recipe from image: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate recipe from image: {str(e)}")
 
 
 @app.get("/")

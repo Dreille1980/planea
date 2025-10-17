@@ -209,6 +209,31 @@ struct IAService {
     }
     
     @MainActor
+    func generateRecipeFromImage(imageData: Data, servings: Int, constraints: [String: Any], units: UnitSystem, language: String) async throws -> Recipe {
+        let url = baseURL.appendingPathComponent("/ai/recipe-from-image")
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        // Convert image to base64
+        let base64Image = imageData.base64EncodedString()
+        
+        let payload: [String: Any] = [
+            "image_base64": base64Image,
+            "servings": servings,
+            "constraints": constraints,
+            "units": units.rawValue,
+            "language": language
+        ]
+        req.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        
+        print("📸 Generating recipe from fridge photo...")
+        let (data, _) = try await performRequest(request: req)
+        let decoded = try JSONDecoder().decode(Recipe.self, from: data)
+        return decoded
+    }
+    
+    @MainActor
     func generateRecipeFromTitle(title: String, servings: Int, constraints: [String: Any], units: UnitSystem, language: String) async throws -> Recipe {
         let url = baseURL.appendingPathComponent("/ai/recipe-from-title")
         var req = URLRequest(url: url)

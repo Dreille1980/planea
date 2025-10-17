@@ -9,6 +9,7 @@ struct Recipe: Identifiable, Codable {
     var steps: [String]
     var equipment: [String] = []
     var tags: [String] = []
+    var detectedIngredients: String? = nil  // Optional: ingredients detected from fridge photo
     
     enum CodingKeys: String, CodingKey {
         case title
@@ -18,6 +19,7 @@ struct Recipe: Identifiable, Codable {
         case steps
         case equipment
         case tags
+        case detectedIngredients = "detected_ingredients"
     }
 }
 

@@ -17,7 +17,7 @@ struct OnboardingView: View {
                         }
                 }
                 
-                Section(header: Text("onboarding.members".localized)) {
+                Section(header: Text("onboarding.members".localized), footer: Text("onboarding.members.description".localized)) {
                     ForEach(familyVM.members) { member in
                         NavigationLink(destination: MemberDetailView(member: member)) {
                             HStack {
@@ -106,6 +106,19 @@ struct OnboardingView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(familyVM.family.name.isEmpty || familyVM.members.isEmpty)
+                    
+                    if familyVM.family.name.isEmpty || familyVM.members.isEmpty {
+                        HStack {
+                            Image(systemName: "info.circle")
+                                .foregroundStyle(.orange)
+                            Text(familyVM.family.name.isEmpty ? 
+                                "onboarding.requirement.familyName".localized : 
+                                "onboarding.requirement.members".localized)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    }
                 }
             }
             .navigationTitle("onboarding.welcome".localized)

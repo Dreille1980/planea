@@ -41,7 +41,14 @@
 "shopping.sort.custom" = "Personnalisé";
 
 "adhoc.title" = "Recette ad hoc";
+"adhoc.modeText" = "Texte";
+"adhoc.modePhoto" = "Photo";
 "adhoc.promptPlaceholder" = "Ex.: poulet + brocoli, 30 min, 4 portions";
+"adhoc.fridgePhoto" = "Photo du frigo";
+"adhoc.takePhoto" = "Prendre une photo";
+"adhoc.choosePhoto" = "Choisir une photo";
+"adhoc.analyzingPhoto" = "Analyse de la photo...";
+"adhoc.imageError" = "Erreur lors du traitement de l'image";
 
 "settings.units" = "Unités";
 "settings.language" = "Langue";
@@ -68,8 +75,11 @@
 "family.management" = "Gestion de la famille";
 
 "onboarding.welcome" = "Bienvenue dans Planea";
-"onboarding.members" = "Membres";
+"onboarding.members" = "Membres de la famille";
+"onboarding.members.description" = "Ajoutez les personnes de votre foyer qui mangeront ces repas. Vous pourrez ensuite définir leurs allergies et préférences.";
 "onboarding.continue" = "Continuer";
+"onboarding.requirement.familyName" = "Veuillez entrer un nom de famille pour continuer";
+"onboarding.requirement.members" = "Veuillez ajouter au moins un membre pour continuer";
 
 "action.save" = "Sauvegarder";
 "action.cancel" = "Annuler";
@@ -107,6 +117,8 @@
 "adhoc.recipeIdea" = "Idée de recette";
 "adhoc.servings" = "Portions";
 "adhoc.servingsCount" = "portions";
+
+"recipe.detectedIngredients" = "Ingrédients détectés";
 
 "count.diets" = "régime(s)";
 "count.allergens" = "allergène(s)";

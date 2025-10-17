@@ -37,23 +37,25 @@ struct ShoppingListView: View {
                         List {
                             ForEach(getSortedItems().indices, id: \.self) { idx in
                                 let item = getSortedItems()[idx]
+                                let converted = convertIngredient(item)
                                 HStack {
-                                    Button(action: {
-                                        toggleItemChecked(item)
-                                    }) {
-                                        Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
-                                            .foregroundStyle(item.isChecked ? .green : .gray)
-                                    }
-                                    .buttonStyle(.plain)
+                                    Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
+                                        .foregroundStyle(item.isChecked ? .green : .gray)
+                                        .font(.title3)
                                     
                                     Text(item.name)
                                         .strikethrough(item.isChecked)
+                                        .foregroundStyle(item.isChecked ? .secondary : .primary)
                                     
                                     Spacer()
                                     
-                                    Text("\(item.totalQuantity, specifier: "%.1f") \(item.unit)")
+                                    Text("\(converted.quantity, specifier: "%.1f") \(converted.unit)")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    toggleItemChecked(item)
                                 }
                             }
                             .onMove { source, destination in
@@ -67,16 +69,28 @@ struct ShoppingListView: View {
                         // Export button
                         Button(action: {
                             if usageVM.hasFreePlanRestrictions {
+                                let generator = UINotificationFeedbackGenerator()
+                                generator.notificationOccurred(.warning)
                                 showPaywall = true
                             } else {
+                                let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
+                                impactGenerator.impactOccurred()
                                 showingExportOptions = true
                             }
                         }) {
-                            HStack {
+                            HStack(spacing: 8) {
                                 Label("action.export".localized, systemImage: "square.and.arrow.up")
                                 if usageVM.hasFreePlanRestrictions {
-                                    Image(systemName: "lock.fill")
-                                        .font(.caption)
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "lock.fill")
+                                        Text("Premium")
+                                    }
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Capsule().fill(Color.yellow))
                                 }
                             }
                             .frame(maxWidth: .infinity)
@@ -155,12 +169,14 @@ struct ShoppingListView: View {
     func getSortedItems() -> [ShoppingItem] {
         guard let list = shoppingList else { return [] }
         
+        var sortedItems: [ShoppingItem]
+        
         switch list.sortOrder {
         case .alphabetical:
-            return list.items.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            sortedItems = list.items.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
             
         case .storeLayout:
-            return list.items.sorted { item1, item2 in
+            sortedItems = list.items.sorted { item1, item2 in
                 let section1 = StoreSection.section(for: item1.category)
                 let section2 = StoreSection.section(for: item2.category)
                 
@@ -172,16 +188,25 @@ struct ShoppingListView: View {
             
         case .custom:
             if list.customOrder.isEmpty {
-                return list.items
-            }
-            // Sort by custom order
-            return list.items.sorted { item1, item2 in
-                guard let idx1 = list.customOrder.firstIndex(of: item1.id),
-                      let idx2 = list.customOrder.firstIndex(of: item2.id) else {
-                    return false
+                sortedItems = list.items
+            } else {
+                // Sort by custom order
+                sortedItems = list.items.sorted { item1, item2 in
+                    guard let idx1 = list.customOrder.firstIndex(of: item1.id),
+                          let idx2 = list.customOrder.firstIndex(of: item2.id) else {
+                        return false
+                    }
+                    return idx1 < idx2
                 }
-                return idx1 < idx2
             }
+        }
+        
+        // Always sort checked items to the bottom
+        return sortedItems.sorted { item1, item2 in
+            if item1.isChecked != item2.isChecked {
+                return !item1.isChecked // unchecked items first
+            }
+            return false // maintain original order within checked/unchecked groups
         }
     }
     
@@ -334,5 +359,18 @@ struct ShoppingListView: View {
         UIPasteboard.general.string = text
         alertMessage = "shopping.copied".localized
         showingAlert = true
+    }
+    
+    // MARK: - Unit Conversion
+    
+    private func convertIngredient(_ item: ShoppingItem) -> (quantity: Double, unit: String) {
+        let currentSystem = UnitSystem(rawValue: unitSystem) ?? .metric
+        // Assume shopping list items come in metric from backend
+        return UnitConverter.convertIngredient(
+            quantity: item.totalQuantity,
+            unit: item.unit,
+            from: .metric,
+            to: currentSystem
+        )
     }
 }

@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Planea needs access to your camera to take photos of your fridge for recipe generation.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Planea needs access to your photo library to analyze fridge photos for recipe generation.</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
@@ -11,6 +15,10 @@
 	<string>fr</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
 			<key>planea-production.up.railway.app</key>
