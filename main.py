@@ -84,32 +84,13 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
         allergies = ", ".join(constraints["evict"])
         constraints_text += f"Allergies/Éviter: {allergies}. "
     
-    # Build diversity instructions with enhanced variety prompts
-    diversity_text = "\n\nIMPORTANT - DIVERSITÉ ET ORIGINALITÉ:\n"
-    
-    # Enhanced diversity guidance based on seed
-    cuisine_styles = [
-        "méditerranéenne", "asiatique", "mexicaine", "française", 
-        "italienne", "indienne", "marocaine", "grecque"
-    ]
-    protein_types = [
-        "poulet", "bœuf", "porc", "poisson", "fruits de mer",
-        "légumineuses", "tofu", "œufs"
-    ]
-    cooking_methods = [
-        "sauté", "rôti au four", "grillé", "mijote", "à la vapeur",
-        "poêlé", "en papillote", "braisé"
-    ]
-    
-    cuisine_hint = cuisine_styles[diversity_seed % len(cuisine_styles)]
-    protein_hint = protein_types[diversity_seed % len(protein_types)]
-    method_hint = cooking_methods[diversity_seed % len(cooking_methods)]
-    
-    diversity_text += f"- Inspire-toi de la cuisine {cuisine_hint}\n"
-    diversity_text += f"- Utilise de préférence {protein_hint} comme protéine\n"
-    diversity_text += f"- Méthode de cuisson suggérée: {method_hint}\n"
-    diversity_text += "- Crée une recette UNIQUE et ORIGINALE\n"
-    diversity_text += "- Varie les saveurs, textures et présentations\n"
+    # Build diversity instructions - NO restrictions, maximum creativity
+    diversity_text = "\n\nIMPÉRATIF - DIVERSITÉ MAXIMALE:\n"
+    diversity_text += "- Crée une recette TOTALEMENT UNIQUE et DIFFÉRENTE\n"
+    diversity_text += "- Varie librement: cuisines du monde, protéines, légumes, épices, techniques\n"
+    diversity_text += "- Explore des combinaisons créatives et inattendues\n"
+    diversity_text += "- Chaque recette doit être distincte des autres\n"
+    diversity_text += "- Utilise la créativité maximale sans limitations\n"
     
     unit_system = "métrique (grammes, ml)" if units == "METRIC" else "impérial (oz, cups)"
     
@@ -135,29 +116,12 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
             allergies = ", ".join(constraints["evict"])
             constraints_text_en += f"Allergies/Avoid: {allergies}. "
         
-        cuisine_styles_en = [
-            "Mediterranean", "Asian", "Mexican", "French", 
-            "Italian", "Indian", "Moroccan", "Greek"
-        ]
-        protein_types_en = [
-            "chicken", "beef", "pork", "fish", "seafood",
-            "legumes", "tofu", "eggs"
-        ]
-        cooking_methods_en = [
-            "sautéed", "roasted", "grilled", "stewed", "steamed",
-            "pan-fried", "baked in parchment", "braised"
-        ]
-        
-        cuisine_hint_en = cuisine_styles_en[diversity_seed % len(cuisine_styles_en)]
-        protein_hint_en = protein_types_en[diversity_seed % len(protein_types_en)]
-        method_hint_en = cooking_methods_en[diversity_seed % len(cooking_methods_en)]
-        
-        diversity_text_en = "\n\nIMPORTANT - DIVERSITY AND ORIGINALITY:\n"
-        diversity_text_en += f"- Draw inspiration from {cuisine_hint_en} cuisine\n"
-        diversity_text_en += f"- Preferably use {protein_hint_en} as protein\n"
-        diversity_text_en += f"- Suggested cooking method: {method_hint_en}\n"
-        diversity_text_en += "- Create a UNIQUE and ORIGINAL recipe\n"
-        diversity_text_en += "- Vary flavors, textures and presentations\n"
+        diversity_text_en = "\n\nCRITICAL - MAXIMUM DIVERSITY:\n"
+        diversity_text_en += "- Create a COMPLETELY UNIQUE and DIFFERENT recipe\n"
+        diversity_text_en += "- Freely vary: world cuisines, proteins, vegetables, spices, techniques\n"
+        diversity_text_en += "- Explore creative and unexpected combinations\n"
+        diversity_text_en += "- Each recipe must be distinct from others\n"
+        diversity_text_en += "- Use maximum creativity without limitations\n"
         
         unit_system_text = "metric (grams, ml)" if units == "METRIC" else "imperial (oz, cups)"
         
@@ -237,7 +201,7 @@ IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de prépa
                 {"role": "system", "content": "Tu es un chef cuisinier créatif et expert qui génère des recettes uniques et détaillées en JSON. Tu varies toujours les ingrédients, cuisines et techniques."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.9,  # Increased for more creativity and diversity
+            temperature=1.0,  # Maximum creativity and diversity
             max_tokens=1200  # Increased for detailed steps
         )
         
@@ -446,7 +410,7 @@ IMPORTANT: Génère au moins 5-7 étapes détaillées avec des étapes de prépa
                 {"role": "system", "content": "Tu es un chef cuisinier créatif et expert qui génère des recettes uniques et détaillées en JSON."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.9,  # Increased for more creativity
+            temperature=1.0,  # Maximum creativity and diversity
             max_tokens=1200  # Increased for detailed steps
         )
         
