@@ -28,6 +28,80 @@ app.add_middleware(
 # Initialize OpenAI client (async for parallel processing)
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# Initialize flyer scraper service
+flyer_scraper = FlyerScraperService()
+
+
+async def mark_ingredients_on_sale(recipe: Recipe, preferences: dict) -> Recipe:
+    """Mark ingredients that are on sale based on weekly flyers."""
+    
+    # Check if flyer deals feature is enabled
+    if not preferences or not preferences.get("useFlyerDeals"):
+        return recipe
+    
+    # Get postal code and store
+    postal_code = preferences.get("postalCode")
+    store_name = preferences.get("preferredStore")
+    
+    if not postal_code or not store_name:
+        print("Flyer deals requested but postal code or store not provided")
+        return recipe
+    
+    try:
+        # Fetch weekly deals
+        print(f"Fetching deals for {store_name} at {postal_code}...")
+        deals = await asyncio.to_thread(
+            flyer_scraper.get_weekly_deals,
+            store_name=store_name,
+            postal_code=postal_code
+        )
+        
+        if not deals:
+            print(f"No deals found for {store_name}")
+            return recipe
+        
+        print(f"Found {len(deals)} deals")
+        
+        # Normalize deals for comparison (lowercase, remove accents, etc.)
+        normalized_deals = set()
+        for deal in deals:
+            # Simple normalization: lowercase and strip
+            normalized = deal.lower().strip()
+            normalized_deals.add(normalized)
+            # Also add individual words for partial matching
+            for word in normalized.split():
+                if len(word) > 3:  # Only words longer than 3 chars
+                    normalized_deals.add(word)
+        
+        # Mark ingredients that are on sale
+        for ingredient in recipe.ingredients:
+            ing_name = ingredient.name.lower().strip()
+            
+            # Check for exact or partial match
+            is_on_sale = False
+            
+            # Check exact match
+            if ing_name in normalized_deals:
+                is_on_sale = True
+            else:
+                # Check if any deal word is in ingredient name or vice versa
+                ing_words = set(ing_name.split())
+                for ing_word in ing_words:
+                    if len(ing_word) > 3 and ing_word in normalized_deals:
+                        is_on_sale = True
+                        break
+            
+            if is_on_sale:
+                ingredient.is_on_sale = True
+                print(f"  ✓ Marked '{ingredient.name}' as ON SALE")
+        
+        return recipe
+        
+    except Exception as e:
+        print(f"Error fetching flyer deals: {e}")
+        # Return recipe unchanged if there's an error
+        return recipe
+
 MealType = Literal["BREAKFAST", "LUNCH", "DINNER"]
 Weekday = Literal["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -48,6 +122,7 @@ class Ingredient(BaseModel):
     quantity: float
     unit: str
     category: str
+    is_on_sale: bool = False
 
 class Recipe(BaseModel):
     title: str
@@ -331,6 +406,10 @@ async def ai_plan(req: PlanRequest):
     # Execute all API calls in parallel
     recipes = await asyncio.gather(*tasks)
     
+    # Mark ingredients on sale if feature is enabled
+    for recipe in recipes:
+        await mark_ingredients_on_sale(recipe, req.preferences)
+    
     # Build response
     items = [
         PlanItem(
@@ -366,7 +445,7 @@ class RegenerateMealRequest(BaseModel):
 @app.post("/ai/regenerate-meal", response_model=Recipe)
 async def regenerate_meal(req: RegenerateMealRequest):
     """Regenerate a single meal with diversity."""
-    return await generate_recipe_with_openai(
+    recipe = await generate_recipe_with_openai(
         meal_type=req.meal_type,
         constraints=req.constraints,
         units=req.units,
@@ -376,6 +455,11 @@ async def regenerate_meal(req: RegenerateMealRequest):
         language=req.language,
         preferences=req.preferences
     )
+    
+    # Mark ingredients on sale if feature is enabled
+    await mark_ingredients_on_sale(recipe, req.preferences)
+    
+    return recipe
 
 
 @app.post("/ai/recipe", response_model=Recipe)
