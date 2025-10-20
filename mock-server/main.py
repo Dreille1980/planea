@@ -31,6 +31,53 @@ client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Initialize flyer scraper service
 flyer_scraper = FlyerScraperService()
 
+MealType = Literal["BREAKFAST", "LUNCH", "DINNER"]
+Weekday = Literal["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+class Slot(BaseModel):
+    weekday: Weekday
+    meal_type: MealType
+
+class PlanRequest(BaseModel):
+    week_start: date
+    units: Literal["METRIC", "IMPERIAL"]
+    slots: List[Slot]
+    constraints: dict = Field(default_factory=dict)
+    language: str = "fr"
+    preferences: dict = Field(default_factory=dict)
+
+class Ingredient(BaseModel):
+    name: str
+    quantity: float
+    unit: str
+    category: str
+    is_on_sale: bool = False
+
+class Recipe(BaseModel):
+    title: str
+    servings: int
+    total_minutes: int
+    ingredients: List[Ingredient]
+    steps: List[str]
+    equipment: List[str] = []
+    tags: List[str] = []
+
+class PlanItem(BaseModel):
+    weekday: Weekday
+    meal_type: MealType
+    recipe: Recipe
+
+class PlanResponse(BaseModel):
+    items: List[PlanItem]
+
+class RecipeRequest(BaseModel):
+    idea: str
+    constraints: dict = Field(default_factory=dict)
+    servings: int = 4
+    units: Literal["METRIC", "IMPERIAL"] = "METRIC"
+    language: str = "fr"
+    preferences: dict = Field(default_factory=dict)
+
 
 async def mark_ingredients_on_sale(recipe: Recipe, preferences: dict) -> Recipe:
     """Mark ingredients that are on sale based on weekly flyers."""
@@ -101,53 +148,6 @@ async def mark_ingredients_on_sale(recipe: Recipe, preferences: dict) -> Recipe:
         print(f"Error fetching flyer deals: {e}")
         # Return recipe unchanged if there's an error
         return recipe
-
-MealType = Literal["BREAKFAST", "LUNCH", "DINNER"]
-Weekday = Literal["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-
-class Slot(BaseModel):
-    weekday: Weekday
-    meal_type: MealType
-
-class PlanRequest(BaseModel):
-    week_start: date
-    units: Literal["METRIC", "IMPERIAL"]
-    slots: List[Slot]
-    constraints: dict = Field(default_factory=dict)
-    language: str = "fr"
-    preferences: dict = Field(default_factory=dict)
-
-class Ingredient(BaseModel):
-    name: str
-    quantity: float
-    unit: str
-    category: str
-    is_on_sale: bool = False
-
-class Recipe(BaseModel):
-    title: str
-    servings: int
-    total_minutes: int
-    ingredients: List[Ingredient]
-    steps: List[str]
-    equipment: List[str] = []
-    tags: List[str] = []
-
-class PlanItem(BaseModel):
-    weekday: Weekday
-    meal_type: MealType
-    recipe: Recipe
-
-class PlanResponse(BaseModel):
-    items: List[PlanItem]
-
-class RecipeRequest(BaseModel):
-    idea: str
-    constraints: dict = Field(default_factory=dict)
-    servings: int = 4
-    units: Literal["METRIC", "IMPERIAL"] = "METRIC"
-    language: str = "fr"
-    preferences: dict = Field(default_factory=dict)
 
 
 async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: str, servings: int = 4, previous_recipes: List[str] = None, diversity_seed: int = 0, language: str = "fr", preferences: dict = None) -> Recipe:
