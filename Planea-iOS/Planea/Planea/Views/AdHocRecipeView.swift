@@ -290,7 +290,8 @@ struct AdHocRecipeView: View {
                 servings: servings,
                 constraints: constraintsDict,
                 units: units,
-                language: String(language)
+                language: String(language),
+                maxMinutes: complexity.rawValue
             )
             
             recipeVM.currentRecipe = recipe

@@ -195,7 +195,7 @@ struct IAService {
     }
     
     @MainActor
-    func generateRecipeFromImage(imageData: Data, servings: Int, constraints: [String: Any], units: UnitSystem, language: String) async throws -> Recipe {
+    func generateRecipeFromImage(imageData: Data, servings: Int, constraints: [String: Any], units: UnitSystem, language: String, maxMinutes: Int? = nil) async throws -> Recipe {
         let url = baseURL.appendingPathComponent("/ai/recipe-from-image")
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
@@ -204,12 +204,19 @@ struct IAService {
         // Convert image to base64
         let base64Image = imageData.base64EncodedString()
         
+        // For ad hoc recipes, only use maxMinutes preference if provided
+        var preferencesDict: [String: Any] = [:]
+        if let maxMinutes = maxMinutes {
+            preferencesDict["maxMinutes"] = maxMinutes
+        }
+        
         let payload: [String: Any] = [
             "image_base64": base64Image,
             "servings": servings,
             "constraints": constraints,
             "units": units.rawValue,
-            "language": language
+            "language": language,
+            "preferences": preferencesDict
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
