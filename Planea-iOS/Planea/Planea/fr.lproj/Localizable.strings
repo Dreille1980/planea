@@ -1,5 +1,6 @@
 "tab.onboarding" = "Famille";
 "tab.plan" = "Plan";
+"tab.recipes" = "Recettes";
 "tab.shopping" = "Épicerie";
 "tab.favorites" = "Favoris";
 "tab.settings" = "Réglages";
@@ -11,6 +12,9 @@
 
 "plan.title" = "Plan de la semaine";
 "plan.selectSlots" = "Sélectionne les repas à générer";
+
+"recipes.weekPlan" = "Plan";
+"recipes.adhoc" = "Ad hoc";
 
 "week.monday" = "Lundi";
 "week.tuesday" = "Mardi";
@@ -43,6 +47,7 @@
 "adhoc.title" = "Recette ad hoc";
 "adhoc.modeText" = "Texte";
 "adhoc.modePhoto" = "Photo";
+"adhoc.pantryScan" = "Vide-frigo";
 "adhoc.promptPlaceholder" = "Ex.: poulet + brocoli, 30 min, 4 portions";
 "adhoc.fridgePhoto" = "Photo du frigo";
 "adhoc.takePhoto" = "Prendre une photo";
@@ -117,6 +122,10 @@
 "adhoc.recipeIdea" = "Idée de recette";
 "adhoc.servings" = "Portions";
 "adhoc.servingsCount" = "portions";
+"adhoc.photoInstructions" = "Instructions (optionnel)";
+"adhoc.photoInstructionsPlaceholder" = "Ex.: J'ai des crevettes, faire un plat asiatique";
+"adhoc.useConstraints" = "Respecter les contraintes familiales";
+"adhoc.useConstraints.footer" = "Inclure les allergies et préférences alimentaires de la famille dans la génération de la recette";
 
 "recipe.detectedIngredients" = "Ingrédients détectés";
 
@@ -276,3 +285,44 @@
 "feedback.body" = "Veuillez partager vos commentaires ou signaler tout problème :\n\n\n\n---\nVersion de l'app : %@\nVersion iOS : %@\nAppareil : %@";
 "feedback.sent" = "Merci pour votre commentaire !";
 "feedback.error" = "Impossible d'ouvrir l'email. Veuillez nous écrire à dreyerfred+planea@gmail.com";
+
+// Recette vers liste d'épicerie
+"recipe.addedToList" = "Ajouté à la liste d'épicerie";
+"recipe.addedToList.message" = "Les ingrédients ont été ajoutés à votre liste d'épicerie.";
+"recipe.listCreated" = "Liste d'épicerie créée";
+"recipe.listCreated.message" = "Une nouvelle liste d'épicerie a été créée avec ces ingrédients.";
+
+// Plans
+"plan.draft" = "Brouillon";
+"plan.confirmPlan" = "Confirmer le plan";
+"plan.confirmAlert.title" = "Archiver le plan actuel ?";
+"plan.confirmAlert.message" = "Le plan actuel sera enregistré dans l'historique avant de créer un nouveau plan.";
+"plan.confirmAlert.archive" = "Archiver et continuer";
+
+// Plan Naming
+"plan.namePlan.title" = "Nommer le plan";
+"plan.namePlan.placeholder" = "Ex: Repas de la semaine du 19 octobre";
+"plan.namePlan.message" = "Donnez un nom à ce plan pour faciliter sa recherche dans l'historique (optionnel)";
+"plan.history.title" = "Historique des plans";
+"plan.history.weekOf" = "Semaine du %@";
+"plan.history.restore" = "Restaurer comme brouillon";
+"plan.history.empty" = "Aucun plan dans l'historique";
+
+// Recettes récentes
+"recent.recipes.title" = "Recettes récentes";
+"recent.recipes.saved" = "Recette sauvegardée";
+"recent.recipes.source.text" = "Générée par texte";
+"recent.recipes.source.photo" = "Générée par photo";
+"recent.recipes.empty" = "Aucune recette récente";
+"recent.recipes.addToPlan" = "Ajouter au plan";
+
+// Sélection de période
+"meal.selectSlot" = "Sélectionner une période";
+"week.day" = "Jour";
+"meal.type" = "Type de repas";
+
+// Complexité des recettes ad hoc
+"adhoc.complexity" = "Complexité de la recette";
+"adhoc.complexity.simple" = "Simple - ≤ 30 min";
+"adhoc.complexity.intermediate" = "Intermédiaire - 30-60 min";
+"adhoc.complexity.advanced" = "Avancé - > 60 min";

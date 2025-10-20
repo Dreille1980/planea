@@ -6,15 +6,32 @@ enum AdHocMode: String, CaseIterable {
     case photo = "adhoc.modePhoto"
 }
 
+enum RecipeComplexity: Int, CaseIterable, Identifiable {
+    case simple = 30
+    case intermediate = 60
+    case advanced = 90
+    
+    var id: Int { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .simple: return "adhoc.complexity.simple".localized
+        case .intermediate: return "adhoc.complexity.intermediate".localized
+        case .advanced: return "adhoc.complexity.advanced".localized
+        }
+    }
+}
+
 struct AdHocRecipeView: View {
     @EnvironmentObject var familyVM: FamilyViewModel
     @EnvironmentObject var recipeVM: RecipeViewModel
+    @EnvironmentObject var recipeHistoryVM: RecipeHistoryViewModel
     @EnvironmentObject var usageVM: UsageViewModel
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
     @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
     @State private var mode: AdHocMode = .text
     @State private var prompt: String = ""
-    @State private var servings: Int = 4
+    @State private var servings: Int = 4 // Will be updated on appear
     @State private var isGenerating = false
     @State private var errorMessage: String?
     @State private var showingRecipe = false
@@ -23,6 +40,9 @@ struct AdHocRecipeView: View {
     @State private var showCamera = false
     @State private var selectedImage: UIImage?
     @State private var photoPickerItem: PhotosPickerItem?
+    @State private var photoInstructions: String = ""
+    @State private var useConstraints: Bool = true
+    @State private var complexity: RecipeComplexity = .simple
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
@@ -70,11 +90,30 @@ struct AdHocRecipeView: View {
                                 }
                                 .buttonStyle(.bordered)
                             }
+                            
+                            TextField("adhoc.photoInstructionsPlaceholder".localized, text: $photoInstructions, axis: .vertical)
+                                .lineLimit(2...4)
+                        }
+                        
+                        Section {
+                            Toggle("adhoc.useConstraints".localized, isOn: $useConstraints)
+                        } footer: {
+                            Text("adhoc.useConstraints.footer".localized)
+                                .font(.caption)
                         }
                     }
                     
                     Section(header: Text("adhoc.servings".localized)) {
                         Stepper("\(servings) \("adhoc.servingsCount".localized)", value: $servings, in: 1...12)
+                    }
+                    
+                    Section(header: Text("adhoc.complexity".localized)) {
+                        Picker("adhoc.complexity".localized, selection: $complexity) {
+                            ForEach(RecipeComplexity.allCases) { complexity in
+                                Text(complexity.displayName).tag(complexity)
+                            }
+                        }
+                        .pickerStyle(.segmented)
                     }
                     
                     if let error = errorMessage {
@@ -138,12 +177,18 @@ struct AdHocRecipeView: View {
             .sheet(isPresented: $showCamera) {
                 ImagePicker(image: $selectedImage, sourceType: .camera)
             }
-            .onChange(of: photoPickerItem) { newItem in
-                Task {
-                    if let data = try? await newItem?.loadTransferable(type: Data.self),
+            .onChange(of: photoPickerItem) {
+                Task { @MainActor in
+                    if let data = try? await photoPickerItem?.loadTransferable(type: Data.self),
                        let uiImage = UIImage(data: data) {
                         selectedImage = uiImage
                     }
+                }
+            }
+            .onAppear {
+                // Initialize servings with family member count
+                if familyVM.members.count > 0 {
+                    servings = familyVM.members.count
                 }
             }
         }
@@ -169,10 +214,15 @@ struct AdHocRecipeView: View {
                 constraints: constraintsDict,
                 servings: servings,
                 units: units,
-                language: String(language)
+                language: String(language),
+                maxMinutes: complexity.rawValue
             )
             
             recipeVM.currentRecipe = recipe
+            
+            // Auto-save to recent recipes
+            recipeHistoryVM.saveRecipe(recipe, source: "adhoc-text")
+            
             showingRecipe = true
         } catch {
             errorMessage = "\("plan.error".localized): \(error.localizedDescription)"
@@ -190,11 +240,27 @@ struct AdHocRecipeView: View {
         do {
             let service = IAService(baseURL: URL(string: Config.baseURL)!)
             let units = UnitSystem(rawValue: unitSystem) ?? .metric
-            let constraints = familyVM.aggregatedConstraints()
-            let constraintsDict: [String: Any] = [
-                "diet": constraints.diet,
-                "evict": constraints.evict
-            ]
+            
+            // Build constraints based on toggle and instructions
+            var constraintsDict: [String: Any]
+            if useConstraints {
+                let constraints = familyVM.aggregatedConstraints()
+                constraintsDict = [
+                    "diet": constraints.diet,
+                    "evict": constraints.evict
+                ]
+                // Add user instructions if present
+                if !photoInstructions.isEmpty {
+                    constraintsDict["extra"] = photoInstructions
+                }
+            } else {
+                // No family constraints, but may still have user instructions
+                if !photoInstructions.isEmpty {
+                    constraintsDict = ["extra": photoInstructions]
+                } else {
+                    constraintsDict = [:]
+                }
+            }
             
             let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
             
@@ -228,6 +294,10 @@ struct AdHocRecipeView: View {
             )
             
             recipeVM.currentRecipe = recipe
+            
+            // Auto-save to recent recipes
+            recipeHistoryVM.saveRecipe(recipe, source: "adhoc-photo")
+            
             showingRecipe = true
         } catch {
             errorMessage = "\("plan.error".localized): \(error.localizedDescription)"

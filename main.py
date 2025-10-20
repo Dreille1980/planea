@@ -40,6 +40,7 @@ class PlanRequest(BaseModel):
     slots: List[Slot]
     constraints: dict = Field(default_factory=dict)
     language: str = "fr"
+    preferences: dict = Field(default_factory=dict)
 
 class Ingredient(BaseModel):
     name: str
@@ -70,9 +71,10 @@ class RecipeRequest(BaseModel):
     servings: int = 4
     units: Literal["METRIC", "IMPERIAL"] = "METRIC"
     language: str = "fr"
+    preferences: dict = Field(default_factory=dict)
 
 
-async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: str, servings: int = 4, previous_recipes: List[str] = None, diversity_seed: int = 0, language: str = "fr") -> Recipe:
+async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: str, servings: int = 4, previous_recipes: List[str] = None, diversity_seed: int = 0, language: str = "fr", preferences: dict = None) -> Recipe:
     """Generate a single recipe using OpenAI with diversity awareness (async)."""
     
     # Build constraints text
@@ -83,6 +85,57 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
     if constraints.get("evict"):
         allergies = ", ".join(constraints["evict"])
         constraints_text += f"Allergies/Éviter: {allergies}. "
+    
+    # Build preferences text from preferences dict
+    preferences_text = ""
+    if preferences:
+        # Time constraints based on meal day
+        if preferences.get("weekdayMaxMinutes") is not None or preferences.get("weekendMaxMinutes") is not None:
+            weekday_max = preferences.get("weekdayMaxMinutes", 30)
+            weekend_max = preferences.get("weekendMaxMinutes", 60)
+            preferences_text += f"TIMING CONSTRAINT: Weekday recipes must take NO MORE than {weekday_max} minutes. Weekend recipes can take up to {weekend_max} minutes. "
+        
+        # Complexity based on time
+        max_time = preferences.get("maxMinutes", 30)  # For ad-hoc recipes
+        if max_time <= 30:
+            preferences_text += "COMPLEXITY: Keep the recipe simple with basic cooking techniques. "
+        elif max_time <= 60:
+            preferences_text += "COMPLEXITY: Use intermediate cooking techniques and interesting flavor combinations. "
+        else:
+            preferences_text += "COMPLEXITY: Use advanced culinary techniques, complex flavor profiles, and sophisticated presentations. "
+        
+        # Spice level
+        if preferences.get("spiceLevel") and preferences["spiceLevel"] != "none":
+            preferences_text += f"Spice level: {preferences['spiceLevel']}. "
+        
+        # Preferred proteins
+        if preferences.get("preferredProteins"):
+            proteins = ", ".join(preferences["preferredProteins"])
+            preferences_text += f"Preferred proteins: {proteins}. "
+        
+        # Available appliances
+        if preferences.get("availableAppliances"):
+            appliances = ", ".join(preferences["availableAppliances"])
+            preferences_text += f"Available cooking equipment: {appliances}. "
+        
+        # Kid-friendly
+        if preferences.get("kidFriendly"):
+            preferences_text += "Kid-friendly meals preferred. "
+    
+    # Build protein portions guide
+    protein_portions_text = "\n\nCRITICAL - PROTEIN PORTIONS PER PERSON:\n"
+    protein_portions_text += "You MUST include adequate protein in each recipe following these guidelines:\n"
+    protein_portions_text += "- Chicken (breast, thigh): 150-200g per person (250-300g if bone-in)\n"
+    protein_portions_text += "- Beef (steak, roast): 180-220g per person\n"
+    protein_portions_text += "- Pork (chops, tenderloin): 160-200g per person\n"
+    protein_portions_text += "- Lamb: 180-200g per person\n"
+    protein_portions_text += "- Fish (fillet): 150-180g per person (300-350g if whole fish)\n"
+    protein_portions_text += "- Shrimp/Prawns: 120-150g per person\n"
+    protein_portions_text += "- Tofu: 120-150g per person\n"
+    protein_portions_text += "- Tempeh/Seitan: 100-130g per person\n"
+    protein_portions_text += "- Eggs: 2-3 large eggs per person\n"
+    protein_portions_text += "- Ground meat (beef, pork, chicken): 150-180g per person\n"
+    protein_portions_text += "These portions ensure adequate protein intake for a satisfying meal.\n"
     
     # Build diversity instructions - NO restrictions, maximum creativity
     diversity_text = "\n\nIMPÉRATIF - DIVERSITÉ MAXIMALE:\n"
@@ -116,6 +169,20 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
             allergies = ", ".join(constraints["evict"])
             constraints_text_en += f"Allergies/Avoid: {allergies}. "
         
+        protein_portions_text_en = "\n\nCRITICAL - PROTEIN PORTIONS PER PERSON:\n"
+        protein_portions_text_en += "You MUST include adequate protein in each recipe following these guidelines:\n"
+        protein_portions_text_en += "- Chicken (breast, thigh): 150-200g per person (250-300g if bone-in)\n"
+        protein_portions_text_en += "- Beef (steak, roast): 180-220g per person\n"
+        protein_portions_text_en += "- Pork (chops, tenderloin): 160-200g per person\n"
+        protein_portions_text_en += "- Lamb: 180-200g per person\n"
+        protein_portions_text_en += "- Fish (fillet): 150-180g per person (300-350g if whole fish)\n"
+        protein_portions_text_en += "- Shrimp/Prawns: 120-150g per person\n"
+        protein_portions_text_en += "- Tofu: 120-150g per person\n"
+        protein_portions_text_en += "- Tempeh/Seitan: 100-130g per person\n"
+        protein_portions_text_en += "- Eggs: 2-3 large eggs per person\n"
+        protein_portions_text_en += "- Ground meat (beef, pork, chicken): 150-180g per person\n"
+        protein_portions_text_en += "These portions ensure adequate protein intake for a satisfying meal.\n"
+        
         diversity_text_en = "\n\nCRITICAL - MAXIMUM DIVERSITY:\n"
         diversity_text_en += "- Create a COMPLETELY UNIQUE and DIFFERENT recipe\n"
         diversity_text_en += "- Freely vary: world cuisines, proteins, vegetables, spices, techniques\n"
@@ -127,7 +194,7 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
         
         prompt = f"""Generate a {meal_type_name} recipe in English for {servings} people.
 
-{constraints_text_en}{diversity_text_en}
+{constraints_text_en}{preferences_text}{protein_portions_text_en}{diversity_text_en}
 
 CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
 - First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
@@ -162,7 +229,7 @@ IMPORTANT: Generate at least 6-8 detailed steps with EXPLICIT preparation steps 
     else:
         prompt = f"""Génère une recette de {meal_type_fr} en français pour {servings} personnes.
 
-{constraints_text}{diversity_text}
+{constraints_text}{preferences_text}{protein_portions_text}{diversity_text}
 
 CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
 - Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
@@ -254,7 +321,8 @@ async def ai_plan(req: PlanRequest):
             servings=4,
             previous_recipes=None,
             diversity_seed=idx,  # Each recipe gets a different seed for variety
-            language=req.language
+            language=req.language,
+            preferences=req.preferences
         )
         for idx, slot in enumerate(req.slots)
     ]
@@ -291,6 +359,7 @@ class RegenerateMealRequest(BaseModel):
     units: Literal["METRIC", "IMPERIAL"] = "METRIC"
     language: str = "fr"
     diversity_seed: int = 0
+    preferences: dict = Field(default_factory=dict)
 
 
 @app.post("/ai/regenerate-meal", response_model=Recipe)
@@ -303,13 +372,59 @@ async def regenerate_meal(req: RegenerateMealRequest):
         servings=req.servings,
         previous_recipes=None,
         diversity_seed=req.diversity_seed,
-        language=req.language
+        language=req.language,
+        preferences=req.preferences
     )
 
 
 @app.post("/ai/recipe", response_model=Recipe)
 async def ai_recipe(req: RecipeRequest):
     """Generate a single recipe from a prompt using OpenAI (async)."""
+    
+    # Build preferences text from preferences dict
+    preferences_text = ""
+    if req.preferences:
+        # Complexity based on time
+        max_time = req.preferences.get("maxMinutes", 30)
+        if max_time <= 30:
+            preferences_text += "COMPLEXITY: Keep the recipe simple with basic cooking techniques. "
+        elif max_time <= 60:
+            preferences_text += "COMPLEXITY: Use intermediate cooking techniques and interesting flavor combinations. "
+        else:
+            preferences_text += "COMPLEXITY: Use advanced culinary techniques, complex flavor profiles, and sophisticated presentations. "
+        
+        # Spice level
+        if req.preferences.get("spiceLevel") and req.preferences["spiceLevel"] != "none":
+            preferences_text += f"Spice level: {req.preferences['spiceLevel']}. "
+        
+        # Preferred proteins
+        if req.preferences.get("preferredProteins"):
+            proteins = ", ".join(req.preferences["preferredProteins"])
+            preferences_text += f"Preferred proteins: {proteins}. "
+        
+        # Available appliances
+        if req.preferences.get("availableAppliances"):
+            appliances = ", ".join(req.preferences["availableAppliances"])
+            preferences_text += f"Available cooking equipment: {appliances}. "
+        
+        # Kid-friendly
+        if req.preferences.get("kidFriendly"):
+            preferences_text += "Kid-friendly meals preferred. "
+    
+    # Build protein portions guide
+    protein_portions_text = "\n\nCRITICAL - PROTEIN PORTIONS PER PERSON:\n"
+    protein_portions_text += "You MUST include adequate protein in each recipe following these guidelines:\n"
+    protein_portions_text += "- Chicken (breast, thigh): 150-200g per person (250-300g if bone-in)\n"
+    protein_portions_text += "- Beef (steak, roast): 180-220g per person\n"
+    protein_portions_text += "- Pork (chops, tenderloin): 160-200g per person\n"
+    protein_portions_text += "- Lamb: 180-200g per person\n"
+    protein_portions_text += "- Fish (fillet): 150-180g per person (300-350g if whole fish)\n"
+    protein_portions_text += "- Shrimp/Prawns: 120-150g per person\n"
+    protein_portions_text += "- Tofu: 120-150g per person\n"
+    protein_portions_text += "- Tempeh/Seitan: 100-130g per person\n"
+    protein_portions_text += "- Eggs: 2-3 large eggs per person\n"
+    protein_portions_text += "- Ground meat (beef, pork, chicken): 150-180g per person\n"
+    protein_portions_text += "These portions ensure adequate protein intake for a satisfying meal.\n"
     
     # Language-specific handling
     if req.language == "en":
@@ -373,7 +488,7 @@ IMPORTANT: Generate at least 5-7 detailed steps with EXPLICIT preparation steps 
         prompt = f"""Génère une recette en français basée sur cette idée: "{req.idea}"
 
 Pour {req.servings} personnes.
-{constraints_text}
+{constraints_text}{preferences_text}{protein_portions_text}
 
 CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
 - Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
@@ -437,11 +552,57 @@ class RecipeFromTitleRequest(BaseModel):
     constraints: dict = Field(default_factory=dict)
     units: Literal["METRIC", "IMPERIAL"] = "METRIC"
     language: str = "fr"
+    preferences: dict = Field(default_factory=dict)
 
 
 @app.post("/ai/recipe-from-title", response_model=Recipe)
 async def ai_recipe_from_title(req: RecipeFromTitleRequest):
     """Generate a complete recipe from just a title using OpenAI."""
+    
+    # Build preferences text from preferences dict
+    preferences_text = ""
+    if req.preferences:
+        # Complexity based on time
+        max_time = req.preferences.get("maxMinutes", 30)
+        if max_time <= 30:
+            preferences_text += "COMPLEXITY: Keep the recipe simple with basic cooking techniques. "
+        elif max_time <= 60:
+            preferences_text += "COMPLEXITY: Use intermediate cooking techniques and interesting flavor combinations. "
+        else:
+            preferences_text += "COMPLEXITY: Use advanced culinary techniques, complex flavor profiles, and sophisticated presentations. "
+        
+        # Spice level
+        if req.preferences.get("spiceLevel") and req.preferences["spiceLevel"] != "none":
+            preferences_text += f"Spice level: {req.preferences['spiceLevel']}. "
+        
+        # Preferred proteins
+        if req.preferences.get("preferredProteins"):
+            proteins = ", ".join(req.preferences["preferredProteins"])
+            preferences_text += f"Preferred proteins: {proteins}. "
+        
+        # Available appliances
+        if req.preferences.get("availableAppliances"):
+            appliances = ", ".join(req.preferences["availableAppliances"])
+            preferences_text += f"Available cooking equipment: {appliances}. "
+        
+        # Kid-friendly
+        if req.preferences.get("kidFriendly"):
+            preferences_text += "Kid-friendly meals preferred. "
+    
+    # Build protein portions guide
+    protein_portions_text = "\n\nCRITICAL - PROTEIN PORTIONS PER PERSON:\n"
+    protein_portions_text += "You MUST include adequate protein in each recipe following these guidelines:\n"
+    protein_portions_text += "- Chicken (breast, thigh): 150-200g per person (250-300g if bone-in)\n"
+    protein_portions_text += "- Beef (steak, roast): 180-220g per person\n"
+    protein_portions_text += "- Pork (chops, tenderloin): 160-200g per person\n"
+    protein_portions_text += "- Lamb: 180-200g per person\n"
+    protein_portions_text += "- Fish (fillet): 150-180g per person (300-350g if whole fish)\n"
+    protein_portions_text += "- Shrimp/Prawns: 120-150g per person\n"
+    protein_portions_text += "- Tofu: 120-150g per person\n"
+    protein_portions_text += "- Tempeh/Seitan: 100-130g per person\n"
+    protein_portions_text += "- Eggs: 2-3 large eggs per person\n"
+    protein_portions_text += "- Ground meat (beef, pork, chicken): 150-180g per person\n"
+    protein_portions_text += "These portions ensure adequate protein intake for a satisfying meal.\n"
     
     # Language-specific handling
     if req.language == "en":
@@ -458,7 +619,7 @@ async def ai_recipe_from_title(req: RecipeFromTitleRequest):
         prompt = f"""Generate a complete recipe in English with this exact title: "{req.title}"
 
 For {req.servings} people.
-{constraints_text}
+{constraints_text}{preferences_text}{protein_portions_text}
 
 CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
 - First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
@@ -508,7 +669,7 @@ IMPORTANT:
         prompt = f"""Génère une recette complète en français avec ce titre exact: "{req.title}"
 
 Pour {req.servings} personnes.
-{constraints_text}
+{constraints_text}{preferences_text}{protein_portions_text}
 
 CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
 - Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)

@@ -58,35 +58,30 @@ struct IAService {
         throw lastError ?? URLError(.unknown)
     }
     
-    // Helper to merge preferences into constraints
-    private func mergePreferences(into constraints: [String: Any], weekday: Weekday? = nil, hasPremium: Bool) -> [String: Any] {
-        var merged = constraints
+    // Helper to convert preferences to dictionary for backend
+    private func preferencesToDict(hasPremium: Bool) -> [String: Any] {
+        guard hasPremium else { return [:] }
         
-        // Load user preferences if Premium user
-        if hasPremium {
-            let prefs = PreferencesService.shared.loadPreferences()
-            
-            // Add preferences string to constraints
-            if let existingExtra = merged["extra"] as? String {
-                merged["extra"] = "\(existingExtra). \(prefs.toPromptString())"
-            } else {
-                merged["extra"] = prefs.toPromptString()
-            }
-            
-            // Add time constraint based on weekday (if provided)
-            if let weekday = weekday {
-                let isWeekend = weekday == .saturday || weekday == .sunday
-                let maxTime = isWeekend ? prefs.weekendMaxMinutes : prefs.weekdayMaxMinutes
-                
-                if let existingExtra = merged["extra"] as? String {
-                    merged["extra"] = "\(existingExtra). Max \(maxTime) minutes"
-                } else {
-                    merged["extra"] = "Max \(maxTime) minutes"
-                }
-            }
+        let prefs = PreferencesService.shared.loadPreferences()
+        
+        var dict: [String: Any] = [
+            "weekdayMaxMinutes": prefs.weekdayMaxMinutes,
+            "weekendMaxMinutes": prefs.weekendMaxMinutes,
+            "spiceLevel": prefs.spiceLevel.rawValue,
+            "kidFriendly": prefs.kidFriendly
+        ]
+        
+        // Convert Set<Protein> to [String]
+        if !prefs.preferredProteins.isEmpty {
+            dict["preferredProteins"] = prefs.preferredProteins.map { $0.rawValue }
         }
         
-        return merged
+        // Convert Set<Appliance> to [String]
+        if !prefs.availableAppliances.isEmpty {
+            dict["availableAppliances"] = prefs.availableAppliances.map { $0.rawValue }
+        }
+        
+        return dict
     }
     
     @MainActor
@@ -102,32 +97,18 @@ struct IAService {
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
         
-        // IMPORTANT: Create a COMPREHENSIVE preference string for the entire week
+        // Load preferences if Premium user
         let hasPremium = StoreManager.shared.hasActiveSubscription
-        var mergedConstraints = constraints
-        
-        if hasPremium {
-            let prefs = PreferencesService.shared.loadPreferences()
-            
-            // Build a detailed constraints string that covers ALL days
-            var prefsString = prefs.toPromptString()
-            
-            // Add explicit timing constraints for weekdays vs weekends
-            prefsString += "\n\nIMPORTANT TIMING CONSTRAINTS:"
-            prefsString += "\n- Monday through Friday recipes MUST take NO MORE than \(prefs.weekdayMaxMinutes) minutes total cooking time."
-            prefsString += "\n- Saturday and Sunday recipes can take up to \(prefs.weekendMaxMinutes) minutes."
-            prefsString += "\n- These time limits are STRICT and MUST be respected."
-            
-            mergedConstraints["extra"] = prefsString
-        }
+        let preferencesDict = preferencesToDict(hasPremium: hasPremium)
         
         let payload: [String: Any] = [
             "week_start": dateFormatter.string(from: weekStart),
             "units": units.rawValue,
             "slots": slots.map { ["weekday": $0.weekday.rawValue, "meal_type": $0.mealType.rawValue] },
-            "constraints": mergedConstraints,
+            "constraints": constraints,
             "servings": servings,
-            "language": language
+            "language": language,
+            "preferences": preferencesDict
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
@@ -162,18 +143,19 @@ struct IAService {
         req.httpMethod = "POST"
         req.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // Merge preferences with weekday context
+        // Load preferences if Premium user
         let hasPremium = StoreManager.shared.hasActiveSubscription
-        let mergedConstraints = mergePreferences(into: constraints, weekday: weekday, hasPremium: hasPremium)
+        let preferencesDict = preferencesToDict(hasPremium: hasPremium)
         
         let payload: [String: Any] = [
             "weekday": weekday.rawValue,
             "meal_type": mealType.rawValue,
-            "constraints": mergedConstraints,
+            "constraints": constraints,
             "servings": servings,
             "units": units.rawValue,
             "language": language,
-            "diversity_seed": diversitySeed
+            "diversity_seed": diversitySeed,
+            "preferences": preferencesDict
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
@@ -184,21 +166,25 @@ struct IAService {
     }
     
     @MainActor
-    func generateRecipe(prompt: String, constraints: [String: Any], servings: Int, units: UnitSystem, language: String) async throws -> Recipe {
+    func generateRecipe(prompt: String, constraints: [String: Any], servings: Int, units: UnitSystem, language: String, maxMinutes: Int? = nil) async throws -> Recipe {
         let url = baseURL.appendingPathComponent("/ai/recipe")
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // DO NOT merge preferences for ad hoc recipes - use constraints as-is
-        // Ad hoc recipes should not be restricted by time or other preferences
+        // For ad hoc recipes, only use maxMinutes preference if provided
+        var preferencesDict: [String: Any] = [:]
+        if let maxMinutes = maxMinutes {
+            preferencesDict["maxMinutes"] = maxMinutes
+        }
         
         let payload: [String: Any] = [
             "idea": prompt,
             "constraints": constraints,
             "servings": servings,
             "units": units.rawValue,
-            "language": language
+            "language": language,
+            "preferences": preferencesDict
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
@@ -234,21 +220,25 @@ struct IAService {
     }
     
     @MainActor
-    func generateRecipeFromTitle(title: String, servings: Int, constraints: [String: Any], units: UnitSystem, language: String) async throws -> Recipe {
+    func generateRecipeFromTitle(title: String, servings: Int, constraints: [String: Any], units: UnitSystem, language: String, maxMinutes: Int? = nil) async throws -> Recipe {
         let url = baseURL.appendingPathComponent("/ai/recipe-from-title")
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // DO NOT merge preferences for ad hoc recipes - use constraints as-is
-        // Ad hoc recipes should not be restricted by time or other preferences
+        // For ad hoc recipes, only use maxMinutes preference if provided
+        var preferencesDict: [String: Any] = [:]
+        if let maxMinutes = maxMinutes {
+            preferencesDict["maxMinutes"] = maxMinutes
+        }
         
         let payload: [String: Any] = [
             "title": title,
             "servings": servings,
             "constraints": constraints,
             "units": units.rawValue,
-            "language": language
+            "language": language,
+            "preferences": preferencesDict
         ]
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
