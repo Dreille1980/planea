@@ -1,12 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from typing import List, Literal
+from typing import List, Literal, Optional
 from datetime import date
 import os
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 import json
 import asyncio
+from flyer_scraper import FlyerScraperService
 
 # Load environment variables
 load_dotenv()
