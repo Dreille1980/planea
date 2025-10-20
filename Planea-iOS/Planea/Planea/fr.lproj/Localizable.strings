@@ -326,3 +326,10 @@
 "adhoc.complexity.simple" = "Simple - ≤ 30 min";
 "adhoc.complexity.intermediate" = "Intermédiaire - 30-60 min";
 "adhoc.complexity.advanced" = "Avancé - > 60 min";
+
+// Circulaires hebdomadaires
+"prefs.flyers.title" = "Rabais des circulaires";
+"prefs.flyers.enabled" = "Utiliser les rabais des circulaires";
+"prefs.flyers.postalcode" = "Code postal";
+"prefs.flyers.store" = "Épicerie préférée";
+"prefs.flyers.footer" = "Génère des recettes basées sur les rabais de votre épicerie locale. Entrez votre code postal et le nom de votre épicerie (ex: IGA, Metro, Provigo, Maxi).";

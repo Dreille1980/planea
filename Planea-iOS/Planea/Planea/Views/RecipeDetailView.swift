@@ -3,7 +3,10 @@ import SwiftUI
 struct RecipeDetailView: View {
     var recipe: Recipe = Recipe(title: "Exemple", servings: 4, totalMinutes: 30, ingredients: [], steps: [])
     @EnvironmentObject var favoritesVM: FavoritesViewModel
+    @EnvironmentObject var shoppingVM: ShoppingViewModel
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
+    @State private var showAddedAlert = false
+    @State private var showCreatedAlert = false
     
     var body: some View {
         ScrollView {
@@ -37,18 +40,26 @@ struct RecipeDetailView: View {
                     
                     VStack(spacing: 8) {
                         ForEach(recipe.ingredients) { ing in
-                            let converted = convertIngredient(ing)
+                            let converted = convertIngredientWithBothSystems(ing)
                             HStack {
                                 Image(systemName: "circle.fill")
                                     .font(.system(size: 6))
                                     .foregroundStyle(.secondary)
                                 
-                                Text(ing.name.capitalized)
-                                    .font(.body)
+                                HStack(spacing: 6) {
+                                    Text(ing.name.capitalized)
+                                        .font(.body)
+                                    
+                                    if ing.isOnSale {
+                                        Image(systemName: "tag.fill")
+                                            .font(.caption)
+                                            .foregroundStyle(.green)
+                                    }
+                                }
                                 
                                 Spacer()
                                 
-                                Text("\(converted.quantity, specifier: "%.1f") \(converted.unit)")
+                                Text(converted)
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                             }
@@ -93,35 +104,76 @@ struct RecipeDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: {
-                    withAnimation {
-                        if favoritesVM.isRecipeSaved(recipe) {
-                            favoritesVM.removeRecipe(recipe)
+                HStack(spacing: 16) {
+                    Button(action: {
+                        let units = UnitSystem(rawValue: unitSystem) ?? .metric
+                        if shoppingVM.currentList != nil {
+                            shoppingVM.addRecipeToList(recipe: recipe)
+                            showAddedAlert = true
                         } else {
-                            favoritesVM.saveRecipe(recipe)
+                            shoppingVM.createListFromRecipe(recipe: recipe, units: units)
+                            showCreatedAlert = true
                         }
+                    }) {
+                        Image(systemName: "cart.badge.plus")
+                            .foregroundStyle(.primary)
                     }
-                }) {
-                    Image(systemName: favoritesVM.isRecipeSaved(recipe) ? "heart.fill" : "heart")
-                        .foregroundStyle(favoritesVM.isRecipeSaved(recipe) ? .red : .primary)
+                    
+                    Button(action: {
+                        withAnimation {
+                            if favoritesVM.isRecipeSaved(recipe) {
+                                favoritesVM.removeRecipe(recipe)
+                            } else {
+                                favoritesVM.saveRecipe(recipe)
+                            }
+                        }
+                    }) {
+                        Image(systemName: favoritesVM.isRecipeSaved(recipe) ? "heart.fill" : "heart")
+                            .foregroundStyle(favoritesVM.isRecipeSaved(recipe) ? .red : .primary)
+                    }
                 }
             }
         }
         .sheet(isPresented: $favoritesVM.showPaywall) {
             SubscriptionPaywallView(limitReached: false)
         }
+        .alert("recipe.addedToList".localized, isPresented: $showAddedAlert) {
+            Button("action.done".localized, role: .cancel) { }
+        } message: {
+            Text("recipe.addedToList.message".localized)
+        }
+        .alert("recipe.listCreated".localized, isPresented: $showCreatedAlert) {
+            Button("action.done".localized, role: .cancel) { }
+        } message: {
+            Text("recipe.listCreated.message".localized)
+        }
     }
     
     // MARK: - Helper Functions
     
-    private func convertIngredient(_ ingredient: RecipeIngredient) -> (quantity: Double, unit: String) {
+    private func convertIngredientWithBothSystems(_ ingredient: RecipeIngredient) -> String {
         let currentSystem = UnitSystem(rawValue: unitSystem) ?? .metric
-        // Assume recipes come in metric from backend
-        return UnitConverter.convertIngredient(
+        let otherSystem: UnitSystem = currentSystem == .metric ? .imperial : .metric
+        
+        // Convert to primary system
+        let primary = UnitConverter.convertIngredient(
             quantity: ingredient.quantity,
             unit: ingredient.unit,
             from: .metric,
             to: currentSystem
         )
+        
+        // Convert to secondary system
+        let secondary = UnitConverter.convertIngredient(
+            quantity: ingredient.quantity,
+            unit: ingredient.unit,
+            from: .metric,
+            to: otherSystem
+        )
+        
+        // Format: primary unit (secondary unit)
+        return String(format: "%.1f %@ (%.1f %@)", 
+                     primary.quantity, primary.unit,
+                     secondary.quantity, secondary.unit)
     }
 }

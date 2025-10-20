@@ -327,3 +327,10 @@
 "adhoc.complexity.simple" = "Simple - ≤ 30 min";
 "adhoc.complexity.intermediate" = "Intermediate - 30-60 min";
 "adhoc.complexity.advanced" = "Advanced - > 60 min";
+
+// Weekly flyers
+"prefs.flyers.title" = "Weekly Flyer Deals";
+"prefs.flyers.enabled" = "Use Weekly Flyer Deals";
+"prefs.flyers.postalcode" = "Postal Code";
+"prefs.flyers.store" = "Preferred Grocery Store";
+"prefs.flyers.footer" = "Generate recipes based on deals from your local grocery store. Enter your postal/ZIP code and store name (e.g., IGA, Metro, Walmart, Kroger).";

@@ -119,6 +119,35 @@ struct GenerationPreferencesView: View {
                     Text("prefs.kidfriendly.footer".localized)
                 }
                 
+                // Weekly Flyers Section
+                Section {
+                    Toggle("prefs.flyers.enabled".localized, isOn: Binding(
+                        get: { preferences.useWeeklyFlyers },
+                        set: { preferences.useWeeklyFlyers = $0; hasChanges = true }
+                    ))
+                    
+                    if preferences.useWeeklyFlyers {
+                        TextField("prefs.flyers.postalcode".localized, text: Binding(
+                            get: { preferences.postalCode },
+                            set: { preferences.postalCode = $0; hasChanges = true }
+                        ))
+                        .textContentType(.postalCode)
+                        .autocapitalization(.allCharacters)
+                        .disableAutocorrection(true)
+                        
+                        TextField("prefs.flyers.store".localized, text: Binding(
+                            get: { preferences.preferredGroceryStore },
+                            set: { preferences.preferredGroceryStore = $0; hasChanges = true }
+                        ))
+                        .textContentType(.organizationName)
+                        .autocapitalization(.words)
+                    }
+                } header: {
+                    Label("prefs.flyers.title".localized, systemImage: "tag")
+                } footer: {
+                    Text("prefs.flyers.footer".localized)
+                }
+                
                 // Reset Section
                 Section {
                     Button(role: .destructive, action: resetToDefaults) {

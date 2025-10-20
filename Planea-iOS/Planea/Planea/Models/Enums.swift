@@ -131,13 +131,21 @@ struct GenerationPreferences: Codable {
     // Kid-friendly option
     var kidFriendly: Bool
     
+    // Weekly flyer integration
+    var useWeeklyFlyers: Bool
+    var postalCode: String
+    var preferredGroceryStore: String
+    
     static let `default` = GenerationPreferences(
         weekdayMaxMinutes: 30,
         weekendMaxMinutes: 60,
         spiceLevel: .mild,
         preferredProteins: [.chicken, .beef, .fish],
         availableAppliances: [.oven, .microwave],
-        kidFriendly: false
+        kidFriendly: false,
+        useWeeklyFlyers: false,
+        postalCode: "",
+        preferredGroceryStore: ""
     )
     
     func toPromptString() -> String {
