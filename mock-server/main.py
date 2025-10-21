@@ -968,21 +968,6 @@ async def ai_recipe_from_image(req: RecipeFromImageRequest):
         if req.preferences.get("extra"):
             preferences_text += f"Additional instructions: {req.preferences['extra']}. "
     
-    # Build protein portions guide
-    protein_portions_text = "\n\nCRITICAL - PROTEIN PORTIONS PER PERSON:\n"
-    protein_portions_text += "You MUST include adequate protein in each recipe following these guidelines:\n"
-    protein_portions_text += "- Chicken (breast, thigh): 150-200g per person (250-300g if bone-in)\n"
-    protein_portions_text += "- Beef (steak, roast): 180-220g per person\n"
-    protein_portions_text += "- Pork (chops, tenderloin): 160-200g per person\n"
-    protein_portions_text += "- Lamb: 180-200g per person\n"
-    protein_portions_text += "- Fish (fillet): 150-180g per person (300-350g if whole fish)\n"
-    protein_portions_text += "- Shrimp/Prawns: 120-150g per person\n"
-    protein_portions_text += "- Tofu: 120-150g per person\n"
-    protein_portions_text += "- Tempeh/Seitan: 100-130g per person\n"
-    protein_portions_text += "- Eggs: 2-3 large eggs per person\n"
-    protein_portions_text += "- Ground meat (beef, pork, chicken): 150-180g per person\n"
-    protein_portions_text += "These portions ensure adequate protein intake for a satisfying meal.\n"
-    
     # Language-specific handling
     if req.language == "en":
         constraints_text = ""
@@ -995,44 +980,53 @@ async def ai_recipe_from_image(req: RecipeFromImageRequest):
         
         unit_system = "metric (grams, ml)" if req.units == "METRIC" else "imperial (oz, cups)"
         
-        text_prompt = f"""Analyze this fridge/pantry photo and generate a creative recipe using the visible ingredients.
+        text_prompt = f"""🚨 CRITICAL MISSION: ANALYZE THE IMAGE AND USE ONLY VISIBLE INGREDIENTS 🚨
 
-For {req.servings} people.
-{constraints_text}{preferences_text}{protein_portions_text}
+You MUST carefully examine the fridge/pantry photo and create a recipe using ONLY the ingredients you can SEE in the image.
 
-CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
-- First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
-- Be specific about cuts: "dice carrots into 1cm cubes", "grate 100g cheese", "finely chop 2 onions"
-- Include prep for ALL ingredients before cooking steps
-- Then include cooking/assembly steps with exact times, temperatures, and techniques
+STEP 1 - IMAGE ANALYSIS (MANDATORY):
+First, LIST all visible ingredients in the photo:
+- Proteins (meat, fish, eggs, tofu, etc.)
+- Vegetables
+- Fruits  
+- Dairy products
+- Condiments and seasonings
+- Grains and starches
+- Other items
 
-Return ONLY a valid JSON object with this exact structure:
+STEP 2 - RECIPE CREATION:
+Create a recipe for {req.servings} people using PRIMARILY the ingredients from the photo.
+{constraints_text}{preferences_text}
+
+CRITICAL RULES:
+✅ DO: Use ingredients visible in the photo as main ingredients
+✅ DO: Add common pantry staples (salt, pepper, oil) if needed
+✅ DO: Be creative with combinations
+❌ DON'T: Invent ingredients not shown in the photo
+❌ DON'T: Default to chicken if no protein is visible
+❌ DON'T: Ignore what's actually in the image
+
+Return ONLY a valid JSON object:
 {{
-    "title": "Creative recipe name based on ingredients",
+    "title": "Creative name based on ACTUAL ingredients in photo",
     "servings": {req.servings},
     "total_minutes": 30,
     "ingredients": [
-        {{"name": "ingredient from photo", "quantity": 200, "unit": "g", "category": "vegetables"}}
+        {{"name": "ingredient FROM PHOTO", "quantity": 200, "unit": "g", "category": "vegetables"}}
     ],
     "steps": [
-        "Preparation: Dice the carrots into 1cm cubes. Finely chop the onion...",
-        "Heat oil in a large pan...",
-        "Add ingredients and cook..."
+        "Preparation: Prep all ingredients (cutting, dicing, etc.)...",
+        "Cooking: Heat and combine ingredients...",
+        "Final steps and serving..."
     ],
     "equipment": ["pan", "pot"],
-    "tags": ["fridge cleanup", "creative"]
+    "tags": ["fridge cleanup", "zero waste"]
 }}
 
-Use the {unit_system} system.
-Categories: vegetables, fruits, meats, fish, dairy, dry goods, condiments, canned goods.
-
-IMPORTANT:
-- Generate at least 5-7 detailed steps with EXPLICIT preparation steps at the beginning
-- Use ingredients visible in the photo
-- Be creative with the recipe name
-- Ensure realistic quantities for {req.servings} people"""
+Use {unit_system} system.
+Categories: vegetables, fruits, meats, fish, dairy, dry goods, condiments, canned goods."""
         
-        system_prompt = "You are a creative chef who creates recipes from available ingredients. Analyze the image and suggest a delicious recipe."
+        system_prompt = "You are an expert chef specializing in 'fridge cleanup' recipes. You MUST analyze the image carefully and create recipes using ONLY the visible ingredients. Never invent ingredients."
         
     else:
         # French version
@@ -1046,44 +1040,53 @@ IMPORTANT:
         
         unit_system = "métrique (grammes, ml)" if req.units == "METRIC" else "impérial (oz, cups)"
         
-        text_prompt = f"""Analyse cette photo de frigo/garde-manger et génère une recette créative utilisant les ingrédients visibles.
+        text_prompt = f"""🚨 MISSION CRITIQUE : ANALYSE L'IMAGE ET UTILISE UNIQUEMENT LES INGRÉDIENTS VISIBLES 🚨
 
-Pour {req.servings} personnes.
-{constraints_text}{preferences_text}{protein_portions_text}
+Tu DOIS examiner attentivement la photo du frigo/garde-manger et créer une recette en utilisant UNIQUEMENT les ingrédients que tu peux VOIR dans l'image.
 
-CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
-- Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
-- Sois précis sur les coupes: "couper les carottes en dés de 1cm", "râper 100g de fromage", "émincer finement 2 oignons"
-- Inclure la préparation de TOUS les ingrédients avant les étapes de cuisson
-- Ensuite inclure les étapes de cuisson/assemblage avec temps exacts, températures et techniques
+ÉTAPE 1 - ANALYSE DE L'IMAGE (OBLIGATOIRE):
+D'abord, LISTE tous les ingrédients visibles dans la photo :
+- Protéines (viande, poisson, œufs, tofu, etc.)
+- Légumes
+- Fruits
+- Produits laitiers
+- Condiments et assaisonnements
+- Céréales et féculents
+- Autres items
 
-Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte:
+ÉTAPE 2 - CRÉATION DE RECETTE:
+Crée une recette pour {req.servings} personnes en utilisant PRINCIPALEMENT les ingrédients de la photo.
+{constraints_text}{preferences_text}
+
+RÈGLES CRITIQUES:
+✅ À FAIRE: Utiliser les ingrédients visibles dans la photo comme ingrédients principaux
+✅ À FAIRE: Ajouter des produits de base courants (sel, poivre, huile) si nécessaire
+✅ À FAIRE: Être créatif avec les combinaisons
+❌ NE PAS: Inventer des ingrédients non montrés dans la photo
+❌ NE PAS: Utiliser du poulet par défaut si aucune protéine n'est visible
+❌ NE PAS: Ignorer ce qui est réellement dans l'image
+
+Retourne UNIQUEMENT un objet JSON valide:
 {{
-    "title": "Nom créatif de recette basé sur les ingrédients",
+    "title": "Nom créatif basé sur les VRAIS ingrédients de la photo",
     "servings": {req.servings},
     "total_minutes": 30,
     "ingredients": [
-        {{"name": "ingrédient de la photo", "quantity": 200, "unit": "g", "category": "légumes"}}
+        {{"name": "ingrédient DE LA PHOTO", "quantity": 200, "unit": "g", "category": "légumes"}}
     ],
     "steps": [
-        "Préparation: Couper les carottes en dés de 1cm. Émincer finement l'oignon...",
-        "Faire chauffer l'huile dans une grande poêle...",
-        "Ajouter les ingrédients et cuire..."
+        "Préparation: Préparer tous les ingrédients (couper, émincer, etc.)...",
+        "Cuisson: Chauffer et combiner les ingrédients...",
+        "Étapes finales et service..."
     ],
     "equipment": ["poêle", "casserole"],
-    "tags": ["vide-frigo", "créatif"]
+    "tags": ["vide-frigo", "zéro déchet"]
 }}
 
 Utilise le système {unit_system}.
-Catégories: légumes, fruits, viandes, poissons, produits laitiers, sec, condiments, conserves.
-
-IMPORTANT:
-- Génère au moins 5-7 étapes détaillées avec des étapes de préparation EXPLICITES au début
-- Utilise les ingrédients visibles sur la photo
-- Sois créatif avec le nom de la recette
-- Assure des quantités réalistes pour {req.servings} personnes"""
+Catégories: légumes, fruits, viandes, poissons, produits laitiers, sec, condiments, conserves."""
         
-        system_prompt = "Tu es un chef créatif qui crée des recettes à partir d'ingrédients disponibles. Analyse l'image et suggère une délicieuse recette."
+        system_prompt = "Tu es un chef expert spécialisé dans les recettes 'vide-frigo'. Tu DOIS analyser l'image attentivement et créer des recettes en utilisant UNIQUEMENT les ingrédients visibles. N'invente jamais d'ingrédients."
 
     try:
         # Use OpenAI Vision API to analyze the image
