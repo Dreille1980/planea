@@ -299,6 +299,11 @@ struct AdHocRecipeView: View {
             // Auto-save to recent recipes
             recipeHistoryVM.saveRecipe(recipe, source: "adhoc-photo")
             
+            // Reset image and instructions after successful generation
+            selectedImage = nil
+            photoInstructions = ""
+            photoPickerItem = nil
+            
             showingRecipe = true
         } catch {
             errorMessage = "\("plan.error".localized): \(error.localizedDescription)"
