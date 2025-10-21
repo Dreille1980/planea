@@ -1040,53 +1040,73 @@ Categories: vegetables, fruits, meats, fish, dairy, dry goods, condiments, canne
         
         unit_system = "métrique (grammes, ml)" if req.units == "METRIC" else "impérial (oz, cups)"
         
-        text_prompt = f"""🚨 MISSION CRITIQUE : ANALYSE L'IMAGE ET UTILISE UNIQUEMENT LES INGRÉDIENTS VISIBLES 🚨
+        # Build user instructions text if provided
+        user_instructions = ""
+        if preferences_text and "Additional instructions:" in preferences_text:
+            user_instructions = "\n\n🎯 INSTRUCTIONS UTILISATEUR (PRIORITÉ ABSOLUE):\n"
+            user_instructions += f"{req.preferences.get('extra', '')}\n"
+            user_instructions += "Ces instructions DOIVENT être respectées en priorité dans la recette.\n"
+        
+        text_prompt = f"""🚨 MISSION : CRÉER UNE RECETTE VIDE-FRIGO PERSONNALISÉE 🚨
 
-Tu DOIS examiner attentivement la photo du frigo/garde-manger et créer une recette en utilisant UNIQUEMENT les ingrédients que tu peux VOIR dans l'image.
+HIÉRARCHIE DES PRIORITÉS:
 
-ÉTAPE 1 - ANALYSE DE L'IMAGE (OBLIGATOIRE):
-D'abord, LISTE tous les ingrédients visibles dans la photo :
+**PRIORITÉ 1 - INSTRUCTIONS UTILISATEUR** (SI FOURNIES):
+{user_instructions if user_instructions else "Aucune instruction spécifique fournie."}
+
+**PRIORITÉ 2 - ANALYSE DE LA PHOTO**:
+Examine attentivement la photo du frigo/garde-manger et LISTE tous les ingrédients visibles :
 - Protéines (viande, poisson, œufs, tofu, etc.)
-- Légumes
-- Fruits
+- Légumes et fruits
 - Produits laitiers
 - Condiments et assaisonnements
 - Céréales et féculents
 - Autres items
 
-ÉTAPE 2 - CRÉATION DE RECETTE:
-Crée une recette pour {req.servings} personnes en utilisant PRINCIPALEMENT les ingrédients de la photo.
-{constraints_text}{preferences_text}
+**PRIORITÉ 3 - INGRÉDIENTS DE BASE** (TOUJOURS DISPONIBLES):
+Tu peux librement utiliser ces ingrédients même s'ils ne sont pas visibles dans la photo :
+- Huile (olive, végétale), beurre
+- Sel, poivre, épices communes
+- Ail, oignon, échalote
+- Farine, sucre
+- Bouillon (poulet, légumes, bœuf)
 
-RÈGLES CRITIQUES:
-✅ À FAIRE: Utiliser les ingrédients visibles dans la photo comme ingrédients principaux
-✅ À FAIRE: Ajouter des produits de base courants (sel, poivre, huile) si nécessaire
-✅ À FAIRE: Être créatif avec les combinaisons
-❌ NE PAS: Inventer des ingrédients non montrés dans la photo
-❌ NE PAS: Utiliser du poulet par défaut si aucune protéine n'est visible
-❌ NE PAS: Ignorer ce qui est réellement dans l'image
+CRÉATION DE RECETTE pour {req.servings} personnes:
+{constraints_text}
+
+RÈGLES:
+✅ À FAIRE:
+- Respecter ABSOLUMENT les instructions utilisateur si fournies
+- Utiliser les ingrédients visibles dans la photo comme base
+- Compléter avec les ingrédients de base si nécessaire
+- Être créatif avec les combinaisons
+
+❌ NE PAS:
+- Inventer des ingrédients spécifiques non mentionnés et non visibles
+- Ignorer les instructions utilisateur
+- Utiliser du poulet par défaut si non mentionné/visible
 
 Retourne UNIQUEMENT un objet JSON valide:
 {{
-    "title": "Nom créatif basé sur les VRAIS ingrédients de la photo",
+    "title": "Nom créatif basé sur les instructions ET/OU ingrédients",
     "servings": {req.servings},
     "total_minutes": 30,
     "ingredients": [
-        {{"name": "ingrédient DE LA PHOTO", "quantity": 200, "unit": "g", "category": "légumes"}}
+        {{"name": "ingrédient", "quantity": 200, "unit": "g", "category": "légumes"}}
     ],
     "steps": [
-        "Préparation: Préparer tous les ingrédients (couper, émincer, etc.)...",
-        "Cuisson: Chauffer et combiner les ingrédients...",
-        "Étapes finales et service..."
+        "Préparation: Préparer tous les ingrédients...",
+        "Cuisson: Chauffer et combiner...",
+        "Finition et service..."
     ],
     "equipment": ["poêle", "casserole"],
-    "tags": ["vide-frigo", "zéro déchet"]
+    "tags": ["vide-frigo", "personnalisé"]
 }}
 
 Utilise le système {unit_system}.
 Catégories: légumes, fruits, viandes, poissons, produits laitiers, sec, condiments, conserves."""
         
-        system_prompt = "Tu es un chef expert spécialisé dans les recettes 'vide-frigo'. Tu DOIS analyser l'image attentivement et créer des recettes en utilisant UNIQUEMENT les ingrédients visibles. N'invente jamais d'ingrédients."
+        system_prompt = "Tu es un chef expert spécialisé dans les recettes 'vide-frigo' personnalisées. Tu respectes TOUJOURS les instructions de l'utilisateur en priorité, puis tu analyses la photo pour compléter avec les ingrédients disponibles."
 
     try:
         # Use OpenAI Vision API to analyze the image
