@@ -423,14 +423,34 @@ IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de prépa
         
         content = response.choices[0].message.content.strip()
         
+        # Enhanced JSON extraction - handle various formats
         # Remove markdown code blocks if present
-        if content.startswith("```"):
+        if "```json" in content:
+            # Extract content between ```json and ```
+            parts = content.split("```json")
+            if len(parts) > 1:
+                json_part = parts[1].split("```")[0]
+                content = json_part.strip()
+        elif content.startswith("```"):
+            # Handle generic code blocks
             content = content.split("```")[1]
             if content.startswith("json"):
                 content = content[4:]
             content = content.strip()
         
-        recipe_data = json.loads(content)
+        # Remove any leading/trailing non-JSON text
+        # Find the first { and last }
+        start_idx = content.find('{')
+        end_idx = content.rfind('}')
+        if start_idx != -1 and end_idx != -1:
+            content = content[start_idx:end_idx+1]
+        
+        try:
+            recipe_data = json.loads(content)
+        except json.JSONDecodeError as e:
+            print(f"JSON decode error: {e}")
+            print(f"Problematic content: {content[:500]}...")
+            raise HTTPException(status_code=500, detail=f"Failed to parse recipe JSON: {str(e)}")
         
         # Ensure all ingredients have required fields
         for ingredient in recipe_data.get("ingredients", []):
