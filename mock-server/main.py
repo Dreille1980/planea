@@ -1041,50 +1041,60 @@ Categories: vegetables, fruits, meats, fish, dairy, dry goods, condiments, canne
         unit_system = "métrique (grammes, ml)" if req.units == "METRIC" else "impérial (oz, cups)"
         
         # Build user instructions text if provided
-        user_instructions = ""
-        if preferences_text and "Additional instructions:" in preferences_text:
-            user_instructions = "\n\n🎯 INSTRUCTIONS UTILISATEUR (PRIORITÉ ABSOLUE):\n"
-            user_instructions += f"{req.preferences.get('extra', '')}\n"
-            user_instructions += "Ces instructions DOIVENT être respectées en priorité dans la recette.\n"
+        user_instructions_text = ""
+        has_user_instructions = req.preferences.get('extra', '').strip() if req.preferences else ""
         
-        text_prompt = f"""🚨 MISSION : CRÉER UNE RECETTE VIDE-FRIGO PERSONNALISÉE 🚨
+        if has_user_instructions:
+            user_instructions_text = f"""
+🚨🚨🚨 INSTRUCTIONS UTILISATEUR - PRIORITÉ ABSOLUE 🚨🚨🚨
 
-HIÉRARCHIE DES PRIORITÉS:
+L'utilisateur a fourni ces instructions OBLIGATOIRES:
+"{has_user_instructions}"
 
-**PRIORITÉ 1 - INSTRUCTIONS UTILISATEUR** (SI FOURNIES):
-{user_instructions if user_instructions else "Aucune instruction spécifique fournie."}
+RÈGLES NON NÉGOCIABLES:
+- Ces instructions sont LA PRIORITÉ #1
+- Tu DOIS créer une recette qui respecte EXACTEMENT ces instructions
+- Si l'utilisateur mentionne un ingrédient (ex: crevettes), tu DOIS l'utiliser
+- Si l'utilisateur mentionne un style (ex: asiatique), tu DOIS le respecter
+- La photo du frigo sert UNIQUEMENT à compléter avec des ingrédients secondaires
 
-**PRIORITÉ 2 - ANALYSE DE LA PHOTO**:
-Examine attentivement la photo du frigo/garde-manger et LISTE tous les ingrédients visibles :
-- Protéines (viande, poisson, œufs, tofu, etc.)
-- Légumes et fruits
+❌ INTERDIT: Ignorer ces instructions ou les remplacer par autre chose
+"""
+        
+        text_prompt = f"""🎯 MISSION : CRÉER UNE RECETTE VIDE-FRIGO PERSONNALISÉE
+
+{user_instructions_text}
+
+ÉTAPE 1 - ANALYSE DE LA PHOTO:
+Examine la photo du frigo/garde-manger et identifie les ingrédients visibles:
+- Protéines, légumes, fruits
 - Produits laitiers
 - Condiments et assaisonnements
-- Céréales et féculents
 - Autres items
 
-**PRIORITÉ 3 - INGRÉDIENTS DE BASE** (TOUJOURS DISPONIBLES):
-Tu peux librement utiliser ces ingrédients même s'ils ne sont pas visibles dans la photo :
-- Huile (olive, végétale), beurre
-- Sel, poivre, épices communes
+ÉTAPE 2 - INGRÉDIENTS DE BASE DISPONIBLES:
+Tu peux utiliser sans restriction:
+- Huile, beurre
+- Sel, poivre, épices courantes
 - Ail, oignon, échalote
-- Farine, sucre
-- Bouillon (poulet, légumes, bœuf)
+- Farine, sucre, bouillon
 
-CRÉATION DE RECETTE pour {req.servings} personnes:
+ÉTAPE 3 - CRÉATION DE LA RECETTE pour {req.servings} personnes:
 {constraints_text}
 
-RÈGLES:
-✅ À FAIRE:
-- Respecter ABSOLUMENT les instructions utilisateur si fournies
-- Utiliser les ingrédients visibles dans la photo comme base
-- Compléter avec les ingrédients de base si nécessaire
-- Être créatif avec les combinaisons
+LOGIQUE DE PRIORITÉ:
+1. SI instructions utilisateur → Respecte-les OBLIGATOIREMENT
+2. PUIS utilise les ingrédients visibles dans la photo
+3. PUIS complète avec les ingrédients de base
 
-❌ NE PAS:
-- Inventer des ingrédients spécifiques non mentionnés et non visibles
-- Ignorer les instructions utilisateur
-- Utiliser du poulet par défaut si non mentionné/visible
+RÈGLES STRICTES:
+✅ RESPECTE ABSOLUMENT les instructions utilisateur
+✅ Utilise les ingrédients de la photo pour compléter
+✅ Ajoute des ingrédients de base si nécessaire
+
+❌ N'INVENTE PAS d'ingrédients spécifiques non mentionnés/visibles
+❌ NE REMPLACE PAS les ingrédients demandés par l'utilisateur
+❌ N'IGNORE PAS les instructions utilisateur
 
 Retourne UNIQUEMENT un objet JSON valide:
 {{
