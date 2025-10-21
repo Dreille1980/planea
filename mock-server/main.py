@@ -924,6 +924,224 @@ IMPORTANT:
         raise HTTPException(status_code=500, detail=f"Failed to generate recipe: {str(e)}")
 
 
+class RecipeFromImageRequest(BaseModel):
+    image_base64: str
+    servings: int = 4
+    constraints: dict = Field(default_factory=dict)
+    units: Literal["METRIC", "IMPERIAL"] = "METRIC"
+    language: str = "fr"
+    preferences: dict = Field(default_factory=dict)
+
+
+@app.post("/ai/recipe-from-image", response_model=Recipe)
+async def ai_recipe_from_image(req: RecipeFromImageRequest):
+    """Generate a recipe from a fridge photo using OpenAI Vision."""
+    
+    import base64
+    
+    # Build preferences text from preferences dict
+    preferences_text = ""
+    if req.preferences:
+        # Complexity based on time
+        max_time = req.preferences.get("maxMinutes", 30)
+        if max_time <= 30:
+            preferences_text += "COMPLEXITY: Keep the recipe simple with basic cooking techniques. "
+        elif max_time <= 60:
+            preferences_text += "COMPLEXITY: Use intermediate cooking techniques and interesting flavor combinations. "
+        else:
+            preferences_text += "COMPLEXITY: Use advanced culinary techniques, complex flavor profiles, and sophisticated presentations. "
+        
+        # Spice level
+        if req.preferences.get("spiceLevel") and req.preferences["spiceLevel"] != "none":
+            preferences_text += f"Spice level: {req.preferences['spiceLevel']}. "
+        
+        # Available appliances
+        if req.preferences.get("availableAppliances"):
+            appliances = ", ".join(req.preferences["availableAppliances"])
+            preferences_text += f"Available cooking equipment: {appliances}. "
+        
+        # Kid-friendly
+        if req.preferences.get("kidFriendly"):
+            preferences_text += "Kid-friendly meals preferred. "
+        
+        # Extra user instructions
+        if req.preferences.get("extra"):
+            preferences_text += f"Additional instructions: {req.preferences['extra']}. "
+    
+    # Build protein portions guide
+    protein_portions_text = "\n\nCRITICAL - PROTEIN PORTIONS PER PERSON:\n"
+    protein_portions_text += "You MUST include adequate protein in each recipe following these guidelines:\n"
+    protein_portions_text += "- Chicken (breast, thigh): 150-200g per person (250-300g if bone-in)\n"
+    protein_portions_text += "- Beef (steak, roast): 180-220g per person\n"
+    protein_portions_text += "- Pork (chops, tenderloin): 160-200g per person\n"
+    protein_portions_text += "- Lamb: 180-200g per person\n"
+    protein_portions_text += "- Fish (fillet): 150-180g per person (300-350g if whole fish)\n"
+    protein_portions_text += "- Shrimp/Prawns: 120-150g per person\n"
+    protein_portions_text += "- Tofu: 120-150g per person\n"
+    protein_portions_text += "- Tempeh/Seitan: 100-130g per person\n"
+    protein_portions_text += "- Eggs: 2-3 large eggs per person\n"
+    protein_portions_text += "- Ground meat (beef, pork, chicken): 150-180g per person\n"
+    protein_portions_text += "These portions ensure adequate protein intake for a satisfying meal.\n"
+    
+    # Language-specific handling
+    if req.language == "en":
+        constraints_text = ""
+        if req.constraints.get("diet"):
+            diets = ", ".join(req.constraints["diet"])
+            constraints_text += f"Dietary requirements: {diets}. "
+        if req.constraints.get("evict"):
+            allergies = ", ".join(req.constraints["evict"])
+            constraints_text += f"Allergies/Avoid: {allergies}. "
+        
+        unit_system = "metric (grams, ml)" if req.units == "METRIC" else "imperial (oz, cups)"
+        
+        text_prompt = f"""Analyze this fridge/pantry photo and generate a creative recipe using the visible ingredients.
+
+For {req.servings} people.
+{constraints_text}{preferences_text}{protein_portions_text}
+
+CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
+- First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
+- Be specific about cuts: "dice carrots into 1cm cubes", "grate 100g cheese", "finely chop 2 onions"
+- Include prep for ALL ingredients before cooking steps
+- Then include cooking/assembly steps with exact times, temperatures, and techniques
+
+Return ONLY a valid JSON object with this exact structure:
+{{
+    "title": "Creative recipe name based on ingredients",
+    "servings": {req.servings},
+    "total_minutes": 30,
+    "ingredients": [
+        {{"name": "ingredient from photo", "quantity": 200, "unit": "g", "category": "vegetables"}}
+    ],
+    "steps": [
+        "Preparation: Dice the carrots into 1cm cubes. Finely chop the onion...",
+        "Heat oil in a large pan...",
+        "Add ingredients and cook..."
+    ],
+    "equipment": ["pan", "pot"],
+    "tags": ["fridge cleanup", "creative"]
+}}
+
+Use the {unit_system} system.
+Categories: vegetables, fruits, meats, fish, dairy, dry goods, condiments, canned goods.
+
+IMPORTANT:
+- Generate at least 5-7 detailed steps with EXPLICIT preparation steps at the beginning
+- Use ingredients visible in the photo
+- Be creative with the recipe name
+- Ensure realistic quantities for {req.servings} people"""
+        
+        system_prompt = "You are a creative chef who creates recipes from available ingredients. Analyze the image and suggest a delicious recipe."
+        
+    else:
+        # French version
+        constraints_text = ""
+        if req.constraints.get("diet"):
+            diets = ", ".join(req.constraints["diet"])
+            constraints_text += f"Régimes alimentaires: {diets}. "
+        if req.constraints.get("evict"):
+            allergies = ", ".join(req.constraints["evict"])
+            constraints_text += f"Allergies/Éviter: {allergies}. "
+        
+        unit_system = "métrique (grammes, ml)" if req.units == "METRIC" else "impérial (oz, cups)"
+        
+        text_prompt = f"""Analyse cette photo de frigo/garde-manger et génère une recette créative utilisant les ingrédients visibles.
+
+Pour {req.servings} personnes.
+{constraints_text}{preferences_text}{protein_portions_text}
+
+CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
+- Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
+- Sois précis sur les coupes: "couper les carottes en dés de 1cm", "râper 100g de fromage", "émincer finement 2 oignons"
+- Inclure la préparation de TOUS les ingrédients avant les étapes de cuisson
+- Ensuite inclure les étapes de cuisson/assemblage avec temps exacts, températures et techniques
+
+Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte:
+{{
+    "title": "Nom créatif de recette basé sur les ingrédients",
+    "servings": {req.servings},
+    "total_minutes": 30,
+    "ingredients": [
+        {{"name": "ingrédient de la photo", "quantity": 200, "unit": "g", "category": "légumes"}}
+    ],
+    "steps": [
+        "Préparation: Couper les carottes en dés de 1cm. Émincer finement l'oignon...",
+        "Faire chauffer l'huile dans une grande poêle...",
+        "Ajouter les ingrédients et cuire..."
+    ],
+    "equipment": ["poêle", "casserole"],
+    "tags": ["vide-frigo", "créatif"]
+}}
+
+Utilise le système {unit_system}.
+Catégories: légumes, fruits, viandes, poissons, produits laitiers, sec, condiments, conserves.
+
+IMPORTANT:
+- Génère au moins 5-7 étapes détaillées avec des étapes de préparation EXPLICITES au début
+- Utilise les ingrédients visibles sur la photo
+- Sois créatif avec le nom de la recette
+- Assure des quantités réalistes pour {req.servings} personnes"""
+        
+        system_prompt = "Tu es un chef créatif qui crée des recettes à partir d'ingrédients disponibles. Analyse l'image et suggère une délicieuse recette."
+
+    try:
+        # Use OpenAI Vision API to analyze the image
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": text_prompt
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{req.image_base64}",
+                                "detail": "low"  # Use low detail for faster/cheaper processing
+                            }
+                        }
+                    ]
+                }
+            ],
+            temperature=0.9,
+            max_tokens=1500
+        )
+        
+        content = response.choices[0].message.content.strip()
+        
+        # Remove markdown code blocks if present
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        
+        recipe_data = json.loads(content)
+        
+        # Ensure all ingredients have required fields
+        for ingredient in recipe_data.get("ingredients", []):
+            if "unit" not in ingredient or not ingredient.get("unit"):
+                ingredient["unit"] = "unité" if req.language == "fr" else "unit"
+            if "category" not in ingredient or not ingredient.get("category"):
+                ingredient["category"] = "autre" if req.language == "fr" else "other"
+        
+        return Recipe(**recipe_data)
+        
+    except Exception as e:
+        print(f"Error generating recipe from image: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to generate recipe from image: {str(e)}")
+
+
 @app.get("/")
 def root():
     return {"message": "Planea AI Server with OpenAI - Ready!"}
