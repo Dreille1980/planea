@@ -544,6 +544,14 @@ async def regenerate_meal(req: RegenerateMealRequest):
 async def ai_recipe(req: RecipeRequest):
     """Generate a single recipe from a prompt using OpenAI (async)."""
     
+    # Select a random protein for variety in ad-hoc generation
+    suggested_protein = None
+    if req.preferences and req.preferences.get("preferredProteins"):
+        preferred_proteins = req.preferences.get("preferredProteins", [])
+        if preferred_proteins:
+            suggested_protein = random.choice(preferred_proteins)
+            print(f"🎲 Random protein selected for ad-hoc recipe: {suggested_protein}")
+    
     # Build preferences text from preferences dict
     preferences_text = ""
     if req.preferences:
@@ -601,10 +609,15 @@ async def ai_recipe(req: RecipeRequest):
         
         unit_system = "metric (grams, ml)" if req.units == "METRIC" else "imperial (oz, cups)"
         
+        # Add protein suggestion for variety
+        protein_suggestion = ""
+        if suggested_protein:
+            protein_suggestion = f"\nSUGGESTED PROTEIN: Use {suggested_protein} as the main protein for variety.\n"
+        
         prompt = f"""Generate a recipe in English based on this idea: "{req.idea}"
         
 For {req.servings} people.
-{constraints_text}
+{constraints_text}{protein_suggestion}
 
 CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
 - First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
@@ -648,10 +661,15 @@ IMPORTANT: Generate at least 5-7 detailed steps with EXPLICIT preparation steps 
         
         unit_system = "métrique (grammes, ml)" if req.units == "METRIC" else "impérial (oz, cups)"
         
+        # Add protein suggestion for variety
+        protein_suggestion = ""
+        if suggested_protein:
+            protein_suggestion = f"\nPROTÉINE SUGGÉRÉE: Utilise {suggested_protein} comme protéine principale pour la variété.\n"
+        
         prompt = f"""Génère une recette en français basée sur cette idée: "{req.idea}"
 
 Pour {req.servings} personnes.
-{constraints_text}{preferences_text}{protein_portions_text}
+{constraints_text}{preferences_text}{protein_suggestion}{protein_portions_text}
 
 CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
 - Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
