@@ -545,12 +545,17 @@ async def ai_recipe(req: RecipeRequest):
     """Generate a single recipe from a prompt using OpenAI (async)."""
     
     # Select a random protein for variety in ad-hoc generation
-    suggested_protein = None
+    # Use user preferences if available, otherwise use default variety
+    default_proteins = ["beef", "pork", "fish", "salmon", "shrimp", "tofu", "turkey", "lamb", "duck"]
+    
+    preferred_proteins = []
     if req.preferences and req.preferences.get("preferredProteins"):
         preferred_proteins = req.preferences.get("preferredProteins", [])
-        if preferred_proteins:
-            suggested_protein = random.choice(preferred_proteins)
-            print(f"🎲 Random protein selected for ad-hoc recipe: {suggested_protein}")
+    
+    # Use preferred or default proteins
+    protein_pool = preferred_proteins if preferred_proteins else default_proteins
+    suggested_protein = random.choice(protein_pool)
+    print(f"🎲 Random protein selected for ad-hoc recipe: {suggested_protein}")
     
     # Build preferences text from preferences dict
     preferences_text = ""
@@ -567,11 +572,6 @@ async def ai_recipe(req: RecipeRequest):
         # Spice level
         if req.preferences.get("spiceLevel") and req.preferences["spiceLevel"] != "none":
             preferences_text += f"Spice level: {req.preferences['spiceLevel']}. "
-        
-        # Preferred proteins
-        if req.preferences.get("preferredProteins"):
-            proteins = ", ".join(req.preferences["preferredProteins"])
-            preferences_text += f"Preferred proteins: {proteins}. "
         
         # Available appliances
         if req.preferences.get("availableAppliances"):
