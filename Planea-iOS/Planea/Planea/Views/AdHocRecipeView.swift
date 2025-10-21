@@ -65,6 +65,14 @@ struct AdHocRecipeView: View {
                             TextField("adhoc.promptPlaceholder".localized, text: $prompt, axis: .vertical)
                                 .lineLimit(3...6)
                                 .focused($isTextFieldFocused)
+                                .toolbar {
+                                    ToolbarItemGroup(placement: .keyboard) {
+                                        Spacer()
+                                        Button("action.done".localized) {
+                                            isTextFieldFocused = false
+                                        }
+                                    }
+                                }
                         }
                     }
                     
@@ -93,6 +101,14 @@ struct AdHocRecipeView: View {
                             
                             TextField("adhoc.photoInstructionsPlaceholder".localized, text: $photoInstructions, axis: .vertical)
                                 .lineLimit(2...4)
+                                .toolbar {
+                                    ToolbarItemGroup(placement: .keyboard) {
+                                        Spacer()
+                                        Button("action.done".localized) {
+                                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                        }
+                                    }
+                                }
                         }
                         
                         Section {
