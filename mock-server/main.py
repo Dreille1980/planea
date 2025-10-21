@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from openai import AsyncOpenAI
 import json
 import asyncio
+import random
 from flyer_scraper import FlyerScraperService
 
 # Load environment variables
@@ -150,7 +151,71 @@ async def mark_ingredients_on_sale(recipe: Recipe, preferences: dict) -> Recipe:
         return recipe
 
 
-async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: str, servings: int = 4, previous_recipes: List[str] = None, diversity_seed: int = 0, language: str = "fr", preferences: dict = None) -> Recipe:
+def distribute_proteins_for_plan(slots: List[Slot], preferences: dict) -> List[str]:
+    """
+    Distribute proteins across the meal plan to ensure diversity.
+    Returns a list of suggested proteins, one for each slot.
+    """
+    # Default protein list with good variety
+    default_proteins = ["chicken", "beef", "pork", "fish", "salmon", "shrimp", "tofu", "turkey", "lamb"]
+    
+    # Get user's preferred proteins if available
+    preferred_proteins = preferences.get("preferredProteins", [])
+    
+    # Use preferred proteins if available, otherwise use defaults
+    protein_pool = preferred_proteins if preferred_proteins else default_proteins
+    
+    # Ensure we have enough variety
+    if len(protein_pool) < 3:
+        # If user only selected 1-2 proteins, add some defaults for variety
+        protein_pool = list(set(protein_pool + default_proteins[:5]))
+    
+    num_slots = len(slots)
+    suggested_proteins = []
+    
+    # Shuffle the protein pool for randomness
+    shuffled_proteins = protein_pool.copy()
+    random.shuffle(shuffled_proteins)
+    
+    # Distribute proteins ensuring no immediate repeats
+    for i in range(num_slots):
+        # Special handling for breakfast - prefer lighter proteins
+        if slots[i].meal_type == "BREAKFAST":
+            breakfast_options = ["eggs", "turkey", "salmon", "tofu", "yogurt"]
+            # Filter to breakfast options that haven't been used recently
+            available = [p for p in breakfast_options if p not in suggested_proteins[-2:]]
+            if not available:
+                available = breakfast_options
+            suggested_proteins.append(random.choice(available))
+        else:
+            # For lunch and dinner, cycle through the protein pool
+            # Avoid repeating the last protein
+            cycle_index = i % len(shuffled_proteins)
+            protein = shuffled_proteins[cycle_index]
+            
+            # If this protein was just used, try the next one
+            if suggested_proteins and protein == suggested_proteins[-1]:
+                cycle_index = (cycle_index + 1) % len(shuffled_proteins)
+                protein = shuffled_proteins[cycle_index]
+            
+            suggested_proteins.append(protein)
+    
+    print(f"🎯 Protein distribution for {num_slots} slots: {suggested_proteins}")
+    return suggested_proteins
+
+
+async def generate_recipe_with_openai(
+    meal_type: str, 
+    constraints: dict, 
+    units: str, 
+    servings: int = 4, 
+    previous_recipes: List[str] = None, 
+    diversity_seed: int = 0, 
+    language: str = "fr", 
+    preferences: dict = None,
+    suggested_protein: str = None,
+    other_plan_proteins: List[str] = None
+) -> Recipe:
     """Generate a single recipe using OpenAI with diversity awareness (async)."""
     
     # Build constraints text
@@ -213,10 +278,14 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
     protein_portions_text += "- Ground meat (beef, pork, chicken): 150-180g per person\n"
     protein_portions_text += "These portions ensure adequate protein intake for a satisfying meal.\n"
     
-    # Build diversity instructions - NO restrictions, maximum creativity
+    # Build diversity instructions with protein guidance
     diversity_text = "\n\nIMPÉRATIF - DIVERSITÉ MAXIMALE:\n"
+    if suggested_protein and other_plan_proteins:
+        diversity_text += f"- PROTÉINE SUGGÉRÉE pour cette recette: {suggested_protein}\n"
+        diversity_text += f"- INTERDICTION d'utiliser ces protéines (déjà dans le plan): {', '.join(other_plan_proteins)}\n"
+        diversity_text += f"- Tu DOIS utiliser {suggested_protein} ou une alternative DIFFÉRENTE des protéines interdites\n"
     diversity_text += "- Crée une recette TOTALEMENT UNIQUE et DIFFÉRENTE\n"
-    diversity_text += "- Varie librement: cuisines du monde, protéines, légumes, épices, techniques\n"
+    diversity_text += "- Varie librement: cuisines du monde, légumes, épices, techniques\n"
     diversity_text += "- Explore des combinaisons créatives et inattendues\n"
     diversity_text += "- Chaque recette doit être distincte des autres\n"
     diversity_text += "- Utilise la créativité maximale sans limitations\n"
@@ -260,8 +329,12 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
         protein_portions_text_en += "These portions ensure adequate protein intake for a satisfying meal.\n"
         
         diversity_text_en = "\n\nCRITICAL - MAXIMUM DIVERSITY:\n"
+        if suggested_protein and other_plan_proteins:
+            diversity_text_en += f"- SUGGESTED PROTEIN for this recipe: {suggested_protein}\n"
+            diversity_text_en += f"- FORBIDDEN to use these proteins (already in plan): {', '.join(other_plan_proteins)}\n"
+            diversity_text_en += f"- You MUST use {suggested_protein} or a DIFFERENT alternative from the forbidden proteins\n"
         diversity_text_en += "- Create a COMPLETELY UNIQUE and DIFFERENT recipe\n"
-        diversity_text_en += "- Freely vary: world cuisines, proteins, vegetables, spices, techniques\n"
+        diversity_text_en += "- Freely vary: world cuisines, vegetables, spices, techniques\n"
         diversity_text_en += "- Explore creative and unexpected combinations\n"
         diversity_text_en += "- Each recipe must be distinct from others\n"
         diversity_text_en += "- Use maximum creativity without limitations\n"
@@ -388,7 +461,10 @@ IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de prépa
 async def ai_plan(req: PlanRequest):
     """Generate a meal plan using OpenAI with parallel generation and diversity seeds."""
     
-    # Generate all recipes in parallel with diversity seeds for variety
+    # Distribute proteins across the plan for variety
+    suggested_proteins = distribute_proteins_for_plan(req.slots, req.preferences)
+    
+    # Generate all recipes in parallel with diversity seeds and protein guidance
     tasks = [
         generate_recipe_with_openai(
             meal_type=slot.meal_type,
@@ -398,7 +474,9 @@ async def ai_plan(req: PlanRequest):
             previous_recipes=None,
             diversity_seed=idx,  # Each recipe gets a different seed for variety
             language=req.language,
-            preferences=req.preferences
+            preferences=req.preferences,
+            suggested_protein=suggested_proteins[idx],
+            other_plan_proteins=[p for i, p in enumerate(suggested_proteins) if i != idx]
         )
         for idx, slot in enumerate(req.slots)
     ]
