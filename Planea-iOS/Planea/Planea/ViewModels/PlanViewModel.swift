@@ -3,14 +3,22 @@ import Combine
 
 final class PlanViewModel: ObservableObject {
     @Published var slots: Set<SlotSelection> = []
-    @Published var currentPlan: MealPlan?
+    @Published var draftPlan: MealPlan?
+    @Published var confirmedPlans: [MealPlan] = []
+    @Published var showConfirmationAlert = false
     
     private let persistence = PersistenceController.shared
     
     init() {
-        // Load latest plan silently - no error if none exists
-        let plans = persistence.loadMealPlans()
-        currentPlan = plans.first
+        loadPlans()
+    }
+    
+    func loadPlans() {
+        // Load current draft plan
+        draftPlan = persistence.loadCurrentDraftPlan()
+        
+        // Load confirmed plans history
+        confirmedPlans = persistence.loadConfirmedPlans()
     }
     
     func select(_ slot: SlotSelection) {
@@ -22,13 +30,48 @@ final class PlanViewModel: ObservableObject {
     }
     
     func savePlan(_ plan: MealPlan) {
-        currentPlan = plan
-        persistence.saveMealPlan(plan)
+        var mutablePlan = plan
+        mutablePlan.status = .draft
+        draftPlan = mutablePlan
+        persistence.saveMealPlan(mutablePlan)
     }
     
+    func confirmCurrentPlan(withName name: String? = nil) {
+        guard var plan = draftPlan else { return }
+        
+        // Update plan name if provided
+        if let name = name, !name.trimmingCharacters(in: .whitespaces).isEmpty {
+            plan.name = name
+            persistence.saveMealPlan(plan)
+        }
+        
+        persistence.confirmPlan(id: plan.id)
+        loadPlans()
+    }
+    
+    func restorePlan(plan: MealPlan) {
+        // Create a new draft from the confirmed plan
+        var newDraft = plan
+        newDraft.id = UUID()
+        newDraft.status = .draft
+        newDraft.confirmedDate = nil
+        newDraft.weekStart = Date()
+        
+        // If there's an existing draft, confirm it first
+        if let existingDraft = draftPlan {
+            persistence.confirmPlan(id: existingDraft.id)
+        }
+        
+        savePlan(newDraft)
+    }
+    
+    func deletePlan(plan: MealPlan) {
+        persistence.deletePlan(id: plan.id)
+        loadPlans()
+    }
     
     func regenerateMeal(mealItem: MealItem, newRecipe: Recipe) {
-        guard var plan = currentPlan else { return }
+        guard var plan = draftPlan else { return }
         
         // Find and replace the meal item
         if let index = plan.items.firstIndex(where: { $0.id == mealItem.id }) {
@@ -39,37 +82,37 @@ final class PlanViewModel: ObservableObject {
                 recipe: newRecipe
             )
             plan.items[index] = updatedItem
-            currentPlan = plan
+            draftPlan = plan
             persistence.saveMealPlan(plan)
         }
     }
     
     func removeMeal(mealItem: MealItem) {
-        guard var plan = currentPlan else { return }
+        guard var plan = draftPlan else { return }
         
         // Remove the meal item
         plan.items.removeAll(where: { $0.id == mealItem.id })
         
         // If no items left, clear the plan
         if plan.items.isEmpty {
-            currentPlan = nil
+            draftPlan = nil
         } else {
-            currentPlan = plan
+            draftPlan = plan
             persistence.saveMealPlan(plan)
         }
     }
     
     func addMeal(mealItem: MealItem) {
-        guard var plan = currentPlan else { return }
+        guard var plan = draftPlan else { return }
         
         // Add the new meal item
         plan.items.append(mealItem)
-        currentPlan = plan
+        draftPlan = plan
         persistence.saveMealPlan(plan)
     }
     
     func hasMealInSlot(weekday: Weekday, mealType: MealType) -> Bool {
-        guard let plan = currentPlan else { return false }
+        guard let plan = draftPlan else { return false }
         return plan.items.contains(where: { $0.weekday == weekday && $0.mealType == mealType })
     }
 }

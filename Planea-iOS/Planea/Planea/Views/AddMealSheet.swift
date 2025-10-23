@@ -251,7 +251,7 @@ struct AddMealSheet: View {
         
         // If replacing, remove existing meal first
         if conflictAction == .replace {
-            if let existingMeal = planVM.currentPlan?.items.first(where: { 
+            if let existingMeal = planVM.draftPlan?.items.first(where: { 
                 $0.weekday == selectedDay && $0.mealType == selectedMealType 
             }) {
                 planVM.removeMeal(mealItem: existingMeal)

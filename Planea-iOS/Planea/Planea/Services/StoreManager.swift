@@ -34,9 +34,18 @@ class StoreManager: ObservableObject {
     func loadProducts() async {
         do {
             let productIDs = SubscriptionProduct.allCases.map { $0.rawValue }
+            print("🔍 [StoreManager] Loading products with IDs: \(productIDs)")
             products = try await Product.products(for: productIDs)
+            print("✅ [StoreManager] Successfully loaded \(products.count) products")
+            for product in products {
+                print("   - \(product.id): \(product.displayName) - \(product.displayPrice)")
+            }
+            if products.isEmpty {
+                print("⚠️ [StoreManager] WARNING: No products loaded! Check StoreKit configuration.")
+            }
         } catch {
-            print("Failed to load products: \(error)")
+            print("❌ [StoreManager] Failed to load products: \(error.localizedDescription)")
+            print("   Error details: \(error)")
         }
     }
     
@@ -109,9 +118,16 @@ class StoreManager: ObservableObject {
                     
                     if verifiedRenewal.willAutoRenew {
                         // Check if currently in trial period
-                        if transaction.offerType == .introductory {
-                            highestStatus = .inTrial
+                        if #available(iOS 17.2, *) {
+                            if let offerID = transaction.offer?.id {
+                                // Has an offer - check if it's introductory
+                                highestStatus = offerID.contains("intro") || offerID.contains("trial") ? .inTrial : .active
+                            } else {
+                                // No offer = regular subscription
+                                highestStatus = .active
+                            }
                         } else {
+                            // For iOS 16.6, default to active (can't determine trial status reliably)
                             highestStatus = .active
                         }
                         highestTransaction = transaction
@@ -164,12 +180,11 @@ class StoreManager: ObservableObject {
     // MARK: - Transaction Listener
     
     private func listenForTransactions() -> Task<Void, Error> {
-        return Task.detached { [weak self] in
+        return Task.detached { @MainActor [weak self] in
             guard let self = self else { return }
-            
             for await result in Transaction.updates {
                 do {
-                    let transaction = try await self.checkVerified(result)
+                    let transaction = try self.checkVerified(result)
                     await self.updateSubscriptionStatus()
                     await transaction.finish()
                 } catch {
@@ -210,7 +225,7 @@ class StoreManager: ObservableObject {
     // MARK: - Subscription Management
     
     func openSubscriptionManagement() async {
-        if let windowScene = await UIApplication.shared.connectedScenes.first as? UIWindowScene {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             do {
                 try await AppStore.showManageSubscriptions(in: windowScene)
             } catch {

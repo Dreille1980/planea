@@ -86,13 +86,88 @@ final class PersistenceController: ObservableObject {
     func saveMealPlan(_ plan: MealPlan) {
         let context = container.viewContext
         
-        let planEntity = MealPlanEntity(context: context)
-        planEntity.id = plan.id
+        // Check if plan already exists
+        let request: NSFetchRequest<MealPlanEntity> = MealPlanEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", plan.id as CVarArg)
+        
+        let planEntity: MealPlanEntity
+        if let existing = try? context.fetch(request).first {
+            planEntity = existing
+        } else {
+            planEntity = MealPlanEntity(context: context)
+            planEntity.id = plan.id
+        }
+        
         planEntity.familyId = plan.familyId
         planEntity.weekStart = plan.weekStart
         planEntity.itemsData = try? JSONEncoder().encode(plan.items)
+        planEntity.status = plan.status.rawValue
+        planEntity.confirmedDate = plan.confirmedDate
+        planEntity.name = plan.name
         
         save()
+    }
+    
+    func loadCurrentDraftPlan() -> MealPlan? {
+        let context = container.viewContext
+        let request: NSFetchRequest<MealPlanEntity> = MealPlanEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "status == %@", PlanStatus.draft.rawValue)
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \MealPlanEntity.weekStart, ascending: false)]
+        request.fetchLimit = 1
+        
+        do {
+            guard let entity = try context.fetch(request).first else { return nil }
+            return convertEntityToPlan(entity)
+        } catch {
+            print("Error loading draft plan: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    func loadConfirmedPlans() -> [MealPlan] {
+        let context = container.viewContext
+        let request: NSFetchRequest<MealPlanEntity> = MealPlanEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "status == %@", PlanStatus.confirmed.rawValue)
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \MealPlanEntity.confirmedDate, ascending: false)]
+        
+        do {
+            let entities = try context.fetch(request)
+            return entities.compactMap { convertEntityToPlan($0) }
+        } catch {
+            print("Error loading confirmed plans: \(error.localizedDescription)")
+            return []
+        }
+    }
+    
+    func confirmPlan(id: UUID) {
+        let context = container.viewContext
+        let request: NSFetchRequest<MealPlanEntity> = MealPlanEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        do {
+            if let entity = try context.fetch(request).first {
+                entity.status = PlanStatus.confirmed.rawValue
+                entity.confirmedDate = Date()
+                save()
+            }
+        } catch {
+            print("Error confirming plan: \(error.localizedDescription)")
+        }
+    }
+    
+    func deletePlan(id: UUID) {
+        let context = container.viewContext
+        let request: NSFetchRequest<MealPlanEntity> = MealPlanEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        do {
+            if let entity = try context.fetch(request).first {
+                context.delete(entity)
+                save()
+            }
+        } catch {
+            print("Error deleting plan: \(error.localizedDescription)")
+        }
     }
     
     func loadMealPlans() -> [MealPlan] {
@@ -102,18 +177,116 @@ final class PersistenceController: ObservableObject {
         
         do {
             let entities = try context.fetch(request)
-            return entities.compactMap { entity -> MealPlan? in
-                guard let id = entity.id,
-                      let familyId = entity.familyId,
-                      let weekStart = entity.weekStart,
-                      let itemsData = entity.itemsData,
-                      let items = try? JSONDecoder().decode([MealItem].self, from: itemsData) else { return nil }
-                
-                return MealPlan(id: id, familyId: familyId, weekStart: weekStart, items: items)
-            }
+            return entities.compactMap { convertEntityToPlan($0) }
         } catch {
             print("Error loading meal plans: \(error.localizedDescription)")
             return []
+        }
+    }
+    
+    private func convertEntityToPlan(_ entity: MealPlanEntity) -> MealPlan? {
+        guard let id = entity.id,
+              let familyId = entity.familyId,
+              let weekStart = entity.weekStart,
+              let itemsData = entity.itemsData,
+              let items = try? JSONDecoder().decode([MealItem].self, from: itemsData) else { return nil }
+        
+        let status = PlanStatus(rawValue: entity.status ?? "draft") ?? .draft
+        
+        return MealPlan(
+            id: id,
+            familyId: familyId,
+            weekStart: weekStart,
+            items: items,
+            status: status,
+            confirmedDate: entity.confirmedDate,
+            name: entity.name
+        )
+    }
+    
+    // MARK: - Recent Recipe Operations
+    
+    func saveRecentRecipe(_ recipe: Recipe, source: String) {
+        let context = container.viewContext
+        
+        let entity = RecentRecipeEntity(context: context)
+        entity.id = recipe.id
+        entity.title = recipe.title
+        entity.servings = Int16(recipe.servings)
+        entity.totalTime = Int16(recipe.totalMinutes)
+        entity.ingredients = try? JSONEncoder().encode(recipe.ingredients)
+        entity.steps = try? JSONEncoder().encode(recipe.steps)
+        entity.generatedDate = Date()
+        entity.source = source
+        
+        save()
+        
+        // Clean up old recipes
+        deleteOldRecentRecipes(keepCount: 15)
+    }
+    
+    func loadRecentRecipes(limit: Int = 15) -> [Recipe] {
+        let context = container.viewContext
+        let request: NSFetchRequest<RecentRecipeEntity> = RecentRecipeEntity.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \RecentRecipeEntity.generatedDate, ascending: false)]
+        request.fetchLimit = limit
+        
+        do {
+            let entities = try context.fetch(request)
+            return entities.compactMap { entity -> Recipe? in
+                guard let id = entity.id,
+                      let title = entity.title,
+                      let ingredientsData = entity.ingredients,
+                      let stepsData = entity.steps,
+                      let ingredients = try? JSONDecoder().decode([RecipeIngredient].self, from: ingredientsData),
+                      let steps = try? JSONDecoder().decode([String].self, from: stepsData) else { return nil }
+                
+                return Recipe(
+                    id: id,
+                    title: title,
+                    servings: Int(entity.servings),
+                    totalMinutes: Int(entity.totalTime),
+                    ingredients: ingredients,
+                    steps: steps
+                )
+            }
+        } catch {
+            print("Error loading recent recipes: \(error.localizedDescription)")
+            return []
+        }
+    }
+    
+    func deleteRecentRecipe(id: UUID) {
+        let context = container.viewContext
+        let request: NSFetchRequest<RecentRecipeEntity> = RecentRecipeEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        do {
+            if let entity = try context.fetch(request).first {
+                context.delete(entity)
+                save()
+            }
+        } catch {
+            print("Error deleting recent recipe: \(error.localizedDescription)")
+        }
+    }
+    
+    func deleteOldRecentRecipes(keepCount: Int) {
+        let context = container.viewContext
+        let request: NSFetchRequest<RecentRecipeEntity> = RecentRecipeEntity.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \RecentRecipeEntity.generatedDate, ascending: false)]
+        
+        do {
+            let entities = try context.fetch(request)
+            if entities.count > keepCount {
+                let entitiesToDelete = Array(entities[keepCount...])
+                for entity in entitiesToDelete {
+                    context.delete(entity)
+                }
+                save()
+            }
+        } catch {
+            print("Error cleaning up old recent recipes: \(error.localizedDescription)")
         }
     }
 }

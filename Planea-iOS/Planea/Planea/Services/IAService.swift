@@ -81,6 +81,17 @@ struct IAService {
             dict["availableAppliances"] = prefs.availableAppliances.map { $0.rawValue }
         }
         
+        // Weekly flyers / grocery discounts
+        dict["useWeeklyFlyers"] = prefs.useWeeklyFlyers
+        if prefs.useWeeklyFlyers {
+            if !prefs.postalCode.isEmpty {
+                dict["postalCode"] = prefs.postalCode
+            }
+            if !prefs.preferredGroceryStore.isEmpty {
+                dict["preferredGroceryStore"] = prefs.preferredGroceryStore
+            }
+        }
+        
         return dict
     }
     

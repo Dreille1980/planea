@@ -186,6 +186,7 @@
 "subscription.manage" = "Gérer l'abonnement";
 "subscription.terms" = "Conditions d'utilisation";
 "subscription.privacy" = "Politique de confidentialité";
+"subscription.autorenewal" = "Le paiement sera débité de votre compte iTunes. L'abonnement se renouvelle automatiquement sauf si le renouvellement automatique est désactivé au moins 24 heures avant la fin de la période en cours. Gérez ou annulez à tout moment dans les réglages de l'App Store.";
 "subscription.error" = "Erreur";
 "subscription.error.verification" = "Échec de la vérification de l'achat";
 "subscription.error.purchase" = "L'achat a échoué";
@@ -209,6 +210,7 @@
 "subscription.feature.planning" = "Planification hebdomadaire des repas avec IA";
 "subscription.feature.shopping" = "Listes d'épicerie intelligentes";
 "subscription.feature.ai" = "Génération de recettes par IA";
+"subscription.feature.adhoc" = "Recettes instantanées ad-hoc";
 "subscription.feature.family" = "Membres de famille illimités";
 "subscription.developer.code" = "Code d'accès développeur";
 "subscription.developer.remove" = "Retirer l'accès développeur";
@@ -333,3 +335,63 @@
 "prefs.flyers.postalcode" = "Code postal";
 "prefs.flyers.store" = "Épicerie préférée";
 "prefs.flyers.footer" = "Génère des recettes basées sur les rabais de votre épicerie locale. Entrez votre code postal et le nom de votre épicerie (ex: IGA, Metro, Provigo, Maxi).";
+
+// Nouveau système d'onboarding - Tour des fonctionnalités
+"tour.welcome.title" = "Bienvenue dans Planea";
+"tour.welcome.description" = "Votre assistant intelligent pour planifier vos repas";
+"tour.mealplans.title" = "Planifiez vos semaines";
+"tour.mealplans.description" = "Générez automatiquement ou ajoutez manuellement vos repas";
+"tour.adhoc.title" = "Inspiration instantanée";
+"tour.adhoc.description" = "Décrivez ce que vous voulez ou prenez une photo de votre frigo";
+"tour.shopping.title" = "Liste intelligente";
+"tour.shopping.description" = "Tous vos ingrédients organisés automatiquement";
+"tour.favorites.title" = "Ne perdez rien";
+"tour.favorites.description" = "Sauvegardez vos recettes préférées et retrouvez votre historique";
+"tour.flyers.title" = "Économisez avec les rabais";
+"tour.flyers.description" = "Recettes adaptées aux promotions de la semaine";
+"tour.getstarted.title" = "Paramétrons tout ça";
+"tour.getstarted.description" = "Quelques infos sur vous et c'est parti!";
+"tour.skip" = "Passer";
+"tour.next" = "Suivant";
+"tour.start" = "Commencer";
+
+// Nouvel onboarding - Nom de famille
+"onboarding.familyname.title" = "Comment s'appelle votre famille?";
+"onboarding.familyname.placeholder" = "Famille Tremblay";
+"onboarding.familyname.hint" = "Utilisé pour personnaliser votre expérience";
+
+// Nouvel onboarding - Gestion des membres
+"onboarding.members.subtitle" = "Ajoutez les personnes qui partageront ces repas";
+"onboarding.members.add" = "Ajouter un membre";
+"onboarding.members.addanother.title" = "Ajouter un autre membre?";
+"onboarding.members.addanother.message" = "Voulez-vous ajouter un autre membre de la famille?";
+"onboarding.members.addanother.yes" = "Oui";
+"onboarding.members.addanother.no" = "Non, continuer";
+"onboarding.members.addanother.later" = "Plus tard";
+"onboarding.member.configure" = "Configurer";
+"onboarding.member.configured" = "Configuré ✓";
+
+// Nouvel onboarding - Configuration de membre
+"onboarding.member.title" = "Configuration du membre";
+"onboarding.member.diets.footer" = "Sélectionnez tous les régimes alimentaires applicables";
+"onboarding.member.allergens.footer" = "Important pour éviter les réactions allergiques";
+"onboarding.member.dislikes.footer" = "Aliments que ce membre n'aime pas";
+
+// Nouvel onboarding - Préférences
+"onboarding.prefs.title" = "Vos préférences de génération";
+"onboarding.prefs.subtitle" = "Personnalisez la façon dont nous créons vos recettes";
+"onboarding.prefs.premium.message" = "Débloquez toutes les options avec Premium";
+
+// Nouvel onboarding - Complétion
+"onboarding.completion.title" = "Tout est prêt!";
+"onboarding.completion.subtitle" = "Votre profil familial est configuré";
+"onboarding.completion.family" = "Famille";
+"onboarding.completion.members" = "Membres";
+"onboarding.completion.member" = "membre";
+"onboarding.completion.members.plural" = "membres";
+"onboarding.completion.configured" = "Configurés";
+"onboarding.completion.start" = "Découvrir Planea";
+
+// Aide et support
+"settings.help" = "Aide";
+"settings.viewTour" = "Revoir la présentation";

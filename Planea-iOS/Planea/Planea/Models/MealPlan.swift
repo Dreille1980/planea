@@ -1,5 +1,10 @@
 import Foundation
 
+enum PlanStatus: String, Codable {
+    case draft
+    case confirmed
+}
+
 struct SlotSelection: Codable, Identifiable, Hashable {
     var weekday: Weekday
     var mealType: MealType
@@ -23,6 +28,9 @@ struct MealPlan: Identifiable, Codable {
     var familyId: UUID
     var weekStart: Date
     var items: [MealItem] = []
+    var status: PlanStatus = .draft
+    var confirmedDate: Date?
+    var name: String?
 }
 
 struct MealItem: Identifiable, Codable {

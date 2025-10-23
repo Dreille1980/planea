@@ -97,6 +97,14 @@ struct AdHocRecipeContentView: View {
                         TextField("adhoc.promptPlaceholder".localized, text: $prompt, axis: .vertical)
                             .lineLimit(3...6)
                             .focused($isTextFieldFocused)
+                            .toolbar {
+                                ToolbarItemGroup(placement: .keyboard) {
+                                    Spacer()
+                                    Button("action.done".localized) {
+                                        isTextFieldFocused = false
+                                    }
+                                }
+                            }
                     }
                 }
                 
@@ -185,6 +193,10 @@ struct AdHocRecipeContentView: View {
                             .frame(maxWidth: .infinity)
                     }
                 }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                isTextFieldFocused = false
             }
             
             // Loading overlay

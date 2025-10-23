@@ -29,10 +29,11 @@ final class FamilyViewModel: ObservableObject {
         persistence.saveFamily(family, members: members)
     }
     
-    func addMember(name: String) {
+    func addMember(name: String) -> Member {
         let m = Member(familyId: family.id, displayName: name, preferences: [])
         members.append(m)
         saveData()
+        return m
     }
     
     func removeMember(id: UUID) {

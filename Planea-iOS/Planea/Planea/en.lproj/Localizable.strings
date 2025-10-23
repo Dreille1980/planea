@@ -186,6 +186,7 @@
 "subscription.manage" = "Manage Subscription";
 "subscription.terms" = "Terms of Service";
 "subscription.privacy" = "Privacy Policy";
+"subscription.autorenewal" = "Payment will be charged to your iTunes Account. Subscription automatically renews unless auto-renew is turned off at least 24 hours before the end of the current period. Manage or cancel anytime in App Store settings.";
 "subscription.error" = "Error";
 "subscription.error.verification" = "Failed to verify purchase";
 "subscription.error.purchase" = "Purchase failed";
@@ -214,6 +215,7 @@
 "subscription.feature.planning" = "Weekly meal planning with AI";
 "subscription.feature.shopping" = "Smart shopping lists";
 "subscription.feature.ai" = "AI-powered recipe generation";
+"subscription.feature.adhoc" = "Ad-hoc instant recipes";
 "subscription.feature.family" = "Unlimited family members";
 "subscription.developer.code" = "Developer Access Code";
 "subscription.developer.remove" = "Remove Developer Access";
@@ -334,3 +336,63 @@
 "prefs.flyers.postalcode" = "Postal Code";
 "prefs.flyers.store" = "Preferred Grocery Store";
 "prefs.flyers.footer" = "Generate recipes based on deals from your local grocery store. Enter your postal/ZIP code and store name (e.g., IGA, Metro, Walmart, Kroger).";
+
+// New Onboarding System - Feature Tour
+"tour.welcome.title" = "Welcome to Planea";
+"tour.welcome.description" = "Your intelligent assistant for meal planning";
+"tour.mealplans.title" = "Plan Your Weeks";
+"tour.mealplans.description" = "Generate automatically or add meals manually";
+"tour.adhoc.title" = "Instant Inspiration";
+"tour.adhoc.description" = "Describe what you want or snap a photo of your fridge";
+"tour.shopping.title" = "Smart List";
+"tour.shopping.description" = "All your ingredients organized automatically";
+"tour.favorites.title" = "Never Lose Anything";
+"tour.favorites.description" = "Save your favorite recipes and access your history";
+"tour.flyers.title" = "Save with Deals";
+"tour.flyers.description" = "Recipes adapted to weekly promotions";
+"tour.getstarted.title" = "Let's Set Things Up";
+"tour.getstarted.description" = "A few details about you and we're ready!";
+"tour.skip" = "Skip";
+"tour.next" = "Next";
+"tour.start" = "Get Started";
+
+// New Onboarding - Family Name
+"onboarding.familyname.title" = "What's Your Family Name?";
+"onboarding.familyname.placeholder" = "The Smith Family";
+"onboarding.familyname.hint" = "Used to personalize your experience";
+
+// New Onboarding - Members Management
+"onboarding.members.subtitle" = "Add people who will share these meals";
+"onboarding.members.add" = "Add Member";
+"onboarding.members.addanother.title" = "Add Another Member?";
+"onboarding.members.addanother.message" = "Would you like to add another family member?";
+"onboarding.members.addanother.yes" = "Yes";
+"onboarding.members.addanother.no" = "No, Continue";
+"onboarding.members.addanother.later" = "Later";
+"onboarding.member.configure" = "Configure";
+"onboarding.member.configured" = "Configured ✓";
+
+// New Onboarding - Member Configuration
+"onboarding.member.title" = "Member Configuration";
+"onboarding.member.diets.footer" = "Select all applicable dietary preferences";
+"onboarding.member.allergens.footer" = "Important to avoid allergic reactions";
+"onboarding.member.dislikes.footer" = "Foods this member doesn't like";
+
+// New Onboarding - Preferences
+"onboarding.prefs.title" = "Your Generation Preferences";
+"onboarding.prefs.subtitle" = "Customize how we create your recipes";
+"onboarding.prefs.premium.message" = "Unlock all options with Premium";
+
+// New Onboarding - Completion
+"onboarding.completion.title" = "All Set!";
+"onboarding.completion.subtitle" = "Your family profile is configured";
+"onboarding.completion.family" = "Family";
+"onboarding.completion.members" = "Members";
+"onboarding.completion.member" = "member";
+"onboarding.completion.members.plural" = "members";
+"onboarding.completion.configured" = "Configured";
+"onboarding.completion.start" = "Discover Planea";
+
+// Help & Support
+"settings.help" = "Help";
+"settings.viewTour" = "View Tour Again";

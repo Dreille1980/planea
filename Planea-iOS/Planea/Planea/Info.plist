@@ -21,16 +21,16 @@
 		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
-			<key>planea-production.up.railway.app</key>
+			<key>planea-backend.onrender.com</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key>
 				<false/>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-				<key>NSExceptionRequiresForwardSecrecy</key>
-				<true/>
 				<key>NSExceptionMinimumTLSVersion</key>
 				<string>TLSv1.2</string>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
 			</dict>
 			<key>localhost</key>
 			<dict>

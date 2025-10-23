@@ -11,6 +11,10 @@ struct PlanWeekView: View {
     @State private var regeneratingMealId: UUID?
     @State private var showAddMealSheet = false
     @State private var showPaywall = false
+    @State private var showNewPlanAlert = false
+    @State private var showPlanHistory = false
+    @State private var showNamePlanDialog = false
+    @State private var planName = ""
     
     let weekdays: [Weekday] = [.monday,.tuesday,.wednesday,.thursday,.friday,.saturday,.sunday]
     let mealTypes: [MealType] = [.breakfast,.lunch,.dinner]
@@ -19,7 +23,7 @@ struct PlanWeekView: View {
         NavigationStack {
             ZStack {
                 VStack(spacing: 0) {
-                    if let plan = planVM.currentPlan {
+                    if let plan = planVM.draftPlan {
                         // Show generated plan with modern card design
                         ScrollView {
                             LazyVStack(spacing: 12) {
@@ -47,22 +51,55 @@ struct PlanWeekView: View {
                             .padding(.vertical, 12)
                         }
                         
-                        // Bottom action button
+                        // Bottom action buttons
                         VStack(spacing: 12) {
                             Divider()
                             
-                            Button(action: {
-                                withAnimation {
-                                    planVM.currentPlan = nil
-                                    planVM.slots.removeAll()
+                            // Show draft badge if not confirmed
+                            if plan.status == .draft {
+                                HStack {
+                                    Image(systemName: "pencil.circle.fill")
+                                    Text("plan.draft".localized)
                                 }
-                            }) {
-                                Label("action.newPlan".localized, systemImage: "arrow.counterclockwise")
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.orange.opacity(0.15))
+                                .cornerRadius(12)
                             }
-                            .buttonStyle(.bordered)
-                            .tint(.accentColor)
+                            
+                            HStack(spacing: 12) {
+                                // Confirm Plan button (only if draft)
+                                if plan.status == .draft {
+                                    Button(action: {
+                                        showNamePlanDialog = true
+                                    }) {
+                                        Label("plan.confirmPlan".localized, systemImage: "checkmark.circle.fill")
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 12)
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                }
+                                
+                                // New Plan button
+                                Button(action: {
+                                    if planVM.draftPlan != nil {
+                                        showNewPlanAlert = true
+                                    } else {
+                                        withAnimation {
+                                            planVM.draftPlan = nil
+                                            planVM.slots.removeAll()
+                                        }
+                                    }
+                                }) {
+                                    Label("action.newPlan".localized, systemImage: "arrow.counterclockwise")
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(.accentColor)
+                            }
                         }
                         .padding()
                         .background(.ultraThinMaterial)
@@ -157,8 +194,17 @@ struct PlanWeekView: View {
             .navigationTitle("plan.title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if planVM.currentPlan != nil {
-                    ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: {
+                        showPlanHistory = true
+                    }) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.title3)
+                    }
+                }
+                
+                if planVM.draftPlan != nil {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button(action: {
                             let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
                             impactGenerator.impactOccurred()
@@ -178,10 +224,46 @@ struct PlanWeekView: View {
             .sheet(isPresented: $showPaywall) {
                 SubscriptionPaywallView(limitReached: true)
             }
+            .sheet(isPresented: $showPlanHistory) {
+                PlanHistoryView()
+                    .environmentObject(planVM)
+            }
+            .alert("plan.namePlan.title".localized, isPresented: $showNamePlanDialog) {
+                TextField("plan.namePlan.placeholder".localized, text: $planName)
+                Button("action.cancel".localized, role: .cancel) {
+                    planName = ""
+                }
+                Button("plan.confirmPlan".localized) {
+                    withAnimation {
+                        planVM.confirmCurrentPlan(withName: planName.isEmpty ? nil : planName)
+                        planName = ""
+                        // Reset to slot selection view
+                        planVM.draftPlan = nil
+                        planVM.slots.removeAll()
+                    }
+                }
+            } message: {
+                Text("plan.namePlan.message".localized)
+            }
+            .alert("plan.confirmAlert.title".localized, isPresented: $showNewPlanAlert) {
+                Button("action.cancel".localized, role: .cancel) { }
+                Button("plan.confirmAlert.archive".localized, role: .destructive) {
+                    // Confirm current plan before starting new one
+                    if planVM.draftPlan != nil {
+                        planVM.confirmCurrentPlan()
+                    }
+                    withAnimation {
+                        planVM.draftPlan = nil
+                        planVM.slots.removeAll()
+                    }
+                }
+            } message: {
+                Text("plan.confirmAlert.message".localized)
+            }
         }
     }
     
-    func mealsForDay(_ day: Weekday, in plan: MealPlan) -> [(MealItem, String)]? {
+    private func mealsForDay(_ day: Weekday, in plan: MealPlan) -> [(MealItem, String)]? {
         let meals = plan.items.filter { $0.weekday == day }
         guard !meals.isEmpty else { return nil }
         
@@ -225,7 +307,7 @@ struct PlanWeekView: View {
             )
             
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                planVM.currentPlan = plan
+                planVM.savePlan(plan)
             }
             
             // Record generation usage

@@ -6,7 +6,6 @@ struct ShoppingListView: View {
     @EnvironmentObject var shoppingVM: ShoppingViewModel
     @EnvironmentObject var usageVM: UsageViewModel
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
-    @State private var shoppingList: ShoppingList?
     @State private var showingSortOptions = false
     @State private var showingExportOptions = false
     @State private var showingAlert = false
@@ -16,13 +15,13 @@ struct ShoppingListView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if let list = shoppingList {
+                if let list = shoppingVM.currentList {
                     VStack(spacing: 0) {
                         // Sort picker
                         Picker("shopping.order".localized, selection: Binding(
                             get: { list.sortOrder },
                             set: { newValue in
-                                shoppingList?.sortOrder = newValue
+                                shoppingVM.updateSortOrder(newValue)
                                 sortItems()
                             }
                         )) {
@@ -59,12 +58,12 @@ struct ShoppingListView: View {
                                 }
                             }
                             .onMove { source, destination in
-                                if shoppingList?.sortOrder == .custom {
+                                if shoppingVM.currentList?.sortOrder == .custom {
                                     moveItems(from: source, to: destination)
                                 }
                             }
                         }
-                        .environment(\.editMode, shoppingList?.sortOrder == .custom ? .constant(.active) : .constant(.inactive))
+                        .environment(\.editMode, shoppingVM.currentList?.sortOrder == .custom ? .constant(.active) : .constant(.inactive))
                         
                         // Export button
                         Button(action: {
@@ -113,7 +112,7 @@ struct ShoppingListView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                         
-                        if let plan = planVM.currentPlan {
+                        if let plan = planVM.draftPlan {
                             Button("plan.generateList".localized) {
                                 generateShoppingList(from: plan)
                             }
@@ -125,9 +124,9 @@ struct ShoppingListView: View {
             }
             .navigationTitle("shopping.title".localized)
             .toolbar {
-                if shoppingList != nil {
+                if shoppingVM.currentList != nil {
                     Button("action.refresh".localized) {
-                        if let plan = planVM.currentPlan {
+                        if let plan = planVM.draftPlan {
                             generateShoppingList(from: plan)
                         }
                     }
@@ -158,7 +157,7 @@ struct ShoppingListView: View {
             }
         }
         .onAppear {
-            if let plan = planVM.currentPlan, shoppingList == nil {
+            if let plan = planVM.draftPlan, shoppingVM.currentList == nil {
                 generateShoppingList(from: plan)
             }
         }
@@ -167,7 +166,7 @@ struct ShoppingListView: View {
     // MARK: - Sorting Functions
     
     func getSortedItems() -> [ShoppingItem] {
-        guard let list = shoppingList else { return [] }
+        guard let list = shoppingVM.currentList else { return [] }
         
         var sortedItems: [ShoppingItem]
         
@@ -211,45 +210,39 @@ struct ShoppingListView: View {
     }
     
     func sortItems() {
-        guard var list = shoppingList else { return }
+        guard let list = shoppingVM.currentList else { return }
         
         // Update custom order when switching to custom mode
         if list.sortOrder == .custom && list.customOrder.isEmpty {
-            list.customOrder = getSortedItems().map { $0.id }
-            shoppingList = list
+            shoppingVM.updateCustomOrder(getSortedItems().map { $0.id })
         }
     }
     
     func moveItems(from source: IndexSet, to destination: Int) {
-        guard var list = shoppingList else { return }
+        guard shoppingVM.currentList != nil else { return }
         
         var sortedItems = getSortedItems()
         sortedItems.move(fromOffsets: source, toOffset: destination)
         
         // Update custom order
-        list.customOrder = sortedItems.map { $0.id }
-        shoppingList = list
+        shoppingVM.updateCustomOrder(sortedItems.map { $0.id })
     }
     
     func toggleItemChecked(_ item: ShoppingItem) {
-        guard var list = shoppingList else { return }
-        if let idx = list.items.firstIndex(where: { $0.id == item.id }) {
-            list.items[idx].isChecked.toggle()
-            shoppingList = list
-        }
+        shoppingVM.toggleItemChecked(id: item.id)
     }
     
     // MARK: - Data Functions
     
     func generateShoppingList(from plan: MealPlan) {
         let units = UnitSystem(rawValue: unitSystem) ?? .metric
-        shoppingList = shoppingVM.buildList(from: plan.items, units: units)
+        shoppingVM.generateList(from: plan.items, units: units)
     }
     
     // MARK: - Export Functions
     
     func getListText() -> String {
-        guard let list = shoppingList else { return "" }
+        guard let list = shoppingVM.currentList else { return "" }
         
         var text = "\("shopping.title".localized)\n"
         text += "\("shopping.generatedOn".localized) \(list.generatedAt.formatted(date: .abbreviated, time: .shortened))\n\n"
@@ -293,15 +286,20 @@ struct ShoppingListView: View {
     func exportToReminders() {
         let eventStore = EKEventStore()
         
-        eventStore.requestAccess(to: .reminder) { granted, error in
-            DispatchQueue.main.async {
-                guard granted, error == nil else {
-                    alertMessage = "shopping.accessDenied".localized
-                    showingAlert = true
+        Task {
+            do {
+                // Request access using iOS 17+ API
+                let granted = try await eventStore.requestFullAccessToEvents()
+                
+                guard granted else {
+                    await MainActor.run {
+                        alertMessage = "shopping.accessDenied".localized
+                        showingAlert = true
+                    }
                     return
                 }
                 
-                guard shoppingList != nil else { return }
+                guard shoppingVM.currentList != nil else { return }
                 
                 // Create reminders list if it doesn't exist
                 let calendar = eventStore.defaultCalendarForNewReminders()
@@ -323,10 +321,19 @@ struct ShoppingListView: View {
                 
                 do {
                     try eventStore.commit()
-                    alertMessage = "\(successCount) \("shopping.itemsAdded".localized)"
-                    showingAlert = true
+                    await MainActor.run {
+                        alertMessage = "\(successCount) \("shopping.itemsAdded".localized)"
+                        showingAlert = true
+                    }
                 } catch {
-                    alertMessage = "\("shopping.errorSaving".localized): \(error.localizedDescription)"
+                    await MainActor.run {
+                        alertMessage = "\("shopping.errorSaving".localized): \(error.localizedDescription)"
+                        showingAlert = true
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    alertMessage = "shopping.accessDenied".localized
                     showingAlert = true
                 }
             }

@@ -12,7 +12,7 @@ struct OnboardingView: View {
             Form {
                 Section(header: Text("onboarding.family".localized)) {
                     TextField("onboarding.familyName".localized, text: $familyVM.family.name)
-                        .onChange(of: familyVM.family.name) { _ in
+                        .onChange(of: familyVM.family.name) {
                             familyVM.saveData()
                         }
                 }

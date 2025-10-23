@@ -47,67 +47,118 @@ struct SubscriptionPaywallView: View {
                         FeatureRow(icon: "calendar.badge.checkmark", text: "subscription.feature.planning".localized)
                         FeatureRow(icon: "cart.fill", text: "subscription.feature.shopping".localized)
                         FeatureRow(icon: "sparkles", text: "subscription.feature.ai".localized)
+                        FeatureRow(icon: "photo.on.rectangle.angled", text: "subscription.feature.adhoc".localized)
                         FeatureRow(icon: "person.3.fill", text: "subscription.feature.family".localized)
                     }
                     .padding(.horizontal)
                     
                     // Subscription Options
                     VStack(spacing: 16) {
-                        if let monthlyProduct = viewModel.monthlyProduct {
-                            SubscriptionOptionCard(
-                                product: monthlyProduct,
-                                isSelected: false,
-                                trialDescription: viewModel.trialDescription(for: monthlyProduct),
-                                onTap: {
-                                    Task {
-                                        await viewModel.purchase(monthlyProduct)
+                        if viewModel.isLoading {
+                            // Loading state
+                            VStack(spacing: 12) {
+                                ProgressView()
+                                Text("Loading subscription options...")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .frame(height: 200)
+                        } else if viewModel.monthlyProduct == nil && viewModel.yearlyProduct == nil {
+                            // No products loaded - show helpful message
+                            VStack(spacing: 16) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundStyle(.orange)
+                                
+                                Text("Subscription Options Unavailable")
+                                    .font(.headline)
+                                
+                                Text("Please try the following:\n\n1. Restart the app\n2. Check your internet connection\n3. Verify StoreKit Configuration in Xcode")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal)
+                            }
+                            .padding()
+                        } else {
+                            // Products loaded - show subscription cards
+                            if let monthlyProduct = viewModel.monthlyProduct {
+                                SubscriptionOptionCard(
+                                    product: monthlyProduct,
+                                    isSelected: false,
+                                    trialDescription: viewModel.trialDescription(for: monthlyProduct),
+                                    onTap: {
+                                        Task {
+                                            await viewModel.purchase(monthlyProduct)
+                                        }
                                     }
-                                }
-                            )
-                        }
-                        
-                        if let yearlyProduct = viewModel.yearlyProduct {
-                            SubscriptionOptionCard(
-                                product: yearlyProduct,
-                                isSelected: true,
-                                trialDescription: viewModel.trialDescription(for: yearlyProduct),
-                                savingsText: viewModel.savingsAmount().map { String(format: "subscription.save".localized, $0) },
-                                onTap: {
-                                    Task {
-                                        await viewModel.purchase(yearlyProduct)
+                                )
+                            }
+                            
+                            if let yearlyProduct = viewModel.yearlyProduct {
+                                SubscriptionOptionCard(
+                                    product: yearlyProduct,
+                                    isSelected: true,
+                                    trialDescription: viewModel.trialDescription(for: yearlyProduct),
+                                    savingsText: viewModel.savingsAmount().map { String(format: "subscription.save".localized, $0) },
+                                    onTap: {
+                                        Task {
+                                            await viewModel.purchase(yearlyProduct)
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                     .padding(.horizontal)
                     
-                    // Restore Button
-                    Button(action: {
-                        Task {
-                            await viewModel.restorePurchases()
+                    // Action Buttons
+                    VStack(spacing: 12) {
+                        // Restore Button
+                        Button(action: {
+                            Task {
+                                await viewModel.restorePurchases()
+                            }
+                        }) {
+                            Text("subscription.restore".localized)
+                                .font(.subheadline)
+                                .foregroundStyle(.blue)
                         }
-                    }) {
-                        Text("subscription.restore".localized)
-                            .font(.subheadline)
-                            .foregroundStyle(.blue)
+                        
+                        // Manage Subscription Button
+                        Button(action: {
+                            Task {
+                                await viewModel.openSubscriptionManagement()
+                            }
+                        }) {
+                            Text("subscription.manage".localized)
+                                .font(.subheadline)
+                                .foregroundStyle(.blue)
+                        }
                     }
                     
                     // Terms and Privacy
                     HStack(spacing: 16) {
                         Button("subscription.terms".localized) {
-                            // Open terms URL
+                            openLegalURL(type: .terms)
                         }
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         
                         Button("subscription.privacy".localized) {
-                            // Open privacy URL
+                            openLegalURL(type: .privacy)
                         }
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     }
-                    .padding(.bottom, 40)
+                    
+                    // Auto-renewal Legal Text
+                    Text("subscription.autorenewal".localized)
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                        .padding(.bottom, 40)
                 }
             }
             
@@ -145,13 +196,37 @@ struct SubscriptionPaywallView: View {
                 Text(errorMessage)
             }
         }
-        .onChange(of: viewModel.purchaseSuccessful) { success in
-            if success {
+        .onChange(of: viewModel.purchaseSuccessful) {
+            if viewModel.purchaseSuccessful {
                 onDismiss?()
             }
         }
         .task {
             await viewModel.loadProducts()
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private enum LegalDocumentType {
+        case terms
+        case privacy
+    }
+    
+    private func openLegalURL(type: LegalDocumentType) {
+        let baseURL = "https://dreille1980.github.io/planea-legal/"
+        let language = Locale.current.language.languageCode?.identifier ?? "en"
+        
+        let path: String
+        switch type {
+        case .terms:
+            path = language == "fr" ? "terms-fr.html" : "terms-en.html"
+        case .privacy:
+            path = language == "fr" ? "privacy-fr.html" : "privacy-en.html"
+        }
+        
+        if let url = URL(string: baseURL + path) {
+            UIApplication.shared.open(url)
         }
     }
 }

@@ -63,10 +63,10 @@ enum StoreSection: String, CaseIterable {
         switch self {
         case .fruits: return 0
         case .vegetables: return 1
-        case .meat: return 2
-        case .fish: return 3
-        case .bakery: return 4
-        case .dairy: return 5
+        case .dairy: return 2
+        case .meat: return 3
+        case .fish: return 4
+        case .bakery: return 5
         case .grains: return 6
         case .pasta: return 7
         case .canned: return 8
@@ -81,11 +81,54 @@ enum StoreSection: String, CaseIterable {
     
     static func section(for category: String) -> StoreSection {
         let lowercased = category.lowercased()
-        for section in StoreSection.allCases {
-            if lowercased.contains(section.rawValue) {
-                return section
-            }
+        
+        // Map French and English category names to sections
+        if lowercased.contains("fruit") {
+            return .fruits
         }
+        if lowercased.contains("légume") || lowercased.contains("legume") || lowercased.contains("vegetable") {
+            return .vegetables
+        }
+        if lowercased.contains("lait") || lowercased.contains("dairy") || lowercased.contains("produit laitier") || lowercased.contains("fromage") || lowercased.contains("yaourt") || lowercased.contains("yogurt") {
+            return .dairy
+        }
+        if lowercased.contains("viande") || lowercased.contains("meat") || lowercased.contains("boeuf") || lowercased.contains("beef") || lowercased.contains("poulet") || lowercased.contains("chicken") || lowercased.contains("porc") || lowercased.contains("pork") {
+            return .meat
+        }
+        if lowercased.contains("poisson") || lowercased.contains("fish") || lowercased.contains("seafood") || lowercased.contains("fruit de mer") {
+            return .fish
+        }
+        if lowercased.contains("pain") || lowercased.contains("bakery") || lowercased.contains("boulangerie") {
+            return .bakery
+        }
+        if lowercased.contains("grain") || lowercased.contains("céréale") || lowercased.contains("cereal") || lowercased.contains("riz") || lowercased.contains("rice") {
+            return .grains
+        }
+        if lowercased.contains("pasta") || lowercased.contains("pâte") || lowercased.contains("pate") {
+            return .pasta
+        }
+        if lowercased.contains("conserve") || lowercased.contains("canned") {
+            return .canned
+        }
+        if lowercased.contains("condiment") || lowercased.contains("sauce") {
+            return .condiments
+        }
+        if lowercased.contains("épice") || lowercased.contains("spice") || lowercased.contains("herbe") || lowercased.contains("herb") {
+            return .spices
+        }
+        if lowercased.contains("surgelé") || lowercased.contains("surgele") || lowercased.contains("frozen") || lowercased.contains("congelé") || lowercased.contains("congele") {
+            return .frozen
+        }
+        if lowercased.contains("boisson") || lowercased.contains("beverage") || lowercased.contains("drink") {
+            return .beverages
+        }
+        if lowercased.contains("snack") || lowercased.contains("collation") || lowercased.contains("grignotage") {
+            return .snacks
+        }
+        if lowercased.contains("sec") || lowercased.contains("dry") {
+            return .grains
+        }
+        
         return .other
     }
 }

@@ -5,6 +5,7 @@ struct PlaneaApp: App {
     @StateObject private var familyVM = FamilyViewModel()
     @StateObject private var planVM = PlanViewModel()
     @StateObject private var recipeVM = RecipeViewModel()
+    @StateObject private var recipeHistoryVM = RecipeHistoryViewModel()
     @StateObject private var shoppingVM = ShoppingViewModel()
     @StateObject private var favoritesVM = FavoritesViewModel()
     @StateObject private var usageVM = UsageViewModel()
@@ -18,6 +19,7 @@ struct PlaneaApp: App {
                 .environmentObject(familyVM)
                 .environmentObject(planVM)
                 .environmentObject(recipeVM)
+                .environmentObject(recipeHistoryVM)
                 .environmentObject(shoppingVM)
                 .environmentObject(favoritesVM)
                 .environmentObject(usageVM)
@@ -30,7 +32,7 @@ struct PlaneaApp: App {
                     // Connect UsageViewModel to FavoritesViewModel
                     favoritesVM.setUsageViewModel(usageVM)
                 }
-                .onChange(of: appLanguage) { _ in
+                .onChange(of: appLanguage) {
                     // Update LocalizationHelper when language changes
                     LocalizationHelper.shared.currentLanguage = appLanguage
                 }
@@ -51,9 +53,9 @@ struct RootView: View {
     
     var body: some View {
         TabView {
-            // Plan tab - freemium access with usage limits
-            PlanWeekView()
-                .tabItem { Label("tab.plan".localized, systemImage: "calendar") }
+            // Recipes tab - combines Plan and Ad hoc generation
+            RecipesView()
+                .tabItem { Label("tab.recipes".localized, systemImage: "fork.knife") }
             
             // Shopping tab - freemium access with export restrictions
             ShoppingListView()
@@ -63,16 +65,12 @@ struct RootView: View {
             SavedRecipesView()
                 .tabItem { Label("tab.favorites".localized, systemImage: "heart.fill") }
             
-            // Ad hoc tab - premium only (locked in the view itself)
-            AdHocRecipeView()
-                .tabItem { Label("adhoc.title".localized, systemImage: "fork.knife") }
-            
             // Settings tab - always accessible
             SettingsView()
                 .tabItem { Label("tab.settings".localized, systemImage: "gearshape") }
         }
         .sheet(isPresented: $showOnboarding) {
-            OnboardingView(isPresented: $showOnboarding)
+            OnboardingContainerView(isPresented: $showOnboarding)
         }
         .onAppear {
             if !hasCompletedOnboarding {

@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var developerCode = ""
     @State private var versionTapCount = 0
     @State private var showSubscriptionSheet = false
+    @State private var showFeatureTour = false
     
     var body: some View {
         NavigationStack {
@@ -153,6 +154,17 @@ struct SettingsView: View {
                     .foregroundStyle(.primary)
                 }
                 
+                // Help Section
+                Section(header: Text("settings.help".localized)) {
+                    Button(action: { showFeatureTour = true }) {
+                        HStack {
+                            Label("settings.viewTour".localized, systemImage: "play.circle.fill")
+                            Spacer()
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                }
+                
                 // Legal Section
                 Section(header: Text("legal.title".localized)) {
                     NavigationLink(destination: LegalDocumentView(documentType: .termsAndConditions)) {
@@ -181,6 +193,9 @@ struct SettingsView: View {
             .navigationTitle(Text("tab.settings".localized))
             .sheet(isPresented: $showSubscriptionSheet) {
                 SubscriptionPaywallView(canDismiss: true)
+            }
+            .sheet(isPresented: $showFeatureTour) {
+                AppFeatureTourView(isOnboarding: false)
             }
         }
     }
