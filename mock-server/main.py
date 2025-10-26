@@ -521,6 +521,58 @@ IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de prépa
 async def ai_plan(req: PlanRequest):
     """Generate a meal plan using OpenAI with parallel generation and diversity seeds."""
     
+    # Get flyer deals BEFORE generating recipes if feature is enabled
+    flyer_deals = []
+    if req.preferences and req.preferences.get("useWeeklyFlyers"):
+        postal_code = req.preferences.get("postalCode")
+        store_name = req.preferences.get("preferredGroceryStore")
+        
+        if postal_code and store_name:
+            try:
+                print(f"\n🛒 Pre-fetching deals for meal plan generation...")
+                deals = await asyncio.to_thread(
+                    flyer_scraper.get_weekly_deals,
+                    store_name=store_name,
+                    postal_code=postal_code
+                )
+                
+                if not deals:
+                    # Use fallback data
+                    deals = [
+                        {"name": "poulet", "price": 8.99},
+                        {"name": "chicken", "price": 8.99},
+                        {"name": "turkey", "price": 8.99},
+                        {"name": "dinde", "price": 8.99},
+                        {"name": "saumon", "price": 9.99},
+                        {"name": "salmon", "price": 9.99},
+                        {"name": "crevettes", "price": 11.99},
+                        {"name": "shrimp", "price": 11.99},
+                        {"name": "boeuf haché", "price": 5.99},
+                        {"name": "ground beef", "price": 5.99},
+                        {"name": "porc", "price": 6.99},
+                        {"name": "pork", "price": 6.99},
+                        {"name": "brocoli", "price": 2.99},
+                        {"name": "broccoli", "price": 2.99},
+                        {"name": "carottes", "price": 1.99},
+                        {"name": "carrots", "price": 1.99},
+                        {"name": "tomates", "price": 3.49},
+                        {"name": "tomatoes", "price": 3.49},
+                        {"name": "épinards", "price": 2.99},
+                        {"name": "spinach", "price": 2.99},
+                        {"name": "chou-fleur", "price": 3.99},
+                        {"name": "cauliflower", "price": 3.99},
+                    ]
+                
+                # Extract deal names
+                for deal in deals:
+                    deal_name = deal.get('name', '') if isinstance(deal, dict) else str(deal)
+                    if deal_name:
+                        flyer_deals.append(deal_name)
+                
+                print(f"✅ Found {len(flyer_deals)} deals to suggest to recipes: {flyer_deals[:10]}")
+            except Exception as e:
+                print(f"⚠️ Error pre-fetching deals: {e}")
+    
     # Distribute proteins across the plan for variety
     suggested_proteins = distribute_proteins_for_plan(req.slots, req.preferences)
     
