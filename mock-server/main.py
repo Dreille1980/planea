@@ -269,6 +269,23 @@ async def mark_ingredients_on_sale(recipe: Recipe, preferences: dict) -> Recipe:
         for ingredient in recipe.ingredients:
             print(f"  - {ingredient.name}")
         
+        # Words to ignore when matching (qualifiers, descriptors)
+        ignore_words = {
+            # French
+            'frais', 'fraîche', 'fraîches', 'surgelé', 'surgelés', 'surgelée', 'surgelées',
+            'congelé', 'congelés', 'congelée', 'congelées', 'décortiqué', 'décortiqués', 
+            'décortiquée', 'décortiquées', 'épluché', 'épluchés', 'épluchée', 'épluchées',
+            'coupé', 'coupés', 'coupée', 'coupées', 'tranché', 'tranchés', 'tranchée', 'tranchées',
+            'haché', 'hachés', 'hachée', 'hachées', 'émincé', 'émincés', 'émincée', 'émincées',
+            'bio', 'biologique', 'biologiques', 'local', 'locaux', 'locale', 'locales',
+            'extra', 'gros', 'grosse', 'grosses', 'petit', 'petits', 'petite', 'petites',
+            'jeune', 'jeunes', 'entier', 'entiers', 'entière', 'entières', 'blanc', 'blancs', 'blanche', 'blanches',
+            # English
+            'fresh', 'frozen', 'peeled', 'deveined', 'shelled', 'cleaned', 'trimmed',
+            'chopped', 'diced', 'sliced', 'minced', 'shredded', 'grated',
+            'organic', 'local', 'extra', 'large', 'small', 'medium', 'whole', 'boneless', 'skinless'
+        }
+        
         # Mark ingredients that are on sale
         for ingredient in recipe.ingredients:
             ing_name = ingredient.name.lower().strip()
@@ -276,16 +293,29 @@ async def mark_ingredients_on_sale(recipe: Recipe, preferences: dict) -> Recipe:
             # Check for exact or partial match
             is_on_sale = False
             
-            # Check exact match
+            # Check exact match first
             if ing_name in normalized_deals:
                 is_on_sale = True
             else:
-                # Check if any deal word is in ingredient name or vice versa
+                # Extract keywords from ingredient name (remove qualifiers)
                 ing_words = set(ing_name.split())
-                for ing_word in ing_words:
-                    if len(ing_word) > 3 and ing_word in normalized_deals:
+                # Remove common qualifiers
+                ing_keywords = {w for w in ing_words if w not in ignore_words and len(w) > 3}
+                
+                # Check if any keyword matches a deal
+                for keyword in ing_keywords:
+                    if keyword in normalized_deals:
                         is_on_sale = True
+                        print(f"    - Matched keyword '{keyword}' from '{ing_name}' with deals")
                         break
+                
+                # Also check if any deal is a substring of the ingredient
+                if not is_on_sale:
+                    for deal in normalized_deals:
+                        if len(deal) > 4 and deal in ing_name:
+                            is_on_sale = True
+                            print(f"    - Matched substring '{deal}' in '{ing_name}'")
+                            break
             
             if is_on_sale:
                 ingredient.is_on_sale = True
