@@ -4,8 +4,9 @@ struct SavedRecipesView: View {
     @StateObject private var favoritesVM = FavoritesViewModel()
     
     var body: some View {
-        NavigationStack {
-            Group {
+        ZStack {
+            NavigationStack {
+                Group {
                 if favoritesVM.savedRecipes.isEmpty {
                     // Empty state
                     VStack(spacing: 16) {
@@ -47,6 +48,9 @@ struct SavedRecipesView: View {
             }
             .navigationTitle("favorites.title".localized)
             .navigationBarTitleDisplayMode(.inline)
+            }
+            
+            FloatingChatButton()
         }
     }
 }

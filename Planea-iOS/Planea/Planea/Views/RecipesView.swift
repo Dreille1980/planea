@@ -12,7 +12,8 @@ struct RecipesView: View {
     @State private var showRecentRecipes = false
     
     var body: some View {
-        NavigationStack {
+        ZStack {
+            NavigationStack {
             VStack(spacing: 0) {
                 // Tab selector
                 Picker("", selection: $selectedTab) {
@@ -52,6 +53,9 @@ struct RecipesView: View {
             .sheet(isPresented: $showRecentRecipes) {
                 RecentRecipesView()
             }
+            }
+            
+            FloatingChatButton()
         }
     }
 }

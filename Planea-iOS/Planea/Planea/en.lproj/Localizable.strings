@@ -396,3 +396,30 @@
 // Help & Support
 "settings.help" = "Help";
 "settings.viewTour" = "View Tour Again";
+
+// Conversational Agent
+"chat.title" = "Planea Assistant";
+"chat.input.placeholder" = "Ask me a question...";
+"chat.welcome.title" = "Welcome to Planea Assistant";
+"chat.welcome.subtitle" = "I'm here to help you with your meals and nutrition";
+"chat.feature.onboarding" = "Guided Setup";
+"chat.feature.onboarding.desc" = "Configure your preferences in a few questions";
+"chat.feature.recipeqa" = "Recipe Questions";
+"chat.feature.recipeqa.desc" = "Substitutions, conversions, adjustments";
+"chat.feature.coach" = "Nutrition Coach";
+"chat.feature.coach.desc" = "General advice on healthy eating";
+"chat.action.new" = "New Conversation";
+"chat.action.delete" = "Delete Conversation";
+"chat.conversation.new" = "New Conversation";
+"chat.offline.message" = "Agent requires internet connection";
+"chat.error.premium" = "Premium subscription required to use the conversational agent";
+"chat.error.server" = "Server error";
+"chat.error.network" = "Network error";
+"chat.error.decode" = "Error decoding response";
+"chat.error.offline" = "Conversational agent requires an internet connection";
+"chat.error.unknown" = "An error occurred";
+
+// Agent Modes
+"agent.mode.onboarding" = "Setup";
+"agent.mode.recipeqa" = "Recipe Q&A";
+"agent.mode.coach" = "Coach";

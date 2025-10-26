@@ -1403,6 +1403,267 @@ Catégories: légumes, fruits, viandes, poissons, produits laitiers, sec, condim
         raise HTTPException(status_code=500, detail=f"Failed to generate recipe from image: {str(e)}")
 
 
+class ChatRequest(BaseModel):
+    message: str
+    conversation_history: List[dict] = Field(default_factory=list)
+    user_context: dict = Field(default_factory=dict)
+    language: str = "fr"
+
+
+class ChatResponse(BaseModel):
+    reply: str
+    detected_mode: str
+    requires_confirmation: bool = False
+    suggested_actions: List[str] = Field(default_factory=list)
+
+
+def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
+    """Detect which agent mode should be used based on the message context."""
+    message_lower = message.lower()
+    
+    # Check for onboarding keywords
+    onboarding_keywords = [
+        # French
+        'préférence', 'préférences', 'configuration', 'configurer', 'allergie', 'allergies',
+        'goût', 'goûts', 'budget', 'temps', 'personnes', 'famille', 'membres',
+        'commencer', 'débuter', 'initialiser', 'paramètre', 'paramètres',
+        # English
+        'preference', 'preferences', 'configuration', 'configure', 'allergy', 'allergies',
+        'taste', 'tastes', 'budget', 'time', 'people', 'family', 'members',
+        'start', 'begin', 'initialize', 'setting', 'settings'
+    ]
+    
+    # Check for recipe Q&A keywords
+    recipe_qa_keywords = [
+        # French
+        'recette', 'substituer', 'remplacer', 'conversion', 'convertir', 'portion', 'portions',
+        'ingrédient', 'ingrédients', 'étape', 'étapes', 'cuisson', 'température',
+        'comment faire', 'comment cuire', 'combien de', 'ajuster',
+        # English
+        'recipe', 'substitute', 'replace', 'conversion', 'convert', 'portion', 'portions',
+        'ingredient', 'ingredients', 'step', 'steps', 'cooking', 'temperature',
+        'how to', 'how do i', 'how much', 'adjust'
+    ]
+    
+    # Check conversation history for context
+    has_recipe_context = any('recipe' in str(msg).lower() or 'recette' in str(msg).lower() 
+                            for msg in conversation_history[-3:] if msg)
+    
+    # Decision logic
+    if any(keyword in message_lower for keyword in onboarding_keywords):
+        return "onboarding"
+    elif any(keyword in message_lower for keyword in recipe_qa_keywords) or has_recipe_context:
+        return "recipe_qa"
+    else:
+        return "nutrition_coach"
+
+
+@app.post("/ai/chat", response_model=ChatResponse)
+async def ai_chat(req: ChatRequest):
+    """Conversational agent with 3 modes: onboarding, recipe Q&A, and nutrition coach."""
+    
+    # Check if user has premium access
+    has_premium = req.user_context.get("has_premium", False)
+    if not has_premium:
+        raise HTTPException(status_code=403, detail="Premium subscription required for conversational agent")
+    
+    # Detect which mode to use
+    detected_mode = detect_agent_mode(req.message, req.conversation_history)
+    
+    # Build system prompt based on mode
+    if detected_mode == "onboarding":
+        if req.language == "en":
+            system_prompt = """You are a friendly onboarding assistant for Planea, a meal planning app. 
+Your goal is to help users configure their preferences in 7 exchanges or less.
+
+Ask about:
+1. Dietary restrictions and allergies
+2. Food preferences and dislikes
+3. Number of people in household
+4. Preferred unit system (metric/imperial)
+5. Weekly budget (optional)
+6. Time constraints (weekday vs weekend)
+
+Keep questions short and friendly. After gathering information, provide a structured summary and ask for confirmation.
+Format your summary as:
+- Dietary needs: [list]
+- Allergies: [list]
+- Household: [number] people
+- Units: [metric/imperial]
+- Budget: [amount or "not specified"]
+- Time: Weekdays [X] min, Weekends [Y] min
+
+End with: "Does this look correct? Reply 'yes' to save these preferences."
+"""
+        else:
+            system_prompt = """Tu es un assistant d'intégration sympathique pour Planea, une app de planification de repas.
+Ton objectif est d'aider les utilisateurs à configurer leurs préférences en 7 échanges ou moins.
+
+Pose des questions sur:
+1. Restrictions alimentaires et allergies
+2. Préférences et aversions alimentaires
+3. Nombre de personnes dans le ménage
+4. Système d'unités préféré (métrique/impérial)
+5. Budget hebdomadaire (optionnel)
+6. Contraintes de temps (semaine vs fin de semaine)
+
+Garde tes questions courtes et amicales. Après avoir recueilli les informations, fournis un résumé structuré et demande confirmation.
+Format ton résumé comme:
+- Besoins alimentaires: [liste]
+- Allergies: [liste]
+- Ménage: [nombre] personnes
+- Unités: [métrique/impérial]
+- Budget: [montant ou "non spécifié"]
+- Temps: Semaine [X] min, Fin de semaine [Y] min
+
+Termine avec: "Est-ce que cela vous semble correct? Répondez 'oui' pour sauvegarder ces préférences."
+"""
+    
+    elif detected_mode == "recipe_qa":
+        if req.language == "en":
+            system_prompt = """You are a knowledgeable culinary assistant for Planea, helping users with recipe questions.
+
+You can help with:
+- Ingredient substitutions
+- Unit conversions
+- Portion adjustments
+- Step-by-step cooking instructions
+- Cooking techniques and tips
+
+Access to user's context:
+- Recent recipes from meal plans
+- Favorite recipes
+- Recipe history
+
+Be specific and practical in your answers. If the user mentions a specific recipe, reference it by name."""
+        else:
+            system_prompt = """Tu es un assistant culinaire compétent pour Planea, aidant les utilisateurs avec leurs questions de recettes.
+
+Tu peux aider avec:
+- Substitutions d'ingrédients
+- Conversions d'unités
+- Ajustement des portions
+- Instructions de cuisson pas-à-pas
+- Techniques et conseils de cuisine
+
+Accès au contexte de l'utilisateur:
+- Recettes récentes des plans de repas
+- Recettes favorites
+- Historique des recettes
+
+Sois spécifique et pratique dans tes réponses. Si l'utilisateur mentionne une recette spécifique, référence-la par son nom."""
+    
+    else:  # nutrition_coach
+        if req.language == "en":
+            system_prompt = """You are a nutrition coach for Planea, providing general nutrition information.
+
+CRITICAL: You MUST include this disclaimer in EVERY response:
+"ℹ️ This information is for general purposes only and does not replace professional medical advice."
+
+You can provide:
+- General nutrition information
+- Healthy eating tips
+- Food group information
+- Balanced meal suggestions
+
+You CANNOT provide:
+- Medical diagnoses
+- Therapeutic recommendations
+- Personalized medical advice
+- Treatment plans
+
+Keep advice general and evidence-based. Always encourage consulting healthcare professionals for specific concerns."""
+        else:
+            system_prompt = """Tu es un coach en nutrition pour Planea, fournissant des informations générales sur la nutrition.
+
+CRITIQUE: Tu DOIS inclure ce disclaimer dans CHAQUE réponse:
+"ℹ️ Cette information est à titre général seulement et ne remplace pas un avis médical professionnel."
+
+Tu peux fournir:
+- Informations générales sur la nutrition
+- Conseils d'alimentation saine
+- Informations sur les groupes alimentaires
+- Suggestions de repas équilibrés
+
+Tu NE PEUX PAS fournir:
+- Diagnostics médicaux
+- Recommandations thérapeutiques
+- Conseils médicaux personnalisés
+- Plans de traitement
+
+Garde tes conseils généraux et basés sur les preuves. Encourage toujours de consulter des professionnels de la santé pour des préoccupations spécifiques."""
+    
+    # Build context from user data
+    context_info = ""
+    if req.user_context.get("preferences"):
+        prefs = req.user_context["preferences"]
+        context_info += f"\nUser preferences: {prefs}"
+    
+    if req.user_context.get("recent_recipes"):
+        recipes = req.user_context["recent_recipes"]
+        context_info += f"\nRecent recipes: {recipes}"
+    
+    if req.user_context.get("favorite_recipes"):
+        favorites = req.user_context["favorite_recipes"]
+        context_info += f"\nFavorite recipes: {favorites}"
+    
+    # Build conversation context
+    messages = [
+        {"role": "system", "content": system_prompt + context_info}
+    ]
+    
+    # Add conversation history (last 10 messages)
+    for msg in req.conversation_history[-10:]:
+        messages.append({
+            "role": "user" if msg.get("isFromUser") else "assistant",
+            "content": msg.get("content", "")
+        })
+    
+    # Add current message
+    messages.append({"role": "user", "content": req.message})
+    
+    try:
+        # Call OpenAI
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=800
+        )
+        
+        reply = response.choices[0].message.content.strip()
+        
+        # Check if onboarding is asking for confirmation
+        requires_confirmation = False
+        if detected_mode == "onboarding":
+            confirmation_keywords = ["correct", "semble correct", "look correct", "save", "sauvegarder"]
+            requires_confirmation = any(keyword in reply.lower() for keyword in confirmation_keywords)
+        
+        # Generate suggested actions based on mode
+        suggested_actions = []
+        if detected_mode == "recipe_qa":
+            if req.language == "en":
+                suggested_actions = ["Substitute ingredient", "Convert units", "Adjust portions"]
+            else:
+                suggested_actions = ["Substituer ingrédient", "Convertir unités", "Ajuster portions"]
+        elif detected_mode == "nutrition_coach":
+            if req.language == "en":
+                suggested_actions = ["Healthy meal ideas", "Nutrition basics", "Balanced eating"]
+            else:
+                suggested_actions = ["Idées repas sains", "Bases nutrition", "Alimentation équilibrée"]
+        
+        return ChatResponse(
+            reply=reply,
+            detected_mode=detected_mode,
+            requires_confirmation=requires_confirmation,
+            suggested_actions=suggested_actions
+        )
+        
+    except Exception as e:
+        print(f"Error in chat endpoint: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to process chat message: {str(e)}")
+
+
 @app.get("/")
 def root():
     return {"message": "Planea AI Server with OpenAI - Ready!"}

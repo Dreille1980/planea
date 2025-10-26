@@ -13,8 +13,9 @@ struct ShoppingListView: View {
     @State private var alertMessage = ""
     
     var body: some View {
-        NavigationStack {
-            Group {
+        ZStack {
+            NavigationStack {
+                Group {
                 if let list = shoppingVM.currentList {
                     VStack(spacing: 0) {
                         // Sort picker
@@ -163,6 +164,9 @@ struct ShoppingListView: View {
             .sheet(isPresented: $showPaywall) {
                 SubscriptionPaywallView(limitReached: false)
             }
+            }
+            
+            FloatingChatButton()
         }
         .onAppear {
             if let plan = planVM.draftPlan, shoppingVM.currentList == nil {

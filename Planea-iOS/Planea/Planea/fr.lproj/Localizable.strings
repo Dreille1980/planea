@@ -395,3 +395,30 @@
 // Aide et support
 "settings.help" = "Aide";
 "settings.viewTour" = "Revoir la présentation";
+
+// Agent conversationnel
+"chat.title" = "Assistant Planea";
+"chat.input.placeholder" = "Posez-moi une question...";
+"chat.welcome.title" = "Bienvenue dans l'Assistant Planea";
+"chat.welcome.subtitle" = "Je suis là pour vous aider avec vos repas et votre nutrition";
+"chat.feature.onboarding" = "Configuration guidée";
+"chat.feature.onboarding.desc" = "Configurez vos préférences en quelques questions";
+"chat.feature.recipeqa" = "Questions sur les recettes";
+"chat.feature.recipeqa.desc" = "Substitutions, conversions, ajustements";
+"chat.feature.coach" = "Coach nutrition";
+"chat.feature.coach.desc" = "Conseils généraux sur l'alimentation saine";
+"chat.action.new" = "Nouvelle conversation";
+"chat.action.delete" = "Supprimer la conversation";
+"chat.conversation.new" = "Nouvelle conversation";
+"chat.offline.message" = "L'agent nécessite une connexion internet";
+"chat.error.premium" = "Abonnement Premium requis pour utiliser l'agent conversationnel";
+"chat.error.server" = "Erreur serveur";
+"chat.error.network" = "Erreur réseau";
+"chat.error.decode" = "Erreur de décodage de la réponse";
+"chat.error.offline" = "L'agent conversationnel nécessite une connexion internet";
+"chat.error.unknown" = "Une erreur s'est produite";
+
+// Modes de l'agent
+"agent.mode.onboarding" = "Configuration";
+"agent.mode.recipeqa" = "Q&R Recettes";
+"agent.mode.coach" = "Coach";
