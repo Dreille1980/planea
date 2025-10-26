@@ -32,6 +32,91 @@ client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # Initialize flyer scraper service
 flyer_scraper = FlyerScraperService()
 
+# Translation dictionary for ingredients (EN <-> FR)
+INGREDIENT_TRANSLATIONS = {
+    # Proteins (EN -> FR)
+    "chicken": "poulet",
+    "turkey": "dinde",
+    "beef": "boeuf",
+    "pork": "porc",
+    "lamb": "agneau",
+    "fish": "poisson",
+    "salmon": "saumon",
+    "tuna": "thon",
+    "cod": "morue",
+    "shrimp": "crevettes",
+    "prawns": "crevettes",
+    "seafood": "fruits de mer",
+    "tofu": "tofu",
+    "eggs": "oeufs",
+    
+    # Vegetables (EN -> FR)
+    "carrots": "carottes",
+    "broccoli": "brocoli",
+    "cauliflower": "chou-fleur",
+    "spinach": "épinards",
+    "lettuce": "laitue",
+    "tomatoes": "tomates",
+    "potatoes": "pommes de terre",
+    "onions": "oignons",
+    "garlic": "ail",
+    "peppers": "poivrons",
+    "bell peppers": "poivrons",
+    "mushrooms": "champignons",
+    "zucchini": "courgettes",
+    "cucumber": "concombre",
+    "celery": "céleri",
+    "asparagus": "asperges",
+    "green beans": "haricots verts",
+    "peas": "petits pois",
+    "corn": "maïs",
+    "cabbage": "chou",
+    
+    # Reverse (FR -> EN)
+    "poulet": "chicken",
+    "dinde": "turkey",
+    "boeuf": "beef",
+    "porc": "pork",
+    "agneau": "lamb",
+    "poisson": "fish",
+    "saumon": "salmon",
+    "thon": "tuna",
+    "morue": "cod",
+    "crevettes": "shrimp",
+    "fruits de mer": "seafood",
+    "oeufs": "eggs",
+    "carottes": "carrots",
+    "brocoli": "broccoli",
+    "chou-fleur": "cauliflower",
+    "épinards": "spinach",
+    "laitue": "lettuce",
+    "tomates": "tomatoes",
+    "pommes de terre": "potatoes",
+    "oignons": "onions",
+    "ail": "garlic",
+    "poivrons": "peppers",
+    "champignons": "mushrooms",
+    "courgettes": "zucchini",
+    "concombre": "cucumber",
+    "céleri": "celery",
+    "asperges": "asparagus",
+    "haricots verts": "green beans",
+    "petits pois": "peas",
+    "maïs": "corn",
+    "chou": "cabbage",
+}
+
+def translate_ingredient(ingredient: str, to_language: str = "fr") -> str:
+    """Translate an ingredient name between English and French."""
+    ing_lower = ingredient.lower().strip()
+    
+    if to_language == "fr":
+        # EN -> FR
+        return INGREDIENT_TRANSLATIONS.get(ing_lower, ingredient)
+    else:
+        # FR -> EN
+        return INGREDIENT_TRANSLATIONS.get(ing_lower, ingredient)
+
 MealType = Literal["BREAKFAST", "LUNCH", "DINNER"]
 Weekday = Literal["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -142,20 +227,39 @@ async def mark_ingredients_on_sale(recipe: Recipe, preferences: dict) -> Recipe:
         
         print(f"Found {len(deals)} deals")
         
-        # Normalize deals for comparison (lowercase, remove accents, etc.)
+        # Normalize deals for comparison with translation support
         normalized_deals = set()
-        print(f"\n📦 Deals found:")
+        print(f"\n📦 Deals found (with translations):")
         for deal in deals:
             # Extract the name from the deal dictionary
             deal_name = deal.get('name', '') if isinstance(deal, dict) else str(deal)
-            print(f"  - {deal_name}")
-            # Simple normalization: lowercase and strip
             normalized = deal_name.lower().strip()
             normalized_deals.add(normalized)
+            
+            # Add translation (EN <-> FR)
+            translation = translate_ingredient(normalized, "fr")
+            if translation != normalized:
+                normalized_deals.add(translation)
+                print(f"  - {deal_name} → {translation}")
+            else:
+                translation = translate_ingredient(normalized, "en")
+                if translation != normalized:
+                    normalized_deals.add(translation)
+                    print(f"  - {deal_name} → {translation}")
+                else:
+                    print(f"  - {deal_name}")
+            
             # Also add individual words for partial matching
             for word in normalized.split():
                 if len(word) > 3:  # Only words longer than 3 chars
                     normalized_deals.add(word)
+                    word_translation = translate_ingredient(word, "fr")
+                    if word_translation != word:
+                        normalized_deals.add(word_translation)
+                    else:
+                        word_translation = translate_ingredient(word, "en")
+                        if word_translation != word:
+                            normalized_deals.add(word_translation)
         
         print(f"\n🔍 Recipe ingredients to check:")
         for ingredient in recipe.ingredients:
