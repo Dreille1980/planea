@@ -122,8 +122,10 @@ async def mark_ingredients_on_sale(recipe: Recipe, preferences: dict) -> Recipe:
         # Normalize deals for comparison (lowercase, remove accents, etc.)
         normalized_deals = set()
         for deal in deals:
+            # Extract the name from the deal dictionary
+            deal_name = deal.get('name', '') if isinstance(deal, dict) else str(deal)
             # Simple normalization: lowercase and strip
-            normalized = deal.lower().strip()
+            normalized = deal_name.lower().strip()
             normalized_deals.add(normalized)
             # Also add individual words for partial matching
             for word in normalized.split():
