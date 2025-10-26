@@ -19,6 +19,9 @@ class ChatViewModel: ObservableObject {
     var getRecentRecipes: (() -> [Recipe])?
     var getFavoriteRecipes: (() -> [Recipe])?
     var getPreferences: (() -> GenerationPreferences)?
+    var getCurrentPlan: (() -> MealPlan?)?
+    var updateRecipe: ((Recipe) -> Void)?
+    var refreshShoppingList: (() -> Void)?
     
     init() {
         // Initialize with a new conversation
@@ -109,6 +112,27 @@ class ChatViewModel: ObservableObject {
             // Update suggested actions
             suggestedActions = response.suggestedActions
             
+            // Handle recipe modification if present
+            if let modifiedRecipe = response.modifiedRecipe {
+                // Update the recipe in the plan
+                updateRecipe?(modifiedRecipe)
+                
+                // Refresh shopping list
+                refreshShoppingList?()
+                
+                // Add confirmation message
+                let confirmationText = language == "fr" 
+                    ? "✅ Recette mise à jour! La liste d'épicerie a été régénérée."
+                    : "✅ Recipe updated! Shopping list has been regenerated."
+                
+                let confirmationMessage = ChatMessage(
+                    content: confirmationText,
+                    isFromUser: false,
+                    detectedMode: response.detectedMode
+                )
+                currentConversation.addMessage(confirmationMessage)
+            }
+            
             // Save conversation
             storageService.saveConversation(currentConversation)
             
@@ -147,16 +171,72 @@ class ChatViewModel: ObservableObject {
             ]
         }
         
-        // Add recent recipes if available
-        if let getRecent = getRecentRecipes {
-            let recipes = getRecent()
-            context["recent_recipes"] = recipes.prefix(5).map { $0.title }
+        // Add current meal plan if available
+        if let getPlan = getCurrentPlan, let plan = getPlan() {
+            var mealsByDay: [String: [[String: Any]]] = [:]
+            for item in plan.items {
+                let dayKey = item.weekday.rawValue
+                let meal: [String: Any] = [
+                    "type": item.mealType.rawValue,
+                    "title": item.recipe.title,
+                    "servings": item.recipe.servings,
+                    "time_minutes": item.recipe.totalMinutes,
+                    "ingredients": item.recipe.ingredients.map { ing in
+                        [
+                            "name": ing.name,
+                            "quantity": ing.quantity,
+                            "unit": ing.unit
+                        ]
+                    },
+                    "steps": item.recipe.steps
+                ]
+                
+                if mealsByDay[dayKey] == nil {
+                    mealsByDay[dayKey] = []
+                }
+                mealsByDay[dayKey]?.append(meal)
+            }
+            context["current_plan"] = mealsByDay
         }
         
-        // Add favorite recipes if available
+        // Add recent recipes with full details
+        if let getRecent = getRecentRecipes {
+            let recipes = getRecent().prefix(3)
+            context["recent_recipes"] = recipes.map { recipe in
+                [
+                    "title": recipe.title,
+                    "servings": recipe.servings,
+                    "time_minutes": recipe.totalMinutes,
+                    "ingredients": recipe.ingredients.map { ing in
+                        [
+                            "name": ing.name,
+                            "quantity": ing.quantity,
+                            "unit": ing.unit
+                        ]
+                    },
+                    "steps": recipe.steps
+                ]
+            }
+        }
+        
+        // Add favorite recipes with full details
         if let getFavorites = getFavoriteRecipes {
-            let recipes = getFavorites()
-            context["favorite_recipes"] = recipes.prefix(5).map { $0.title }
+            let recipes = getFavorites().prefix(3)
+            context["favorite_recipes"] = recipes.map { recipe in
+                [
+                    "title": recipe.title,
+                    "servings": recipe.servings,
+                    "time_minutes": recipe.totalMinutes,
+                    "ingredients": recipe.ingredients.map { ing in
+                        [
+                            "name": ing.name,
+                            "quantity": ing.quantity,
+                            "unit": ing.unit
+                        ]
+                    },
+                    "steps": recipe.steps
+                ]
+            }
         }
         
         return context

@@ -1415,6 +1415,7 @@ class ChatResponse(BaseModel):
     detected_mode: str
     requires_confirmation: bool = False
     suggested_actions: List[str] = Field(default_factory=list)
+    modified_recipe: Optional[Recipe] = None
 
 
 def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
@@ -1458,6 +1459,59 @@ def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
         return "nutrition_coach"
 
 
+def detect_recipe_modification_request(message: str, user_context: dict) -> tuple:
+    """Detect if user is requesting a recipe modification and extract details."""
+    message_lower = message.lower()
+    
+    # Keywords indicating modification
+    modification_keywords = {
+        'fr': ['remplace', 'remplacer', 'substitue', 'substituer', 'change', 'changer', 'modifie', 'modifier', 'ajuste', 'ajuster'],
+        'en': ['replace', 'substitute', 'change', 'modify', 'adjust', 'swap']
+    }
+    
+    is_modification = any(
+        keyword in message_lower 
+        for keywords in modification_keywords.values() 
+        for keyword in keywords
+    )
+    
+    if not is_modification:
+        return (False, None, None)
+    
+    # Try to find which recipe from context
+    recipe_to_modify = None
+    
+    # Check current plan recipes
+    if user_context.get("current_plan"):
+        for day, meals in user_context["current_plan"].items():
+            for meal in meals:
+                recipe_title = meal.get("title", "").lower()
+                # Check if recipe title is mentioned in message
+                if recipe_title in message_lower or any(word in recipe_title for word in message_lower.split() if len(word) > 4):
+                    recipe_to_modify = meal
+                    break
+            if recipe_to_modify:
+                break
+    
+    # If not found in plan, check recent recipes
+    if not recipe_to_modify and user_context.get("recent_recipes"):
+        for recipe in user_context["recent_recipes"]:
+            recipe_title = recipe.get("title", "").lower()
+            if recipe_title in message_lower or any(word in recipe_title for word in message_lower.split() if len(word) > 4):
+                recipe_to_modify = recipe
+                break
+    
+    # If not found, check favorites
+    if not recipe_to_modify and user_context.get("favorite_recipes"):
+        for recipe in user_context["favorite_recipes"]:
+            recipe_title = recipe.get("title", "").lower()
+            if recipe_title in message_lower or any(word in recipe_title for word in message_lower.split() if len(word) > 4):
+                recipe_to_modify = recipe
+                break
+    
+    return (True, recipe_to_modify, message)
+
+
 @app.post("/ai/chat", response_model=ChatResponse)
 async def ai_chat(req: ChatRequest):
     """Conversational agent with 3 modes: onboarding, recipe Q&A, and nutrition coach."""
@@ -1466,6 +1520,9 @@ async def ai_chat(req: ChatRequest):
     has_premium = req.user_context.get("has_premium", False)
     if not has_premium:
         raise HTTPException(status_code=403, detail="Premium subscription required for conversational agent")
+    
+    # Check if this is a recipe modification request
+    is_modification, recipe_to_modify, modification_request = detect_recipe_modification_request(req.message, req.user_context)
     
     # Detect which mode to use
     detected_mode = detect_agent_mode(req.message, req.conversation_history)
@@ -1639,24 +1696,162 @@ Garde tes conseils généraux et basés sur les preuves. Encourage toujours de c
             confirmation_keywords = ["correct", "semble correct", "look correct", "save", "sauvegarder"]
             requires_confirmation = any(keyword in reply.lower() for keyword in confirmation_keywords)
         
-        # Generate suggested actions based on mode
+        # Generate context-aware suggested actions based on mode and message
         suggested_actions = []
-        if detected_mode == "recipe_qa":
+        message_lower = req.message.lower()
+        
+        if detected_mode == "onboarding":
+            # Suggest common answers for onboarding questions
+            if "combien" in message_lower or "how many" in message_lower:
+                suggested_actions = ["2 personnes", "3 personnes", "4 personnes", "5+ personnes"] if req.language == "fr" else ["2 people", "3 people", "4 people", "5+ people"]
+            elif "allergi" in message_lower:
+                suggested_actions = ["Aucune", "Lactose", "Gluten", "Noix", "Fruits de mer"] if req.language == "fr" else ["None", "Lactose", "Gluten", "Nuts", "Seafood"]
+            elif "temps" in message_lower or "time" in message_lower:
+                suggested_actions = ["30 min semaine, 60 min weekend", "45 min semaine, 90 min weekend"] if req.language == "fr" else ["30 min weekday, 60 min weekend", "45 min weekday, 90 min weekend"]
+            elif "unités" in message_lower or "units" in message_lower:
+                suggested_actions = ["Métrique", "Impérial"] if req.language == "fr" else ["Metric", "Imperial"]
+            elif "budget" in message_lower:
+                suggested_actions = ["50-75$ / semaine", "75-100$ / semaine", "100-150$ / semaine", "Pas de limite"] if req.language == "fr" else ["$50-75 / week", "$75-100 / week", "$100-150 / week", "No limit"]
+        elif detected_mode == "recipe_qa":
             if req.language == "en":
-                suggested_actions = ["Substitute ingredient", "Convert units", "Adjust portions"]
+                suggested_actions = ["Substitute an ingredient", "Convert measurements", "Adjust servings", "Explain a step"]
             else:
-                suggested_actions = ["Substituer ingrédient", "Convertir unités", "Ajuster portions"]
+                suggested_actions = ["Substituer un ingrédient", "Convertir mesures", "Ajuster portions", "Expliquer une étape"]
         elif detected_mode == "nutrition_coach":
             if req.language == "en":
-                suggested_actions = ["Healthy meal ideas", "Nutrition basics", "Balanced eating"]
+                suggested_actions = ["Balanced meal ideas", "Protein needs", "Vegetable portions", "Meal timing"]
             else:
-                suggested_actions = ["Idées repas sains", "Bases nutrition", "Alimentation équilibrée"]
+                suggested_actions = ["Idées repas équilibrés", "Besoins en protéines", "Portions légumes", "Horaires repas"]
+        
+        # Generate modified recipe if this was a modification request
+        modified_recipe = None
+        if is_modification and recipe_to_modify:
+            try:
+                print(f"\n🔧 Recipe modification detected!")
+                print(f"  Original recipe: {recipe_to_modify.get('title', 'Unknown')}")
+                print(f"  Modification request: {req.message}")
+                
+                # Generate modified recipe using OpenAI
+                modification_prompt = f"""The user wants to modify this recipe:
+                
+Title: {recipe_to_modify.get('title')}
+Current servings: {recipe_to_modify.get('servings', 4)}
+Current ingredients: {recipe_to_modify.get('ingredients', [])}
+Current steps: {recipe_to_modify.get('steps', [])}
+
+User's modification request: "{req.message}"
+
+Generate a MODIFIED version of this recipe that implements the user's request. 
+Keep the same title unless the modification fundamentally changes the dish.
+Keep the structure and format identical to the original.
+"""
+                
+                # Build the full prompt for recipe modification
+                if req.language == "en":
+                    full_prompt = f"""{modification_prompt}
+
+Return ONLY a valid JSON object with this exact structure:
+{{
+    "title": "Recipe title (keep original unless fundamentally changed)",
+    "servings": {recipe_to_modify.get('servings', 4)},
+    "total_minutes": 30,
+    "ingredients": [
+        {{"name": "ingredient", "quantity": 200, "unit": "g", "category": "vegetables"}}
+    ],
+    "steps": [
+        "Step 1...",
+        "Step 2..."
+    ],
+    "equipment": ["pan", "pot"],
+    "tags": ["modified"]
+}}
+
+IMPORTANT: 
+- Implement the exact modification requested by the user
+- Keep the recipe coherent and complete
+- Adjust quantities and steps as needed for the modification"""
+                else:
+                    full_prompt = f"""{modification_prompt}
+
+Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte:
+{{
+    "title": "Titre de la recette (garder l'original sauf si changement fondamental)",
+    "servings": {recipe_to_modify.get('servings', 4)},
+    "total_minutes": 30,
+    "ingredients": [
+        {{"name": "ingrédient", "quantity": 200, "unit": "g", "category": "légumes"}}
+    ],
+    "steps": [
+        "Étape 1...",
+        "Étape 2..."
+    ],
+    "equipment": ["poêle", "casserole"],
+    "tags": ["modifié"]
+}}
+
+IMPORTANT:
+- Implémente EXACTEMENT la modification demandée par l'utilisateur
+- Garde la recette cohérente et complète
+- Ajuste les quantités et étapes selon la modification"""
+                
+                # Call OpenAI to generate modified recipe
+                modification_response = await client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": "Tu es un chef expert qui modifie des recettes selon les demandes des utilisateurs."},
+                        {"role": "user", "content": full_prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=1200
+                )
+                
+                content = modification_response.choices[0].message.content.strip()
+                
+                # Remove markdown code blocks if present
+                if content.startswith("```"):
+                    content = content.split("```")[1]
+                    if content.startswith("json"):
+                        content = content[4:]
+                    content = content.strip()
+                
+                # Find the first { and last }
+                start_idx = content.find('{')
+                end_idx = content.rfind('}')
+                if start_idx != -1 and end_idx != -1:
+                    content = content[start_idx:end_idx+1]
+                
+                recipe_data = json.loads(content)
+                
+                # Ensure all ingredients have required fields
+                for ingredient in recipe_data.get("ingredients", []):
+                    if "unit" not in ingredient or not ingredient.get("unit"):
+                        ingredient["unit"] = "unité" if req.language == "fr" else "unit"
+                    if "category" not in ingredient or not ingredient.get("category"):
+                        ingredient["category"] = "autre" if req.language == "fr" else "other"
+                
+                modified_recipe = Recipe(**recipe_data)
+                print(f"  ✅ Modified recipe generated: {modified_recipe.title}")
+                
+                # Update reply to mention the modification
+                if req.language == "fr":
+                    reply += "\n\n✅ J'ai modifié la recette comme demandé."
+                else:
+                    reply += "\n\n✅ I've modified the recipe as requested."
+                
+            except Exception as e:
+                print(f"  ❌ Error generating modified recipe: {e}")
+                # Don't fail the whole request if modification fails
+                if req.language == "fr":
+                    reply += "\n\n⚠️ Je n'ai pas pu modifier la recette automatiquement, mais je peux vous guider sur les changements à faire."
+                else:
+                    reply += "\n\n⚠️ I couldn't modify the recipe automatically, but I can guide you through the changes."
         
         return ChatResponse(
             reply=reply,
             detected_mode=detected_mode,
             requires_confirmation=requires_confirmation,
-            suggested_actions=suggested_actions
+            suggested_actions=suggested_actions,
+            modified_recipe=modified_recipe
         )
         
     except Exception as e:

@@ -5,6 +5,8 @@ struct ChatView: View {
     @EnvironmentObject var storeManager: StoreManager
     @EnvironmentObject var recipeHistoryVM: RecipeHistoryViewModel
     @EnvironmentObject var favoritesVM: FavoritesViewModel
+    @EnvironmentObject var planVM: PlanViewModel
+    @EnvironmentObject var shoppingVM: ShoppingViewModel
     
     @State private var messageText = ""
     @State private var showPaywall = false
@@ -260,6 +262,30 @@ struct ChatView: View {
         
         viewModel.getPreferences = {
             PreferencesService.shared.loadPreferences()
+        }
+        
+        viewModel.getCurrentPlan = { [weak planVM] in
+            planVM?.draftPlan
+        }
+        
+        viewModel.updateRecipe = { [weak planVM, weak shoppingVM] recipe in
+            // Update recipe in plan if it exists
+            if let plan = planVM?.draftPlan {
+                // Find and update the recipe in the plan
+                if let index = plan.items.firstIndex(where: { $0.recipe.id == recipe.id }) {
+                    var updatedPlan = plan
+                    updatedPlan.items[index].recipe = recipe
+                    planVM?.draftPlan = updatedPlan
+                }
+            }
+        }
+        
+        viewModel.refreshShoppingList = { [weak planVM, weak shoppingVM] in
+            // Regenerate shopping list with updated recipes
+            if let plan = planVM?.draftPlan {
+                let units = UnitSystem(rawValue: UserDefaults.standard.string(forKey: "unitSystem") ?? "metric") ?? .metric
+                shoppingVM?.generateList(from: plan.items, units: units)
+            }
         }
     }
     

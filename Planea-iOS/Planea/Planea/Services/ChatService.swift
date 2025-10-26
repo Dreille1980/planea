@@ -17,12 +17,14 @@ struct ChatService {
         let detected_mode: String
         let requires_confirmation: Bool
         let suggested_actions: [String]
+        let modified_recipe: Recipe?
         
         enum CodingKeys: String, CodingKey {
             case reply
             case detected_mode
             case requires_confirmation
             case suggested_actions
+            case modified_recipe
         }
     }
     
@@ -32,7 +34,7 @@ struct ChatService {
         conversationHistory: [ChatMessage],
         userContext: [String: Any],
         language: String
-    ) async throws -> (reply: String, detectedMode: AgentMode, requiresConfirmation: Bool, suggestedActions: [String]) {
+    ) async throws -> (reply: String, detectedMode: AgentMode, requiresConfirmation: Bool, suggestedActions: [String], modifiedRecipe: Recipe?) {
         
         let url = baseURL.appendingPathComponent("/ai/chat")
         var req = URLRequest(url: url)
@@ -90,7 +92,8 @@ struct ChatService {
             reply: apiResponse.reply,
             detectedMode: detectedMode,
             requiresConfirmation: apiResponse.requires_confirmation,
-            suggestedActions: apiResponse.suggested_actions
+            suggestedActions: apiResponse.suggested_actions,
+            modifiedRecipe: apiResponse.modified_recipe
         )
     }
 }
