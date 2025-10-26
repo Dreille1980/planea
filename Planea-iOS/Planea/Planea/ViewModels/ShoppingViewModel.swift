@@ -4,16 +4,18 @@ final class ShoppingViewModel: ObservableObject {
     @Published var currentList: ShoppingList?
     
     func buildList(from items: [MealItem], units: UnitSystem) -> ShoppingList {
-        var map: [String: (qty: Double, unit: String, category: String)] = [:]
+        var map: [String: (qty: Double, unit: String, category: String, isOnSale: Bool)] = [:]
         for item in items {
             for ing in item.recipe.ingredients {
                 let key = ing.name.lowercased()
-                let current = map[key] ?? (0, ing.unit, ing.category)
-                map[key] = (current.qty + ing.quantity, ing.unit, ing.category)
+                let current = map[key] ?? (0, ing.unit, ing.category, ing.isOnSale)
+                // If any instance of this ingredient is on sale, mark the whole item as on sale
+                let isOnSale = current.isOnSale || ing.isOnSale
+                map[key] = (current.qty + ing.quantity, ing.unit, ing.category, isOnSale)
             }
         }
         let listItems: [ShoppingItem] = map.map { (name, v) in
-            ShoppingItem(name: name.capitalized, totalQuantity: v.qty, unit: v.unit, category: v.category)
+            ShoppingItem(name: name.capitalized, totalQuantity: v.qty, unit: v.unit, category: v.category, isOnSale: v.isOnSale)
         }.sorted { $0.category < $1.category }
         return ShoppingList(mealPlanId: UUID(), units: units, items: listItems)
     }
@@ -41,7 +43,8 @@ final class ShoppingViewModel: ObservableObject {
                 name: ing.name.capitalized,
                 totalQuantity: ing.quantity,
                 unit: ing.unit,
-                category: ing.category
+                category: ing.category,
+                isOnSale: ing.isOnSale
             )
         }.sorted { item1, item2 in
             let section1 = StoreSection.section(for: item1.category)
@@ -66,13 +69,18 @@ final class ShoppingViewModel: ObservableObject {
             if let existingIndex = currentList?.items.firstIndex(where: { $0.name.lowercased() == key }) {
                 // Update quantity of existing ingredient
                 currentList?.items[existingIndex].totalQuantity += ing.quantity
+                // If any instance is on sale, mark the whole item as on sale
+                if ing.isOnSale {
+                    currentList?.items[existingIndex].isOnSale = true
+                }
             } else {
                 // Add new ingredient
                 let newItem = ShoppingItem(
                     name: ing.name.capitalized,
                     totalQuantity: ing.quantity,
                     unit: ing.unit,
-                    category: ing.category
+                    category: ing.category,
+                    isOnSale: ing.isOnSale
                 )
                 currentList?.items.append(newItem)
             }

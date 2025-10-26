@@ -42,9 +42,17 @@ struct ShoppingListView: View {
                                         .foregroundStyle(item.isChecked ? .green : .gray)
                                         .font(.title3)
                                     
-                                    Text(item.name)
-                                        .strikethrough(item.isChecked)
-                                        .foregroundStyle(item.isChecked ? .secondary : .primary)
+                                    HStack(spacing: 6) {
+                                        Text(item.name)
+                                            .strikethrough(item.isChecked)
+                                            .foregroundStyle(item.isChecked ? .secondary : .primary)
+                                        
+                                        if item.isOnSale {
+                                            Image(systemName: "tag.fill")
+                                                .font(.caption)
+                                                .foregroundStyle(.green)
+                                        }
+                                    }
                                     
                                     Spacer()
                                     

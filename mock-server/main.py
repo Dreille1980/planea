@@ -83,16 +83,25 @@ class RecipeRequest(BaseModel):
 async def mark_ingredients_on_sale(recipe: Recipe, preferences: dict) -> Recipe:
     """Mark ingredients that are on sale based on weekly flyers."""
     
+    print(f"\n🔍 DEBUG - mark_ingredients_on_sale called")
+    print(f"  Preferences received: {preferences}")
+    
     # Check if flyer deals feature is enabled
-    if not preferences or not preferences.get("useFlyerDeals"):
+    if not preferences or not preferences.get("useWeeklyFlyers"):
+        print(f"  ❌ Weekly flyers NOT enabled (useWeeklyFlyers={preferences.get('useWeeklyFlyers') if preferences else 'None'})")
         return recipe
+    
+    print(f"  ✅ Weekly flyers enabled!")
     
     # Get postal code and store
     postal_code = preferences.get("postalCode")
-    store_name = preferences.get("preferredStore")
+    store_name = preferences.get("preferredGroceryStore")
+    
+    print(f"  📍 Postal code: {postal_code}")
+    print(f"  🏪 Store: {store_name}")
     
     if not postal_code or not store_name:
-        print("Flyer deals requested but postal code or store not provided")
+        print("  ❌ Flyer deals requested but postal code or store not provided")
         return recipe
     
     try:

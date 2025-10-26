@@ -34,6 +34,7 @@ struct ShoppingItem: Identifiable, Codable, Equatable {
     var unit: String
     var category: String
     var isChecked: Bool = false
+    var isOnSale: Bool = false
     var customSortIndex: Int = 0
     
     static func == (lhs: ShoppingItem, rhs: ShoppingItem) -> Bool {
