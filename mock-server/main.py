@@ -144,9 +144,11 @@ async def mark_ingredients_on_sale(recipe: Recipe, preferences: dict) -> Recipe:
         
         # Normalize deals for comparison (lowercase, remove accents, etc.)
         normalized_deals = set()
+        print(f"\n📦 Deals found:")
         for deal in deals:
             # Extract the name from the deal dictionary
             deal_name = deal.get('name', '') if isinstance(deal, dict) else str(deal)
+            print(f"  - {deal_name}")
             # Simple normalization: lowercase and strip
             normalized = deal_name.lower().strip()
             normalized_deals.add(normalized)
@@ -154,6 +156,10 @@ async def mark_ingredients_on_sale(recipe: Recipe, preferences: dict) -> Recipe:
             for word in normalized.split():
                 if len(word) > 3:  # Only words longer than 3 chars
                     normalized_deals.add(word)
+        
+        print(f"\n🔍 Recipe ingredients to check:")
+        for ingredient in recipe.ingredients:
+            print(f"  - {ingredient.name}")
         
         # Mark ingredients that are on sale
         for ingredient in recipe.ingredients:
