@@ -36,9 +36,13 @@ flyer_scraper = FlyerScraperService()
 INGREDIENT_TRANSLATIONS = {
     # Proteins (EN -> FR)
     "chicken": "poulet",
+    "chicken breast": "blanc de poulet",
     "turkey": "dinde",
+    "turkey breast": "poitrine de dinde",
     "beef": "boeuf",
+    "ground beef": "boeuf haché",
     "pork": "porc",
+    "pork chops": "côtelettes de porc",
     "lamb": "agneau",
     "fish": "poisson",
     "salmon": "saumon",
@@ -358,7 +362,8 @@ async def generate_recipe_with_openai(
     language: str = "fr", 
     preferences: dict = None,
     suggested_protein: str = None,
-    other_plan_proteins: List[str] = None
+    other_plan_proteins: List[str] = None,
+    flyer_deals: List[str] = None
 ) -> Recipe:
     """Generate a single recipe using OpenAI with diversity awareness (async)."""
     
