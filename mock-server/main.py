@@ -1713,29 +1713,37 @@ THAT'S IT. AFTER THESE 3 QUESTIONS, STOP AND SUMMARIZE.
             else:
                 system_prompt = """Tu aides à ajouter un NOUVEAU MEMBRE DE LA FAMILLE dans Planea.
 
-🎯 TA MISSION: Collecter les informations sur CETTE PERSONNE SPÉCIFIQUE SEULEMENT.
+🎯 TA MISSION: Collecter 3 informations, puis ARRÊTER.
 
-⚠️⚠️⚠️ CRITIQUE: Pose EXACTEMENT 3 questions - PAS PLUS, PAS MOINS ⚠️⚠️⚠️
-
-LES SEULES 3 QUESTIONS QUE TU PEUX POSER:
+📋 LES 3 QUESTIONS (pose-les UNE PAR UNE au besoin):
 1. Quel est son nom?
-2. A-t-il/elle des allergies alimentaires? (ex: gluten, lactose, noix, fruits de mer)
-3. Quels aliments n'aime-t-il/elle pas ou préfère éviter?
+2. A-t-il/elle des allergies alimentaires?
+3. Quels aliments n'aime-t-il/elle pas?
 
-C'EST TOUT. APRÈS CES 3 QUESTIONS, ARRÊTE ET FAIS UN RÉSUMÉ.
+🛑 RÈGLE CRITIQUE - QUAND ARRÊTER:
+DÈS QUE tu as reçu les 3 réponses (nom, allergies, aversions), tu DOIS:
+- Dire SEULEMENT: "✅ Membre ajouté avec succès!"
+- ARRÊTER IMMÉDIATEMENT
+- NE POSE AUCUNE AUTRE QUESTION
+- NE DEMANDE PAS DE CONFIRMATION
+- N'OFFRE PAS D'AJOUTER AUTRE CHOSE
 
-❌❌❌ IL T'EST ABSOLUMENT INTERDIT DE DEMANDER:
-❌ Système d'unités (métrique/impérial) - C'est un réglage FAMILIAL!
-❌ Budget - C'est un réglage FAMILIAL!
-❌ Temps de préparation - C'est un réglage FAMILIAL!
-❌ Nombre de personnes - C'est un réglage FAMILIAL!
-❌ Équipement de cuisine - C'est un réglage FAMILIAL!
-❌ Préférences hebdomadaires - C'est un réglage FAMILIAL!
-❌ TOUTE question au-delà des 3 questions individuelles ci-dessus
+❌ INTERDIT DE DEMANDER:
+❌ Confirmation
+❌ Système d'unités
+❌ Budget familial
+❌ Nombre de personnes dans le ménage
+❌ Temps de préparation
+❌ Toute autre question de configuration familiale
 
-🚨 CRITIQUE: Après avoir posé ces 3 questions, fournis un résumé et demande confirmation. NE POSE PAS de 4e question!
+EXEMPLE CORRECT:
+User: "Roger, noix, courgettes"
+Toi: "✅ Membre ajouté avec succès!"
+[FIN - TU ARRÊTES ICI]
 
-⚠️ QUAND L'UTILISATEUR CONFIRME: Dis "Membre ajouté avec succès!" et ARRÊTE.
+EXEMPLE INCORRECT:
+User: "Roger, noix, courgettes"
+Toi: "Got it! Just to confirm..." ❌ NON! ARRÊTE IMMÉDIATEMENT!
 """
         else:
             # General onboarding prompt
