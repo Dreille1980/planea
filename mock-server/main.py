@@ -1921,9 +1921,11 @@ Garde tes conseils généraux et basés sur les preuves. Encourage toujours de c
             else:
                 suggested_actions = ["Balanced meal ideas", "Protein needs", "Vegetable portions", "Meal timing"]
         
-        # Extract member data if this is member addition with confirmation
+        # Extract member data if this is member addition
+        # Auto-extract after user has provided answers (no confirmation needed)
         member_data = None
-        if detected_mode == "onboarding" and is_adding_member and requires_confirmation:
+        if detected_mode == "onboarding" and is_adding_member:
+            # Try to extract member data from conversation
             member_data = extract_member_data_from_conversation(
                 req.conversation_history, 
                 req.message, 
@@ -1931,6 +1933,11 @@ Garde tes conseils généraux et basés sur les preuves. Encourage toujours de c
             )
             if member_data:
                 print(f"✅ Member data extracted: {member_data}")
+                # Add success message to reply if member data was successfully extracted
+                if req.language == "fr":
+                    reply += "\n\n✅ Membre ajouté avec succès!"
+                else:
+                    reply += "\n\n✅ Member added successfully!"
         
         # Generate modified recipe if this was a modification request
         modified_recipe = None
