@@ -1442,20 +1442,19 @@ def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
         print("🔒 Member addition detected - LOCKING to onboarding mode")
         return "onboarding"
     
-    # Check for onboarding keywords
-    onboarding_keywords = [
-        # French
-        'préférence', 'préférences', 'configuration', 'configurer', 'allergie', 'allergies',
-        'goût', 'goûts', 'budget', 'temps', 'personnes', 'famille', 'membres', 'membre',
-        'commencer', 'débuter', 'initialiser', 'paramètre', 'paramètres',
-        'ajoute', 'ajouter', 'enlève', 'enlever', 'modifie', 'modifier', 'change', 'changer',
-        'ménage', 'foyer', 'unités', 'métrique', 'impérial',
-        # English
-        'preference', 'preferences', 'configuration', 'configure', 'allergy', 'allergies',
-        'taste', 'tastes', 'budget', 'time', 'people', 'family', 'members', 'member',
-        'start', 'begin', 'initialize', 'setting', 'settings',
-        'add', 'remove', 'modify', 'change', 'household', 'units', 'metric', 'imperial'
-    ]
+    # Check if we're in an active member addition conversation (previous message was onboarding)
+    has_member_addition_context = False
+    for msg in conversation_history[-5:]:
+        if msg:
+            msg_str = str(msg).lower()
+            # Check if any previous message was detected as onboarding mode (member addition)
+            if '"detected_mode":"onboarding"' in msg_str or '"detected_mode": "onboarding"' in msg_str:
+                has_member_addition_context = True
+                break
+    
+    # If we're in member addition context, stay there
+    if has_member_addition_context:
+        return "onboarding"
     
     # Check for recipe Q&A keywords
     recipe_qa_keywords = [
@@ -1473,30 +1472,8 @@ def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
     has_recipe_context = any('recipe' in str(msg).lower() or 'recette' in str(msg).lower() 
                             for msg in conversation_history[-5:] if msg)
     
-    # Check if we're in an onboarding conversation flow - look for Configuration mode indicator
-    has_onboarding_context = False
-    for msg in conversation_history[-5:]:
-        if msg:
-            msg_str = str(msg).lower()
-            # Check if any previous message was detected as Configuration mode
-            if '"detected_mode":"onboarding"' in msg_str or '"detected_mode": "onboarding"' in msg_str:
-                has_onboarding_context = True
-                break
-            # Or check for key configuration keywords
-            if any(keyword in msg_str for keyword in ['famille', 'family', 'configuration', 'préférence', 'preference', 'allergie', 'allergy', 'membres', 'members', 'paramètre', 'settings']):
-                has_onboarding_context = True
-                break
-    
-    # Decision logic - STRONGLY prioritize onboarding if keywords match OR if in onboarding context
-    if any(keyword in message_lower for keyword in onboarding_keywords):
-        return "onboarding"
-    elif has_onboarding_context:
-        # If we're in onboarding context, only switch to another mode if there's a STRONG indicator
-        if any(keyword in message_lower for keyword in recipe_qa_keywords) and 'recette' in message_lower:
-            return "recipe_qa"
-        else:
-            return "onboarding"  # Stay in onboarding mode
-    elif any(keyword in message_lower for keyword in recipe_qa_keywords) or has_recipe_context:
+    # Decision logic - NO MORE GENERAL ONBOARDING MODE (only member addition)
+    if any(keyword in message_lower for keyword in recipe_qa_keywords) or has_recipe_context:
         return "recipe_qa"
     else:
         return "nutrition_coach"
