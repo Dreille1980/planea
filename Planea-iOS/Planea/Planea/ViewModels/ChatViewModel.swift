@@ -115,6 +115,24 @@ class ChatViewModel: ObservableObject {
             
             // Handle member addition if present
             if let memberData = response.memberData, let name = memberData.name {
+                // Filter out confirmation words that shouldn't be names
+                let confirmationWords = [
+                    // French
+                    "parfait", "ok", "oui", "bien", "super", "génial", "correct", "exact",
+                    "d'accord", "daccord", "dacord", "merci", "excellent", "impeccable",
+                    // English
+                    "perfect", "okay", "ok", "yes", "good", "great", "correct", "right",
+                    "sure", "thanks", "excellent"
+                ]
+                
+                let nameLower = name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                // Only add member if name is not a confirmation word and has reasonable length
+                guard !confirmationWords.contains(nameLower) && name.count >= 2 else {
+                    print("⚠️ Skipping member addition - '\(name)' looks like a confirmation word")
+                    return
+                }
+                
                 print("👤 Adding member: \(name)")
                 print("  Allergens: \(memberData.allergens)")
                 print("  Dislikes: \(memberData.dislikes)")

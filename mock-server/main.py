@@ -1573,40 +1573,74 @@ def extract_member_data_from_conversation(conversation_history: List[dict], curr
     # Try to extract data from messages
     for msg_text in all_messages:
         msg_lower = msg_text.lower()
+        words = msg_text.split()
         
         # Try to find name
         if not member_data["name"]:
-            # Simple heuristic: if message is short and contains a name pattern, it might be the name
-            words = msg_text.split()
-            if len(words) <= 4 and any(pattern in msg_lower for pattern in name_patterns_fr + name_patterns_en):
-                # Next word after pattern might be the name
+            # Pattern 1: "1, Fred, 2..." format
+            if len(words) >= 2 and words[0].strip('.,!?;:').isdigit():
+                # User is answering multiple questions at once with numbers
+                for i, word in enumerate(words):
+                    cleaned = word.strip('.,!?;:')
+                    if cleaned.isalpha() and len(cleaned) > 1 and cleaned[0].isupper():
+                        member_data["name"] = cleaned
+                        break
+            # Pattern 2: Single capitalized word
+            elif len(words) == 1 and words[0][0].isupper():
+                member_data["name"] = words[0].strip('.,!?;:')
+            # Pattern 3: Name pattern followed by name
+            elif any(pattern in msg_lower for pattern in name_patterns_fr + name_patterns_en):
                 for pattern in name_patterns_fr + name_patterns_en:
                     if pattern in msg_lower:
                         idx = msg_lower.find(pattern)
                         remaining = msg_text[idx + len(pattern):].strip()
                         if remaining:
-                            # Extract first word as potential name
                             potential_name = remaining.split()[0].strip('.,!?;:')
                             if len(potential_name) > 1 and potential_name.isalpha():
                                 member_data["name"] = potential_name.capitalize()
                                 break
-            
-            # If still no name and message is just a single capitalized word, might be the name
-            if not member_data["name"] and len(words) == 1 and words[0][0].isupper():
-                member_data["name"] = words[0].strip('.,!?;:')
         
         # Try to find allergies
-        if any(pattern in msg_lower for pattern in allergy_patterns_fr + allergy_patterns_en):
+        # Pattern 1: Check for "no allergy" / "pas d'allergie"
+        no_allergy_keywords = ['pas d', 'no ', 'aucune', 'none', 'non', 'nothing']
+        if any(keyword in msg_lower for keyword in no_allergy_keywords) and any(pattern in msg_lower for pattern in allergy_patterns_fr + allergy_patterns_en):
+            # User said no allergies - leave empty
+            pass
+        elif any(pattern in msg_lower for pattern in allergy_patterns_fr + allergy_patterns_en):
             # Check for common allergens
             for allergen in common_allergens:
                 if allergen in msg_lower and allergen not in [a.lower() for a in member_data["allergens"]]:
                     member_data["allergens"].append(allergen)
         
         # Try to find dislikes
-        if any(pattern in msg_lower for pattern in dislike_patterns_fr + dislike_patterns_en):
-            # Try to extract food items mentioned
-            # This is a simple heuristic and could be improved
-            pass
+        # Pattern 1: "pas de X" or "no X"
+        # Pattern 2: Simple food mention after dislike question
+        common_foods = ['carotte', 'carottes', 'carrots', 'brocoli', 'broccoli', 'courgette', 'courgettes', 'zucchini', 
+                       'tomate', 'tomates', 'tomatoes', 'oignon', 'oignons', 'onions', 'poivron', 'poivrons', 'peppers',
+                       'épinard', 'épinards', 'spinach', 'chou', 'cabbage']
+        
+        # Check if this message mentions dislikes
+        mentions_dislikes = any(pattern in msg_lower for pattern in dislike_patterns_fr + dislike_patterns_en)
+        
+        # Also check if previous message asked about dislikes
+        asked_about_dislikes = False
+        for prev_msg in conversation_history[-3:]:
+            if prev_msg and not prev_msg.get("isFromUser"):
+                prev_content = str(prev_msg.get("content", "")).lower()
+                if any(pattern in prev_content for pattern in dislike_patterns_fr + dislike_patterns_en):
+                    asked_about_dislikes = True
+                    break
+        
+        if mentions_dislikes or asked_about_dislikes:
+            # Check for "nothing" / "rien" / "aucun"
+            no_dislike_keywords = ['rien', 'nothing', 'aucun', 'aucune', 'none', 'non']
+            has_no_dislikes = any(keyword in msg_lower for keyword in no_dislike_keywords)
+            
+            if not has_no_dislikes:
+                # Extract food items
+                for food in common_foods:
+                    if food in msg_lower and food not in [d.lower() for d in member_data["dislikes"]]:
+                        member_data["dislikes"].append(food)
     
     # Check if we have enough data
     if member_data["name"]:
