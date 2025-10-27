@@ -1510,21 +1510,28 @@ def detect_member_addition_intent(message: str, conversation_history: List[dict]
     addition_keywords_fr = ['ajoute', 'ajouter', 'nouveau membre', 'nouvelle personne', 'un membre', 'une personne']
     addition_keywords_en = ['add', 'adding', 'new member', 'new person', 'another member', 'another person']
     
+    # Keywords that indicate we're asking member questions
+    member_question_keywords_fr = ['quel est son nom', 'quelles sont ses allergies', "qu'est-ce qu'il n'aime pas", 'quels aliments']
+    member_question_keywords_en = ['what is their name', 'what are their allergies', 'what foods do they dislike', 'do they have any']
+    
     # Check if this is about adding someone
     is_adding = (
         any(keyword in message_lower for keyword in addition_keywords_fr) or
         any(keyword in message_lower for keyword in addition_keywords_en)
     )
     
-    # Check recent conversation history for context
+    # CRITICAL: Check recent conversation history for context
+    # If agent was asking member-specific questions, we're still adding a member
     if not is_adding and conversation_history:
-        # Look at last 3 messages for context
-        for msg in conversation_history[-3:]:
+        # Look at last 5 messages for better context
+        for msg in conversation_history[-5:]:
             if msg and not msg.get("isFromUser"):
                 msg_content = str(msg.get("content", "")).lower()
-                # Check if agent was asking about adding a member
-                if any(keyword in msg_content for keyword in addition_keywords_fr + addition_keywords_en):
+                # Check if agent was asking about adding a member OR asking member questions
+                if (any(keyword in msg_content for keyword in addition_keywords_fr + addition_keywords_en) or
+                    any(keyword in msg_content for keyword in member_question_keywords_fr + member_question_keywords_en)):
                     is_adding = True
+                    print(f"🔒 Still in member addition context from agent question: {msg_content[:100]}")
                     break
     
     return is_adding
