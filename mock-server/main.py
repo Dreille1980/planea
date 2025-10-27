@@ -1436,26 +1436,6 @@ def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
     """Detect which agent mode should be used based on the message context."""
     message_lower = message.lower()
     
-    # CRITICAL: Check if we're in member addition flow - if so, STAY in onboarding mode
-    is_member_addition = detect_member_addition_intent(message, conversation_history)
-    if is_member_addition:
-        print("🔒 Member addition detected - LOCKING to onboarding mode")
-        return "onboarding"
-    
-    # Check if we're in an active member addition conversation (previous message was onboarding)
-    has_member_addition_context = False
-    for msg in conversation_history[-5:]:
-        if msg:
-            msg_str = str(msg).lower()
-            # Check if any previous message was detected as onboarding mode (member addition)
-            if '"detected_mode":"onboarding"' in msg_str or '"detected_mode": "onboarding"' in msg_str:
-                has_member_addition_context = True
-                break
-    
-    # If we're in member addition context, stay there
-    if has_member_addition_context:
-        return "onboarding"
-    
     # Check for recipe Q&A keywords
     recipe_qa_keywords = [
         # French
@@ -1472,7 +1452,7 @@ def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
     has_recipe_context = any('recipe' in str(msg).lower() or 'recette' in str(msg).lower() 
                             for msg in conversation_history[-5:] if msg)
     
-    # Decision logic - NO MORE GENERAL ONBOARDING MODE (only member addition)
+    # Decision logic - ONLY recipe_qa and nutrition_coach modes
     if any(keyword in message_lower for keyword in recipe_qa_keywords) or has_recipe_context:
         return "recipe_qa"
     else:
@@ -1694,120 +1674,11 @@ async def ai_chat(req: ChatRequest):
     # Detect which mode to use
     detected_mode = detect_agent_mode(req.message, req.conversation_history)
     
-    # Detect if user wants to add a family member
-    is_adding_member = detect_member_addition_intent(req.message, req.conversation_history)
-    
     # Build system prompt based on mode
-    if detected_mode == "onboarding":
-        if is_adding_member:
-            # Special prompt for adding a member - focus ONLY on the individual
-            if req.language == "en":
-                system_prompt = """You are helping add a NEW FAMILY MEMBER to Planea.
-
-🎯 YOUR MISSION: Collect information about THIS SPECIFIC PERSON ONLY.
-
-⚠️⚠️⚠️ CRITICAL: Ask EXACTLY 3 questions - NO MORE, NO LESS ⚠️⚠️⚠️
-
-THE ONLY 3 QUESTIONS YOU CAN ASK:
-1. What is their name?
-2. Do they have any food allergies? (e.g., gluten, lactose, nuts, seafood)
-3. What foods do they dislike or prefer to avoid?
-
-THAT'S IT. AFTER THESE 3 QUESTIONS, STOP AND SUMMARIZE.
-
-❌❌❌ YOU ARE ABSOLUTELY FORBIDDEN FROM ASKING ABOUT:
-❌ Unit system (metric/imperial) - This is a FAMILY setting!
-❌ Budget - This is a FAMILY setting!
-❌ Cooking time - This is a FAMILY setting!
-❌ Number of people - This is a FAMILY setting!
-❌ Kitchen equipment - This is a FAMILY setting!
-❌ Weekly preferences - This is a FAMILY setting!
-❌ ANY question beyond the 3 individual questions above
-
-🚨 CRITICAL: After asking these 3 questions, provide a summary and ask for confirmation. DO NOT ask a 4th question!
-
-⚠️ WHEN USER CONFIRMS: Say "Member added successfully!" and STOP.
-"""
-            else:
-                system_prompt = """🚨🚨🚨 AJOUT DE MEMBRE UNIQUEMENT - RIEN D'AUTRE 🚨🚨🚨
-
-Tu es en mode AJOUT D'UN NOUVEAU MEMBRE.
-Ce n'est PAS un onboarding complet.
-L'utilisateur a déjà configuré son compte.
-
-🎯 TON UNIQUE OBJECTIF:
-Obtenir 3 informations sur LE NOUVEAU MEMBRE:
-1. Son nom
-2. Ses allergies (peut dire "aucune")  
-3. Ses aversions alimentaires (peut dire "aucune")
-
-📋 PROCESSUS:
-- Si tu n'as pas le nom → Demande le nom
-- Si tu n'as pas les allergies → Demande les allergies
-- Si tu n'as pas les aversions → Demande les aversions
-- Si tu as les 3 infos → Dis "✅ Membre ajouté avec succès!" et ARRÊTE
-
-🛑 RÈGLES ABSOLUES:
-✅ Pose UNIQUEMENT ces 3 questions sur CE membre
-❌ NE pose PAS de questions sur le ménage
-❌ NE pose PAS de questions sur le système d'unités
-❌ NE pose PAS de questions sur le budget
-❌ NE pose PAS de questions sur les équipements
-❌ NE pose PAS de questions sur le nombre de personnes
-❌ NE demande PAS si l'utilisateur veut configurer autre chose
-❌ N'OFFRE PAS d'autres options de configuration
-
-EXEMPLE:
-User: "Ajoute un membre"
-Toi: "Quel est son nom?"
-User: "Roger"  
-Toi: "A-t-il des allergies alimentaires?"
-User: "Noix"
-Toi: "Quels aliments n'aime-t-il pas?"
-User: "Courgettes"
-Toi: "✅ Membre ajouté avec succès!"
-[TU ARRÊTES - PAS D'AUTRES QUESTIONS]
-"""
-        else:
-            # General onboarding prompt
-            if req.language == "en":
-                system_prompt = """You are a friendly onboarding assistant for Planea, a meal planning app. 
-Your ONLY role is to help users configure their family and preferences - you DO NOT give nutrition advice or meal suggestions.
-
-Ask about:
-1. Number of people in household
-2. Dietary restrictions and allergies for each member
-3. Food preferences and dislikes for each member
-4. Preferred unit system (metric/imperial)
-5. Weekly budget (optional)
-6. Time constraints (weekday vs weekend)
-
-Keep questions short and friendly. Focus ONLY on gathering configuration information.
-After gathering information, provide a structured summary and ask for confirmation.
-
-IMPORTANT: You are NOT a nutrition coach. Do not give nutrition advice, meal suggestions, or dietary recommendations. Your job is ONLY to collect family configuration data.
-"""
-            else:
-                system_prompt = """Tu es un assistant d'intégration sympathique pour Planea, une app de planification de repas.
-Ton rôle UNIQUE est d'aider les utilisateurs à configurer leur famille et leurs préférences - tu ne donnes PAS de conseils nutritionnels ou de suggestions de repas.
-
-Pose des questions sur:
-1. Nombre de personnes dans le ménage
-2. Restrictions alimentaires et allergies pour chaque membre
-3. Préférences et aversions alimentaires pour chaque membre
-4. Système d'unités préféré (métrique/impérial)
-5. Budget hebdomadaire (optionnel)
-6. Contraintes de temps (semaine vs fin de semaine)
-
-Garde tes questions courtes et amicales. Concentre-toi UNIQUEMENT sur la collecte d'informations de configuration.
-Après avoir recueilli les informations, fournis un résumé structuré et demande confirmation.
-
-IMPORTANT: Tu n'es PAS un coach en nutrition. Ne donne pas de conseils nutritionnels, de suggestions de repas ou de recommandations alimentaires. Ton travail est UNIQUEMENT de collecter les données de configuration de la famille.
-"""
-    
-    elif detected_mode == "recipe_qa":
+    if detected_mode == "recipe_qa":
         if req.language == "en":
             system_prompt = """You are a knowledgeable culinary assistant for Planea, helping users with recipe questions.
+
 
 You can help with:
 - Ingredient substitutions
@@ -1952,24 +1823,6 @@ Garde tes conseils généraux et basés sur les preuves. Encourage toujours de c
             else:
                 suggested_actions = ["Balanced meal ideas", "Protein needs", "Vegetable portions", "Meal timing"]
         
-        # Extract member data if this is member addition
-        # Auto-extract after user has provided answers (no confirmation needed)
-        member_data = None
-        if detected_mode == "onboarding" and is_adding_member:
-            # Try to extract member data from conversation
-            member_data = extract_member_data_from_conversation(
-                req.conversation_history, 
-                req.message, 
-                req.language
-            )
-            if member_data:
-                print(f"✅ Member data extracted: {member_data}")
-                # Add success message to reply if member data was successfully extracted
-                if req.language == "fr":
-                    reply += "\n\n✅ Membre ajouté avec succès!"
-                else:
-                    reply += "\n\n✅ Member added successfully!"
-        
         # Generate modified recipe if this was a modification request
         modified_recipe = None
         if is_modification and recipe_to_modify:
@@ -2099,7 +1952,7 @@ IMPORTANT:
             requires_confirmation=requires_confirmation,
             suggested_actions=suggested_actions,
             modified_recipe=modified_recipe,
-            member_data=member_data
+            member_data=None  # No longer support member addition via chat
         )
         
     except Exception as e:
