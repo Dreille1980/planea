@@ -65,6 +65,13 @@ struct SettingsView: View {
                                     }
                                 }
                                 .foregroundStyle(.red)
+                            } else if info.status == .freeTrial {
+                                HStack {
+                                    Text("subscription.trial.remaining".localized)
+                                    Spacer()
+                                    Text("\(FreeTrialService.shared.daysRemaining) \("subscription.trial.daysLeft".localized)")
+                                        .foregroundStyle(.secondary)
+                                }
                             }
                         }
                     } else {
@@ -79,8 +86,9 @@ struct SettingsView: View {
                         }
                     }
                     
-                    // Hidden developer code field
+                    // Hidden debug options
                     if showDeveloperCodeField {
+                        // Developer access code
                         VStack(alignment: .leading, spacing: 8) {
                             Text("subscription.developer.code".localized)
                                 .font(.caption)
@@ -99,6 +107,25 @@ struct SettingsView: View {
                                 .buttonStyle(.borderedProminent)
                             }
                         }
+                        
+                        // Reset free trial button (for testing)
+                        Button(action: {
+                            FreeTrialService.shared.resetTrial()
+                            Task {
+                                await storeManager.updateSubscriptionStatus()
+                            }
+                        }) {
+                            HStack {
+                                Text("🔄 Reset Free Trial (DEBUG)")
+                                Spacer()
+                            }
+                        }
+                        .foregroundStyle(.orange)
+                        
+                        // Show trial status
+                        Text("Trial Status: \(FreeTrialService.shared.getTrialStatusDescription())")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 
@@ -222,6 +249,14 @@ struct SettingsView: View {
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(Capsule().fill(Color.blue))
+                case .freeTrial:
+                    Text("subscription.status.trial".localized)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)))
                 case .developerAccess:
                     Text("subscription.status.developer".localized)
                         .font(.caption)

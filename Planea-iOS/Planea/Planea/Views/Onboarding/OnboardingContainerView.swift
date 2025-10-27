@@ -147,6 +147,10 @@ struct OnboardingContainerView: View {
     private func completeOnboarding() {
         hasCompletedOnboarding = true
         OnboardingProgress.reset() // Clear progress for next time
+        
+        // Start the 7-day free trial
+        FreeTrialService.shared.startTrial()
+        
         isPresented = false
     }
     

@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ChatMessageBubble: View {
     let message: ChatMessage
+    let isLastAgentMessage: Bool
+    @ObservedObject var chatViewModel: ChatViewModel
     
     var body: some View {
         HStack {
@@ -16,6 +18,11 @@ struct ChatMessageBubble: View {
                     .background(message.isFromUser ? Color.blue : Color(.systemGray5))
                     .foregroundColor(message.isFromUser ? .white : .primary)
                     .cornerRadius(16)
+                
+                // Show confirmation buttons if this is the last agent message and there's a pending modification
+                if !message.isFromUser && isLastAgentMessage && chatViewModel.pendingRecipeModification != nil {
+                    confirmationButtons
+                }
                 
                 // Show mode indicator for agent messages
                 if !message.isFromUser, let mode = message.detectedMode {
@@ -57,6 +64,38 @@ struct ChatMessageBubble: View {
                 }
             }
         }
+    }
+    
+    @ViewBuilder
+    private var confirmationButtons: some View {
+        HStack(spacing: 12) {
+            Button(action: {
+                Task {
+                    await chatViewModel.confirmRecipeModification()
+                }
+            }) {
+                Label("chat.confirm.button".localized, systemImage: "checkmark.circle.fill")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.green)
+                    .cornerRadius(20)
+            }
+            
+            Button(action: {
+                chatViewModel.cancelRecipeModification()
+            }) {
+                Label("chat.cancel.button".localized, systemImage: "xmark.circle.fill")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.red)
+                    .cornerRadius(20)
+            }
+        }
+        .padding(.top, 8)
     }
 }
 

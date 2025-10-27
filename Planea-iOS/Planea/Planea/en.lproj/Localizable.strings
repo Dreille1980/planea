@@ -429,3 +429,15 @@
 "agent.mode.onboarding" = "Setup";
 "agent.mode.recipeqa" = "Recipe Q&A";
 "agent.mode.coach" = "Coach";
+
+// Free Trial
+"freetrial.banner.title" = "Free Trial Active";
+"freetrial.banner.daysLeft" = "%d days remaining";
+"freetrial.expired.title" = "Trial Ended";
+"freetrial.expired.message" = "Your 7-day free trial has ended. Continue enjoying all features by subscribing to Planea Premium, or keep using the free plan with limited recipe generation.";
+"freetrial.expired.subscribe" = "Subscribe Now";
+"freetrial.expired.continue" = "Continue with Free Plan";
+
+/* Recipe Modification Confirmation */
+"chat.confirm.button" = "Confirm";
+"chat.cancel.button" = "Cancel";

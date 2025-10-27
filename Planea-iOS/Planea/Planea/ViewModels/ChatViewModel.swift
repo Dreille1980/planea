@@ -9,6 +9,8 @@ class ChatViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var suggestedActions: [String] = []
     @Published var isOnline = true
+    @Published var pendingRecipeModification: Recipe?
+    @Published var pendingModificationType: String?
     
     private let chatService: ChatService
     private let storageService = ChatStorageService.shared
@@ -168,25 +170,26 @@ class ChatViewModel: ObservableObject {
                 }
             }
             
-            // Handle recipe modification if present
+            // Handle pending recipe modification (awaiting confirmation)
+            if let pendingRecipe = response.pendingRecipeModification {
+                pendingRecipeModification = pendingRecipe
+                pendingModificationType = response.modificationType
+                print("📝 Pending recipe modification stored, awaiting user confirmation")
+            }
+            
+            // Handle confirmed recipe modification
             if let modifiedRecipe = response.modifiedRecipe {
+                // Clear any pending modification
+                pendingRecipeModification = nil
+                pendingModificationType = nil
+                
                 // Update the recipe in the plan
                 updateRecipe?(modifiedRecipe)
                 
                 // Refresh shopping list
                 refreshShoppingList?()
                 
-                // Add confirmation message
-                let confirmationText = language == "fr" 
-                    ? "✅ Recette mise à jour! La liste d'épicerie a été régénérée."
-                    : "✅ Recipe updated! Shopping list has been regenerated."
-                
-                let confirmationMessage = ChatMessage(
-                    content: confirmationText,
-                    isFromUser: false,
-                    detectedMode: response.detectedMode
-                )
-                currentConversation.addMessage(confirmationMessage)
+                print("✅ Recipe modification applied successfully")
             }
             
             // Save conversation
@@ -327,6 +330,27 @@ class ChatViewModel: ObservableObject {
     
     func getAllConversations() -> [ChatConversation] {
         return storageService.loadAllConversations()
+    }
+    
+    // MARK: - Recipe Modification Confirmation
+    
+    func confirmRecipeModification() async {
+        guard pendingRecipeModification != nil else {
+            print("⚠️ No pending recipe modification to confirm")
+            return
+        }
+        
+        // Send confirmation message to backend
+        let language = LocalizationHelper.shared.currentLanguage == "fr" ? "fr" : "en"
+        let confirmationMessage = language == "fr" ? "oui" : "yes"
+        
+        await sendMessage(confirmationMessage)
+    }
+    
+    func cancelRecipeModification() {
+        pendingRecipeModification = nil
+        pendingModificationType = nil
+        print("❌ Recipe modification cancelled by user")
     }
     
     // MARK: - Helper Methods

@@ -421,6 +421,10 @@
 "chat.error.server" = "Erreur serveur";
 "chat.error.network" = "Erreur réseau";
 "chat.error.decode" = "Erreur de décodage de la réponse";
+
+/* Recipe Modification Confirmation */
+"chat.confirm.button" = "Confirmer";
+"chat.cancel.button" = "Annuler";
 "chat.error.offline" = "L'agent conversationnel nécessite une connexion internet";
 "chat.error.unknown" = "Une erreur s'est produite";
 
@@ -428,3 +432,11 @@
 "agent.mode.onboarding" = "Configuration";
 "agent.mode.recipeqa" = "Q&R Recettes";
 "agent.mode.coach" = "Coach";
+
+// Essai gratuit
+"freetrial.banner.title" = "Essai gratuit actif";
+"freetrial.banner.daysLeft" = "%d jours restants";
+"freetrial.expired.title" = "Essai terminé";
+"freetrial.expired.message" = "Votre essai gratuit de 7 jours est terminé. Continuez à profiter de toutes les fonctionnalités en vous abonnant à Planea Premium, ou continuez avec le plan gratuit avec génération limitée de recettes.";
+"freetrial.expired.subscribe" = "S'abonner maintenant";
+"freetrial.expired.continue" = "Continuer avec le plan gratuit";

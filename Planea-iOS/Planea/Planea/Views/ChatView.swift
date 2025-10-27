@@ -27,9 +27,14 @@ struct ChatView: View {
                             }
                             
                             // Messages
-                            ForEach(viewModel.currentConversation.messages) { message in
-                                ChatMessageBubble(message: message)
-                                    .id(message.id)
+                            ForEach(Array(viewModel.currentConversation.messages.enumerated()), id: \.element.id) { index, message in
+                                let isLastAgentMessage = !message.isFromUser && index == viewModel.currentConversation.messages.lastIndex(where: { !$0.isFromUser })
+                                ChatMessageBubble(
+                                    message: message,
+                                    isLastAgentMessage: isLastAgentMessage,
+                                    chatViewModel: viewModel
+                                )
+                                .id(message.id)
                             }
                             
                             // Loading indicator
@@ -182,11 +187,12 @@ struct ChatView: View {
                 .padding(.horizontal, 40)
             
             VStack(alignment: .leading, spacing: 12) {
-                FeatureBadge(
-                    icon: "person.crop.circle.badge.checkmark",
-                    title: "chat.feature.onboarding".localized,
-                    description: "chat.feature.onboarding.desc".localized
-                )
+                // Guided Setup - Temporarily hidden but kept for future use
+                // FeatureBadge(
+                //     icon: "person.crop.circle.badge.checkmark",
+                //     title: "chat.feature.onboarding".localized,
+                //     description: "chat.feature.onboarding.desc".localized
+                // )
                 
                 FeatureBadge(
                     icon: "book.closed",

@@ -90,6 +90,18 @@ class StoreManager: ObservableObject {
             return
         }
         
+        // Check for free trial (7-day trial for new users)
+        let freeTrialService = FreeTrialService.shared
+        if freeTrialService.isTrialActive {
+            subscriptionInfo = SubscriptionInfo(
+                status: .freeTrial,
+                expirationDate: freeTrialService.expirationDate,
+                product: nil,
+                renewalInfo: nil
+            )
+            return
+        }
+        
         var highestStatus: SubscriptionStatus = .notSubscribed
         var highestTransaction: Transaction?
         var highestProduct: Product?

@@ -34,13 +34,14 @@ enum SubscriptionProduct: String, CaseIterable {
 enum SubscriptionStatus {
     case active
     case inTrial
+    case freeTrial
     case expired
     case notSubscribed
     case developerAccess
     
     var isActive: Bool {
         switch self {
-        case .active, .inTrial, .developerAccess:
+        case .active, .inTrial, .freeTrial, .developerAccess:
             return true
         case .expired, .notSubscribed:
             return false

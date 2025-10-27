@@ -44,33 +44,43 @@ struct RootView: View {
     @EnvironmentObject var familyVM: FamilyViewModel
     @EnvironmentObject var planVM: PlanViewModel
     @EnvironmentObject var storeManager: StoreManager
+    @EnvironmentObject var usageVM: UsageViewModel
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     @State private var showOnboarding = false
+    @State private var showFreeTrialExpiration = false
     
     private var hasActiveSubscription: Bool {
         storeManager.hasActiveSubscription
     }
     
     var body: some View {
-        TabView {
-            // Recipes tab - combines Plan and Ad hoc generation
-            RecipesView()
-                .tabItem { Label("tab.recipes".localized, systemImage: "fork.knife") }
+        VStack(spacing: 0) {
+            // Free trial banner at the top
+            FreeTrialBanner()
             
-            // Shopping tab - freemium access with export restrictions
-            ShoppingListView()
-                .tabItem { Label("tab.shopping".localized, systemImage: "cart") }
-            
-            // Favorites tab - freemium access with save restrictions
-            SavedRecipesView()
-                .tabItem { Label("tab.favorites".localized, systemImage: "heart.fill") }
-            
-            // Settings tab - always accessible
-            SettingsView()
-                .tabItem { Label("tab.settings".localized, systemImage: "gearshape") }
+            TabView {
+                // Recipes tab - combines Plan and Ad hoc generation
+                RecipesView()
+                    .tabItem { Label("tab.recipes".localized, systemImage: "fork.knife") }
+                
+                // Shopping tab - freemium access with export restrictions
+                ShoppingListView()
+                    .tabItem { Label("tab.shopping".localized, systemImage: "cart") }
+                
+                // Favorites tab - freemium access with save restrictions
+                SavedRecipesView()
+                    .tabItem { Label("tab.favorites".localized, systemImage: "heart.fill") }
+                
+                // Settings tab - always accessible
+                SettingsView()
+                    .tabItem { Label("tab.settings".localized, systemImage: "gearshape") }
+            }
         }
         .sheet(isPresented: $showOnboarding) {
             OnboardingContainerView(isPresented: $showOnboarding)
+        }
+        .sheet(isPresented: $showFreeTrialExpiration) {
+            FreeTrialExpirationView()
         }
         .onAppear {
             if !hasCompletedOnboarding {
@@ -78,6 +88,21 @@ struct RootView: View {
             }
             // Preload legal documents for offline use
             LegalDocumentService.shared.preloadDocuments()
+            
+            // Check if trial just expired
+            checkTrialExpiration()
+        }
+        .onChange(of: storeManager.subscriptionInfo?.status) { oldValue, newValue in
+            // Check for trial expiration when status changes
+            checkTrialExpiration()
+        }
+    }
+    
+    private func checkTrialExpiration() {
+        let freeTrialService = FreeTrialService.shared
+        if freeTrialService.shouldShowExpirationMessage {
+            showFreeTrialExpiration = true
+            freeTrialService.markExpirationMessageShown()
         }
     }
 }

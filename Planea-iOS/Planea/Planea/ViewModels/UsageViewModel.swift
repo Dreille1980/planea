@@ -36,6 +36,16 @@ class UsageViewModel: ObservableObject {
         return storeManager.isInTrial
     }
     
+    /// Check if user is in free trial period (7-day trial)
+    var isInFreeTrial: Bool {
+        return storeManager.subscriptionInfo?.status == .freeTrial
+    }
+    
+    /// Get days remaining in free trial
+    var daysRemainingInFreeTrial: Int {
+        return FreeTrialService.shared.daysRemaining
+    }
+    
     /// Check if user has active subscription (trial or premium)
     var hasActiveSubscription: Bool {
         return storeManager.hasActiveSubscription
