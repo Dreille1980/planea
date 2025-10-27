@@ -1436,6 +1436,12 @@ def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
     """Detect which agent mode should be used based on the message context."""
     message_lower = message.lower()
     
+    # CRITICAL: Check if we're in member addition flow - if so, STAY in onboarding mode
+    is_member_addition = detect_member_addition_intent(message, conversation_history)
+    if is_member_addition:
+        print("🔒 Member addition detected - LOCKING to onboarding mode")
+        return "onboarding"
+    
     # Check for onboarding keywords
     onboarding_keywords = [
         # French
@@ -1682,42 +1688,48 @@ async def ai_chat(req: ChatRequest):
 
 🎯 YOUR MISSION: Collect information about THIS SPECIFIC PERSON ONLY.
 
-Ask ONLY these questions about the NEW MEMBER:
+Ask ONLY these 3 questions about the NEW MEMBER:
 1. What is their name?
 2. Do they have any food allergies? (e.g., gluten, lactose, nuts, seafood)
 3. What foods do they dislike or prefer to avoid?
 
-❌ DO NOT ASK ABOUT:
-- Budget
-- Cooking time
-- Number of people in household
-- Kitchen equipment
-- Weekly preferences
-- Any family-wide settings
+⛔ ABSOLUTELY FORBIDDEN TO ASK:
+- Budget (FAMILY setting, not member!)
+- Cooking time (FAMILY setting, not member!)
+- Unit system / metrics (FAMILY setting, not member!)
+- Number of people (FAMILY setting, not member!)
+- Kitchen equipment (FAMILY setting, not member!)
+- Weekly preferences (FAMILY setting, not member!)
+- ANY question about family-wide settings
 
-Keep it simple and focused on THE INDIVIDUAL MEMBER only.
+🚨 CRITICAL: You MUST stay in Configuration mode. DO NOT switch to nutrition coach mode.
+
 After collecting name, allergies, and dislikes, provide a summary and ask for confirmation.
+Do NOT ask any other questions.
 """
             else:
                 system_prompt = """Tu aides à ajouter un NOUVEAU MEMBRE DE LA FAMILLE dans Planea.
 
 🎯 TA MISSION: Collecter les informations sur CETTE PERSONNE SPÉCIFIQUE SEULEMENT.
 
-Pose UNIQUEMENT ces questions sur le NOUVEAU MEMBRE:
+Pose UNIQUEMENT ces 3 questions sur le NOUVEAU MEMBRE:
 1. Quel est son nom?
 2. A-t-il/elle des allergies alimentaires? (ex: gluten, lactose, noix, fruits de mer)
 3. Quels aliments n'aime-t-il/elle pas ou préfère éviter?
 
-❌ NE DEMANDE PAS:
-- Budget
-- Temps de préparation
-- Nombre de personnes dans le ménage
-- Équipement de cuisine
-- Préférences hebdomadaires
-- Aucun réglage familial
+⛔ ABSOLUMENT INTERDIT DE DEMANDER:
+- Budget (réglage FAMILIAL, pas membre!)
+- Temps de préparation (réglage FAMILIAL, pas membre!)
+- Système d'unités / métriques (réglage FAMILIAL, pas membre!)
+- Nombre de personnes (réglage FAMILIAL, pas membre!)
+- Équipement de cuisine (réglage FAMILIAL, pas membre!)
+- Préférences hebdomadaires (réglage FAMILIAL, pas membre!)
+- TOUTE question sur des réglages familiaux
 
-Reste simple et concentré sur LE MEMBRE INDIVIDUEL uniquement.
+🚨 CRITIQUE: Tu DOIS rester en mode Configuration. NE BASCULE PAS en mode coach nutrition.
+
 Après avoir collecté le nom, les allergies et les aversions, fournis un résumé et demande confirmation.
+Ne pose AUCUNE autre question.
 """
         else:
             # General onboarding prompt
