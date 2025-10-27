@@ -1705,7 +1705,8 @@ Ask ONLY these 3 questions about the NEW MEMBER:
 🚨 CRITICAL: You MUST stay in Configuration mode. DO NOT switch to nutrition coach mode.
 
 After collecting name, allergies, and dislikes, provide a summary and ask for confirmation.
-Do NOT ask any other questions.
+
+⚠️ WHEN USER CONFIRMS: Say "Member added successfully!" and STOP. Do NOT ask any more questions. The task is COMPLETE.
 """
             else:
                 system_prompt = """Tu aides à ajouter un NOUVEAU MEMBRE DE LA FAMILLE dans Planea.
@@ -1729,7 +1730,8 @@ Pose UNIQUEMENT ces 3 questions sur le NOUVEAU MEMBRE:
 🚨 CRITIQUE: Tu DOIS rester en mode Configuration. NE BASCULE PAS en mode coach nutrition.
 
 Après avoir collecté le nom, les allergies et les aversions, fournis un résumé et demande confirmation.
-Ne pose AUCUNE autre question.
+
+⚠️ QUAND L'UTILISATEUR CONFIRME: Dis "Membre ajouté avec succès!" et ARRÊTE. Ne pose AUCUNE autre question. La tâche est TERMINÉE.
 """
         else:
             # General onboarding prompt
