@@ -1426,12 +1426,15 @@ def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
     onboarding_keywords = [
         # French
         'préférence', 'préférences', 'configuration', 'configurer', 'allergie', 'allergies',
-        'goût', 'goûts', 'budget', 'temps', 'personnes', 'famille', 'membres',
+        'goût', 'goûts', 'budget', 'temps', 'personnes', 'famille', 'membres', 'membre',
         'commencer', 'débuter', 'initialiser', 'paramètre', 'paramètres',
+        'ajoute', 'ajouter', 'enlève', 'enlever', 'modifie', 'modifier', 'change', 'changer',
+        'ménage', 'foyer', 'unités', 'métrique', 'impérial',
         # English
         'preference', 'preferences', 'configuration', 'configure', 'allergy', 'allergies',
-        'taste', 'tastes', 'budget', 'time', 'people', 'family', 'members',
-        'start', 'begin', 'initialize', 'setting', 'settings'
+        'taste', 'tastes', 'budget', 'time', 'people', 'family', 'members', 'member',
+        'start', 'begin', 'initialize', 'setting', 'settings',
+        'add', 'remove', 'modify', 'change', 'household', 'units', 'metric', 'imperial'
     ]
     
     # Check for recipe Q&A keywords
@@ -1446,13 +1449,33 @@ def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
         'how to', 'how do i', 'how much', 'adjust'
     ]
     
-    # Check conversation history for context
+    # Check conversation history for context (look at last 5 messages for better context)
     has_recipe_context = any('recipe' in str(msg).lower() or 'recette' in str(msg).lower() 
-                            for msg in conversation_history[-3:] if msg)
+                            for msg in conversation_history[-5:] if msg)
     
-    # Decision logic
+    # Check if we're in an onboarding conversation flow - look for Configuration mode indicator
+    has_onboarding_context = False
+    for msg in conversation_history[-5:]:
+        if msg:
+            msg_str = str(msg).lower()
+            # Check if any previous message was detected as Configuration mode
+            if '"detected_mode":"onboarding"' in msg_str or '"detected_mode": "onboarding"' in msg_str:
+                has_onboarding_context = True
+                break
+            # Or check for key configuration keywords
+            if any(keyword in msg_str for keyword in ['famille', 'family', 'configuration', 'préférence', 'preference', 'allergie', 'allergy', 'membres', 'members', 'paramètre', 'settings']):
+                has_onboarding_context = True
+                break
+    
+    # Decision logic - STRONGLY prioritize onboarding if keywords match OR if in onboarding context
     if any(keyword in message_lower for keyword in onboarding_keywords):
         return "onboarding"
+    elif has_onboarding_context:
+        # If we're in onboarding context, only switch to another mode if there's a STRONG indicator
+        if any(keyword in message_lower for keyword in recipe_qa_keywords) and 'recette' in message_lower:
+            return "recipe_qa"
+        else:
+            return "onboarding"  # Stay in onboarding mode
     elif any(keyword in message_lower for keyword in recipe_qa_keywords) or has_recipe_context:
         return "recipe_qa"
     else:
@@ -1531,49 +1554,37 @@ async def ai_chat(req: ChatRequest):
     if detected_mode == "onboarding":
         if req.language == "en":
             system_prompt = """You are a friendly onboarding assistant for Planea, a meal planning app. 
-Your goal is to help users configure their preferences in 7 exchanges or less.
+Your ONLY role is to help users configure their family and preferences - you DO NOT give nutrition advice or meal suggestions.
 
 Ask about:
-1. Dietary restrictions and allergies
-2. Food preferences and dislikes
-3. Number of people in household
+1. Number of people in household
+2. Dietary restrictions and allergies for each member
+3. Food preferences and dislikes for each member
 4. Preferred unit system (metric/imperial)
 5. Weekly budget (optional)
 6. Time constraints (weekday vs weekend)
 
-Keep questions short and friendly. After gathering information, provide a structured summary and ask for confirmation.
-Format your summary as:
-- Dietary needs: [list]
-- Allergies: [list]
-- Household: [number] people
-- Units: [metric/imperial]
-- Budget: [amount or "not specified"]
-- Time: Weekdays [X] min, Weekends [Y] min
+Keep questions short and friendly. Focus ONLY on gathering configuration information.
+After gathering information, provide a structured summary and ask for confirmation.
 
-End with: "Does this look correct? Reply 'yes' to save these preferences."
+IMPORTANT: You are NOT a nutrition coach. Do not give nutrition advice, meal suggestions, or dietary recommendations. Your job is ONLY to collect family configuration data.
 """
         else:
             system_prompt = """Tu es un assistant d'intégration sympathique pour Planea, une app de planification de repas.
-Ton objectif est d'aider les utilisateurs à configurer leurs préférences en 7 échanges ou moins.
+Ton rôle UNIQUE est d'aider les utilisateurs à configurer leur famille et leurs préférences - tu ne donnes PAS de conseils nutritionnels ou de suggestions de repas.
 
 Pose des questions sur:
-1. Restrictions alimentaires et allergies
-2. Préférences et aversions alimentaires
-3. Nombre de personnes dans le ménage
+1. Nombre de personnes dans le ménage
+2. Restrictions alimentaires et allergies pour chaque membre
+3. Préférences et aversions alimentaires pour chaque membre
 4. Système d'unités préféré (métrique/impérial)
 5. Budget hebdomadaire (optionnel)
 6. Contraintes de temps (semaine vs fin de semaine)
 
-Garde tes questions courtes et amicales. Après avoir recueilli les informations, fournis un résumé structuré et demande confirmation.
-Format ton résumé comme:
-- Besoins alimentaires: [liste]
-- Allergies: [liste]
-- Ménage: [nombre] personnes
-- Unités: [métrique/impérial]
-- Budget: [montant ou "non spécifié"]
-- Temps: Semaine [X] min, Fin de semaine [Y] min
+Garde tes questions courtes et amicales. Concentre-toi UNIQUEMENT sur la collecte d'informations de configuration.
+Après avoir recueilli les informations, fournis un résumé structuré et demande confirmation.
 
-Termine avec: "Est-ce que cela vous semble correct? Répondez 'oui' pour sauvegarder ces préférences."
+IMPORTANT: Tu n'es PAS un coach en nutrition. Ne donne pas de conseils nutritionnels, de suggestions de repas ou de recommandations alimentaires. Ton travail est UNIQUEMENT de collecter les données de configuration de la famille.
 """
     
     elif detected_mode == "recipe_qa":
@@ -1718,10 +1729,10 @@ Garde tes conseils généraux et basés sur les preuves. Encourage toujours de c
             else:
                 suggested_actions = ["Substituer un ingrédient", "Convertir mesures", "Ajuster portions", "Expliquer une étape"]
         elif detected_mode == "nutrition_coach":
-            if req.language == "en":
-                suggested_actions = ["Balanced meal ideas", "Protein needs", "Vegetable portions", "Meal timing"]
-            else:
+            if req.language == "fr":
                 suggested_actions = ["Idées repas équilibrés", "Besoins en protéines", "Portions légumes", "Horaires repas"]
+            else:
+                suggested_actions = ["Balanced meal ideas", "Protein needs", "Vegetable portions", "Meal timing"]
         
         # Generate modified recipe if this was a modification request
         modified_recipe = None

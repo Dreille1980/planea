@@ -10,7 +10,7 @@ struct ChatMessageBubble: View {
             }
             
             VStack(alignment: message.isFromUser ? .trailing : .leading, spacing: 4) {
-                Text(message.content)
+                messageContentView
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .background(message.isFromUser ? Color.blue : Color(.systemGray5))
@@ -36,6 +36,27 @@ struct ChatMessageBubble: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 4)
+    }
+    
+    // MARK: - Helper Views
+    
+    @ViewBuilder
+    private var messageContentView: some View {
+        let lines = message.content.components(separatedBy: "\n")
+        
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
+                if line.hasPrefix("ℹ️") {
+                    // Disclaimer line - smaller font
+                    Text(line)
+                        .font(.caption2)
+                        .foregroundColor(message.isFromUser ? .white.opacity(0.8) : .secondary)
+                } else if !line.isEmpty {
+                    // Regular content
+                    Text(line)
+                }
+            }
+        }
     }
 }
 
