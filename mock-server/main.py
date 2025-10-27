@@ -1416,6 +1416,20 @@ class ChatResponse(BaseModel):
     requires_confirmation: bool = False
     suggested_actions: List[str] = Field(default_factory=list)
     modified_recipe: Optional[Recipe] = None
+    member_data: Optional[dict] = None  # For adding family members
+
+
+class AddMemberRequest(BaseModel):
+    name: str
+    allergens: List[str] = Field(default_factory=list)
+    preferences: List[str] = Field(default_factory=list)
+    dislikes: List[str] = Field(default_factory=list)
+
+
+class AddMemberResponse(BaseModel):
+    success: bool
+    message: str
+    member: Optional[dict] = None
 
 
 def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
@@ -1480,6 +1494,112 @@ def detect_agent_mode(message: str, conversation_history: List[dict]) -> str:
         return "recipe_qa"
     else:
         return "nutrition_coach"
+
+
+def detect_member_addition_intent(message: str, conversation_history: List[dict]) -> bool:
+    """Detect if the user wants to add a family member."""
+    message_lower = message.lower()
+    
+    # Keywords indicating member addition
+    addition_keywords_fr = ['ajoute', 'ajouter', 'nouveau membre', 'nouvelle personne', 'un membre', 'une personne']
+    addition_keywords_en = ['add', 'adding', 'new member', 'new person', 'another member', 'another person']
+    
+    # Check if this is about adding someone
+    is_adding = (
+        any(keyword in message_lower for keyword in addition_keywords_fr) or
+        any(keyword in message_lower for keyword in addition_keywords_en)
+    )
+    
+    # Check recent conversation history for context
+    if not is_adding and conversation_history:
+        # Look at last 3 messages for context
+        for msg in conversation_history[-3:]:
+            if msg and not msg.get("isFromUser"):
+                msg_content = str(msg.get("content", "")).lower()
+                # Check if agent was asking about adding a member
+                if any(keyword in msg_content for keyword in addition_keywords_fr + addition_keywords_en):
+                    is_adding = True
+                    break
+    
+    return is_adding
+
+
+def extract_member_data_from_conversation(conversation_history: List[dict], current_message: str, language: str) -> Optional[dict]:
+    """Extract member data from the conversation history."""
+    member_data = {
+        "name": None,
+        "allergens": [],
+        "dislikes": []
+    }
+    
+    # Combine all messages into analysis
+    all_messages = []
+    for msg in conversation_history[-10:]:
+        if msg.get("isFromUser"):
+            all_messages.append(msg.get("content", ""))
+    all_messages.append(current_message)
+    
+    # Simple extraction logic
+    conversation_text = " ".join(all_messages).lower()
+    
+    # Look for name patterns
+    name_patterns_fr = ['nom', "s'appelle", 'appelle', 'prenom', 'prénom']
+    name_patterns_en = ['name', 'called', 'named']
+    
+    # Look for allergy patterns
+    allergy_patterns_fr = ['allergie', 'allergies', 'allergique', 'intolerance', 'intolérance']
+    allergy_patterns_en = ['allergy', 'allergies', 'allergic', 'intolerance', 'intolerant']
+    
+    # Look for dislike patterns
+    dislike_patterns_fr = ["n'aime pas", "aime pas", 'déteste', 'éviter', 'préfère pas', 'preference']
+    dislike_patterns_en = ["doesn't like", "don't like", 'dislike', 'dislikes', 'avoid', 'avoids', 'hate', 'hates', 'preference']
+    
+    # Common allergens
+    common_allergens = ['gluten', 'lactose', 'noix', 'nuts', 'arachides', 'peanuts', 'fruits de mer', 'seafood', 'poisson', 'fish', 'oeufs', 'eggs', 'soja', 'soy']
+    
+    # Try to extract data from messages
+    for msg_text in all_messages:
+        msg_lower = msg_text.lower()
+        
+        # Try to find name
+        if not member_data["name"]:
+            # Simple heuristic: if message is short and contains a name pattern, it might be the name
+            words = msg_text.split()
+            if len(words) <= 4 and any(pattern in msg_lower for pattern in name_patterns_fr + name_patterns_en):
+                # Next word after pattern might be the name
+                for pattern in name_patterns_fr + name_patterns_en:
+                    if pattern in msg_lower:
+                        idx = msg_lower.find(pattern)
+                        remaining = msg_text[idx + len(pattern):].strip()
+                        if remaining:
+                            # Extract first word as potential name
+                            potential_name = remaining.split()[0].strip('.,!?;:')
+                            if len(potential_name) > 1 and potential_name.isalpha():
+                                member_data["name"] = potential_name.capitalize()
+                                break
+            
+            # If still no name and message is just a single capitalized word, might be the name
+            if not member_data["name"] and len(words) == 1 and words[0][0].isupper():
+                member_data["name"] = words[0].strip('.,!?;:')
+        
+        # Try to find allergies
+        if any(pattern in msg_lower for pattern in allergy_patterns_fr + allergy_patterns_en):
+            # Check for common allergens
+            for allergen in common_allergens:
+                if allergen in msg_lower and allergen not in [a.lower() for a in member_data["allergens"]]:
+                    member_data["allergens"].append(allergen)
+        
+        # Try to find dislikes
+        if any(pattern in msg_lower for pattern in dislike_patterns_fr + dislike_patterns_en):
+            # Try to extract food items mentioned
+            # This is a simple heuristic and could be improved
+            pass
+    
+    # Check if we have enough data
+    if member_data["name"]:
+        return member_data
+    
+    return None
 
 
 def detect_recipe_modification_request(message: str, user_context: dict) -> tuple:
@@ -1550,10 +1670,59 @@ async def ai_chat(req: ChatRequest):
     # Detect which mode to use
     detected_mode = detect_agent_mode(req.message, req.conversation_history)
     
+    # Detect if user wants to add a family member
+    is_adding_member = detect_member_addition_intent(req.message, req.conversation_history)
+    
     # Build system prompt based on mode
     if detected_mode == "onboarding":
-        if req.language == "en":
-            system_prompt = """You are a friendly onboarding assistant for Planea, a meal planning app. 
+        if is_adding_member:
+            # Special prompt for adding a member - focus ONLY on the individual
+            if req.language == "en":
+                system_prompt = """You are helping add a NEW FAMILY MEMBER to Planea.
+
+🎯 YOUR MISSION: Collect information about THIS SPECIFIC PERSON ONLY.
+
+Ask ONLY these questions about the NEW MEMBER:
+1. What is their name?
+2. Do they have any food allergies? (e.g., gluten, lactose, nuts, seafood)
+3. What foods do they dislike or prefer to avoid?
+
+❌ DO NOT ASK ABOUT:
+- Budget
+- Cooking time
+- Number of people in household
+- Kitchen equipment
+- Weekly preferences
+- Any family-wide settings
+
+Keep it simple and focused on THE INDIVIDUAL MEMBER only.
+After collecting name, allergies, and dislikes, provide a summary and ask for confirmation.
+"""
+            else:
+                system_prompt = """Tu aides à ajouter un NOUVEAU MEMBRE DE LA FAMILLE dans Planea.
+
+🎯 TA MISSION: Collecter les informations sur CETTE PERSONNE SPÉCIFIQUE SEULEMENT.
+
+Pose UNIQUEMENT ces questions sur le NOUVEAU MEMBRE:
+1. Quel est son nom?
+2. A-t-il/elle des allergies alimentaires? (ex: gluten, lactose, noix, fruits de mer)
+3. Quels aliments n'aime-t-il/elle pas ou préfère éviter?
+
+❌ NE DEMANDE PAS:
+- Budget
+- Temps de préparation
+- Nombre de personnes dans le ménage
+- Équipement de cuisine
+- Préférences hebdomadaires
+- Aucun réglage familial
+
+Reste simple et concentré sur LE MEMBRE INDIVIDUEL uniquement.
+Après avoir collecté le nom, les allergies et les aversions, fournis un résumé et demande confirmation.
+"""
+        else:
+            # General onboarding prompt
+            if req.language == "en":
+                system_prompt = """You are a friendly onboarding assistant for Planea, a meal planning app. 
 Your ONLY role is to help users configure their family and preferences - you DO NOT give nutrition advice or meal suggestions.
 
 Ask about:
@@ -1569,8 +1738,8 @@ After gathering information, provide a structured summary and ask for confirmati
 
 IMPORTANT: You are NOT a nutrition coach. Do not give nutrition advice, meal suggestions, or dietary recommendations. Your job is ONLY to collect family configuration data.
 """
-        else:
-            system_prompt = """Tu es un assistant d'intégration sympathique pour Planea, une app de planification de repas.
+            else:
+                system_prompt = """Tu es un assistant d'intégration sympathique pour Planea, une app de planification de repas.
 Ton rôle UNIQUE est d'aider les utilisateurs à configurer leur famille et leurs préférences - tu ne donnes PAS de conseils nutritionnels ou de suggestions de repas.
 
 Pose des questions sur:
@@ -1733,6 +1902,17 @@ Garde tes conseils généraux et basés sur les preuves. Encourage toujours de c
                 suggested_actions = ["Idées repas équilibrés", "Besoins en protéines", "Portions légumes", "Horaires repas"]
             else:
                 suggested_actions = ["Balanced meal ideas", "Protein needs", "Vegetable portions", "Meal timing"]
+        
+        # Extract member data if this is member addition with confirmation
+        member_data = None
+        if detected_mode == "onboarding" and is_adding_member and requires_confirmation:
+            member_data = extract_member_data_from_conversation(
+                req.conversation_history, 
+                req.message, 
+                req.language
+            )
+            if member_data:
+                print(f"✅ Member data extracted: {member_data}")
         
         # Generate modified recipe if this was a modification request
         modified_recipe = None
