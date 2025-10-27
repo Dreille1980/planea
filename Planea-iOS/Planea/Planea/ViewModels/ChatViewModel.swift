@@ -22,6 +22,7 @@ class ChatViewModel: ObservableObject {
     var getCurrentPlan: (() -> MealPlan?)?
     var updateRecipe: ((Recipe) -> Void)?
     var refreshShoppingList: (() -> Void)?
+    var familyViewModel: FamilyViewModel?
     
     init() {
         // Initialize with a new conversation
@@ -111,6 +112,43 @@ class ChatViewModel: ObservableObject {
             
             // Update suggested actions
             suggestedActions = response.suggestedActions
+            
+            // Handle member addition if present
+            if let memberData = response.memberData, let name = memberData.name {
+                print("👤 Adding member: \(name)")
+                print("  Allergens: \(memberData.allergens)")
+                print("  Dislikes: \(memberData.dislikes)")
+                
+                // Add the member using FamilyViewModel
+                if let familyVM = familyViewModel {
+                    let newMember = familyVM.addMember(name: name)
+                    
+                    // Update member with preferences, allergens, and dislikes
+                    familyVM.updateMember(
+                        id: newMember.id,
+                        name: name,
+                        preferences: [],
+                        allergens: memberData.allergens,
+                        dislikes: memberData.dislikes
+                    )
+                    
+                    // Add confirmation message
+                    let confirmationText = language == "fr"
+                        ? "✅ \(name) a été ajouté à votre famille!"
+                        : "✅ \(name) has been added to your family!"
+                    
+                    let confirmationMessage = ChatMessage(
+                        content: confirmationText,
+                        isFromUser: false,
+                        detectedMode: response.detectedMode
+                    )
+                    currentConversation.addMessage(confirmationMessage)
+                    
+                    print("✅ Member successfully added to family settings!")
+                } else {
+                    print("⚠️ FamilyViewModel not available")
+                }
+            }
             
             // Handle recipe modification if present
             if let modifiedRecipe = response.modifiedRecipe {

@@ -7,6 +7,7 @@ struct ChatView: View {
     @EnvironmentObject var favoritesVM: FavoritesViewModel
     @EnvironmentObject var planVM: PlanViewModel
     @EnvironmentObject var shoppingVM: ShoppingViewModel
+    @EnvironmentObject var familyVM: FamilyViewModel
     
     @State private var messageText = ""
     @State private var showPaywall = false
@@ -287,6 +288,9 @@ struct ChatView: View {
                 shoppingVM?.generateList(from: plan.items, units: units)
             }
         }
+        
+        // Inject FamilyViewModel for adding members
+        viewModel.familyViewModel = familyVM
     }
     
     private func checkPremiumAccess() {
