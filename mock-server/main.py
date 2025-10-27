@@ -2060,7 +2060,8 @@ IMPORTANT:
             detected_mode=detected_mode,
             requires_confirmation=requires_confirmation,
             suggested_actions=suggested_actions,
-            modified_recipe=modified_recipe
+            modified_recipe=modified_recipe,
+            member_data=member_data
         )
         
     except Exception as e:
