@@ -361,6 +361,12 @@
 "onboarding.familyname.placeholder" = "The Smith Family";
 "onboarding.familyname.hint" = "Used to personalize your experience";
 
+// Alternative keys for onboarding
+"What's Your Family Name?" = "What's Your Family Name?";
+"Your Generation Preferences" = "Your Generation Preferences";
+"onboarding.members.title" = "Family Members";
+"action.continue" = "Continue";
+
 // New Onboarding - Members Management
 "onboarding.members.subtitle" = "Add people who will share these meals";
 "onboarding.members.add" = "Add Member";

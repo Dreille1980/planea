@@ -360,6 +360,12 @@
 "onboarding.familyname.placeholder" = "Famille Tremblay";
 "onboarding.familyname.hint" = "Utilisé pour personnaliser votre expérience";
 
+// Clés alternatives pour onboarding
+"What's Your Family Name?" = "Comment s'appelle votre famille?";
+"Your Generation Preferences" = "Vos préférences de génération";
+"onboarding.members.title" = "Membres de la famille";
+"action.continue" = "Continuer";
+
 // Nouvel onboarding - Gestion des membres
 "onboarding.members.subtitle" = "Ajoutez les personnes qui partageront ces repas";
 "onboarding.members.add" = "Ajouter un membre";
