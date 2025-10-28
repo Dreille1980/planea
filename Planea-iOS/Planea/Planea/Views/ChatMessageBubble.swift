@@ -149,6 +149,7 @@ struct ChatMessageBubble: View {
                     case .breakfast: mealTypeDisplay = "Déjeuner"
                     case .lunch: mealTypeDisplay = "Dîner"
                     case .dinner: mealTypeDisplay = "Souper"
+                    case .snack: mealTypeDisplay = "Collation"
                     }
                 } else {
                     // English
@@ -156,6 +157,7 @@ struct ChatMessageBubble: View {
                     case .breakfast: mealTypeDisplay = "Breakfast"
                     case .lunch: mealTypeDisplay = "Lunch"
                     case .dinner: mealTypeDisplay = "Dinner"
+                    case .snack: mealTypeDisplay = "Snack"
                     }
                 }
                 

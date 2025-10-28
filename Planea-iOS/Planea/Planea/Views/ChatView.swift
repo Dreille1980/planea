@@ -391,7 +391,7 @@ struct ChatView: View {
             // Regenerate shopping list with updated recipes
             if let plan = planVM?.draftPlan {
                 let units = UnitSystem(rawValue: UserDefaults.standard.string(forKey: "unitSystem") ?? "metric") ?? .metric
-                shoppingVM?.generateList(from: plan.items, units: units)
+                _ = shoppingVM?.generateList(from: plan.items, units: units)
             }
         }
         
