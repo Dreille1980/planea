@@ -1611,7 +1611,7 @@ def extract_member_data_from_conversation(conversation_history: List[dict], curr
 
 def detect_recipe_modification_request(message: str, user_context: dict) -> tuple:
     """Detect if user is requesting a recipe modification and extract details.
-    Returns: (is_modification, is_question, recipe_to_modify, message, modification_type)
+    Returns: (is_modification, is_question, recipe_to_modify, message, modification_type, weekday, meal_type)
     """
     message_lower = message.lower()
     
@@ -1659,6 +1659,8 @@ def detect_recipe_modification_request(message: str, user_context: dict) -> tupl
     
     # Try to find which recipe from context
     recipe_to_modify = None
+    found_weekday = None
+    found_meal_type = None
     
     # Check current plan recipes
     if user_context.get("current_plan"):
@@ -1668,6 +1670,8 @@ def detect_recipe_modification_request(message: str, user_context: dict) -> tupl
                 # Check if recipe title is mentioned in message
                 if recipe_title in message_lower or any(word in recipe_title for word in message_lower.split() if len(word) > 4):
                     recipe_to_modify = meal
+                    found_weekday = day
+                    found_meal_type = meal.get("meal_type")
                     break
             if recipe_to_modify:
                 break
@@ -1688,7 +1692,7 @@ def detect_recipe_modification_request(message: str, user_context: dict) -> tupl
                 recipe_to_modify = recipe
                 break
     
-    return (True, is_question, recipe_to_modify, message, modification_type)
+    return (True, is_question, recipe_to_modify, message, modification_type, found_weekday, found_meal_type)
 
 
 def detect_add_meal_request(message: str) -> tuple:
@@ -1770,7 +1774,7 @@ async def ai_chat(req: ChatRequest):
     is_confirmation = detect_user_confirmation(req.message, req.language)
     
     # Check if this is a recipe modification request
-    is_modification, is_question, recipe_to_modify, modification_request, modification_type = detect_recipe_modification_request(req.message, req.user_context)
+    is_modification, is_question, recipe_to_modify, modification_request, modification_type, found_weekday, found_meal_type = detect_recipe_modification_request(req.message, req.user_context)
     
     # Check if this is an add meal request
     is_add_meal, meal_type, weekday = detect_add_meal_request(req.message)
@@ -1991,7 +1995,7 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
             for msg in req.conversation_history[-5:]:
                 if msg and msg.get("isFromUser"):
                     msg_content = msg.get("content", "")
-                    is_mod, recipe, mod_req, mod_type = detect_recipe_modification_request(msg_content, req.user_context)
+                    is_mod, is_q, recipe, mod_req, mod_type, wd, mt = detect_recipe_modification_request(msg_content, req.user_context)
                     if is_mod and recipe:
                         # Apply the modification now
                         try:
@@ -2217,10 +2221,12 @@ IMPORTANT: Implémente EXACTEMENT la modification demandée"""
                 else:
                     reply = f"I've prepared a modified version of the recipe **{recipe_to_modify.get('title')}**.\n\nWould you like me to apply this modification?"
                 
-                # Store metadata for reference
+                # Store metadata for reference including weekday and meal_type for plan updates
                 modification_metadata = {
                     "original_title": recipe_to_modify.get('title'),
-                    "modification_request": req.message
+                    "modification_request": req.message,
+                    "weekday": found_weekday,
+                    "meal_type": found_meal_type
                 }
                 
             except Exception as e:
