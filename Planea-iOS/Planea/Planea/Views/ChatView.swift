@@ -59,6 +59,90 @@ struct ChatView: View {
                     }
                 }
                 
+                // Pending Recipe Modification
+                if let pendingRecipe = viewModel.pendingRecipeModification {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .foregroundColor(.blue)
+                            Text("chat.pending_recipe.title".localized)
+                                .font(.headline)
+                            Spacer()
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(pendingRecipe.title)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            
+                            HStack {
+                                Label("\(pendingRecipe.servings) portions", systemImage: "person.2")
+                                Spacer()
+                                Label("\(pendingRecipe.totalMinutes) min", systemImage: "clock")
+                            }
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            
+                            NavigationLink(destination: RecipeDetailView(recipe: pendingRecipe)) {
+                                HStack {
+                                    Text("chat.pending_recipe.view".localized)
+                                        .font(.caption)
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption2)
+                                }
+                                .foregroundColor(.blue)
+                            }
+                        }
+                        .padding(12)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        
+                        HStack(spacing: 12) {
+                            Button(action: {
+                                Task {
+                                    await viewModel.confirmRecipeModification()
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                    Text("chat.pending_recipe.confirm".localized)
+                                }
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.green)
+                                .cornerRadius(10)
+                            }
+                            .disabled(viewModel.isLoading)
+                            
+                            Button(action: {
+                                viewModel.cancelRecipeModification()
+                            }) {
+                                HStack {
+                                    Image(systemName: "xmark.circle.fill")
+                                    Text("chat.pending_recipe.cancel".localized)
+                                }
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.red.opacity(0.1))
+                                .cornerRadius(10)
+                            }
+                            .disabled(viewModel.isLoading)
+                        }
+                    }
+                    .padding()
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                }
+                
                 // Offline warning
                 if !viewModel.isOnline {
                     HStack {

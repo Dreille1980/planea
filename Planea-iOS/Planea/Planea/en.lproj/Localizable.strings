@@ -439,5 +439,9 @@
 "freetrial.expired.continue" = "Continue with Free Plan";
 
 /* Recipe Modification Confirmation */
+"chat.pending_recipe.title" = "Proposed Recipe";
+"chat.pending_recipe.view" = "View Details";
+"chat.pending_recipe.confirm" = "Confirm";
+"chat.pending_recipe.cancel" = "Cancel";
 "chat.confirm.button" = "Confirm";
 "chat.cancel.button" = "Cancel";

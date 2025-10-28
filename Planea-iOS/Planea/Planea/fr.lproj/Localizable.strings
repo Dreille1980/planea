@@ -423,6 +423,10 @@
 "chat.error.decode" = "Erreur de décodage de la réponse";
 
 /* Recipe Modification Confirmation */
+"chat.pending_recipe.title" = "Recette proposée";
+"chat.pending_recipe.view" = "Voir les détails";
+"chat.pending_recipe.confirm" = "Confirmer";
+"chat.pending_recipe.cancel" = "Annuler";
 "chat.confirm.button" = "Confirmer";
 "chat.cancel.button" = "Annuler";
 "chat.error.offline" = "L'agent conversationnel nécessite une connexion internet";
