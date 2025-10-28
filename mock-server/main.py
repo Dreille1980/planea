@@ -1615,13 +1615,24 @@ def detect_recipe_modification_request(message: str, user_context: dict) -> tupl
     """
     message_lower = message.lower()
     
-    # Check if this is a QUESTION about modification (vs a direct command)
-    question_indicators = {
-        'fr': ['est-ce que', 'est ce que', 'puis-je', 'peux-je', 'peut-on', 'pourrais-je', 'devrais-je', 'dois-je', '?'],
-        'en': ['can i', 'could i', 'should i', 'is it possible', 'would it be', 'may i', '?']
-    }
+    # Check if this is a QUESTION about possibility (vs a request for action)
+    # Questions about possibility: "Est-ce que JE PEUX...?", "Can I...?"
+    # Requests for action: "Peux-TU...?", "Can YOU...?", "Remplace...", etc.
     
-    is_question = any(indicator in message_lower for indicators in question_indicators.values() for indicator in indicators)
+    question_about_possibility_fr = ['est-ce que', 'est ce que', 'puis-je', 'peux-je', 'peut-on', 'pourrais-je', 'devrais-je', 'dois-je']
+    question_about_possibility_en = ['can i', 'could i', 'should i', 'is it possible', 'would it be', 'may i']
+    
+    # Request for action indicators (the agent should DO something)
+    action_request_fr = ['peux-tu', 'peux tu', 'peut-tu', 'peut tu', 'pourrais-tu', 'pourrais tu', 'veux-tu', 'veux tu']
+    action_request_en = ['can you', 'could you', 'would you', 'will you', 'please']
+    
+    # Check if it's a question about possibility
+    is_question = any(indicator in message_lower for indicator in question_about_possibility_fr + question_about_possibility_en)
+    
+    # If it's a request for action, treat as command (not a question)
+    is_action_request = any(indicator in message_lower for indicator in action_request_fr + action_request_en)
+    if is_action_request:
+        is_question = False  # Override - this is a command, not a question
     
     # Keywords indicating modification
     modification_keywords = {
