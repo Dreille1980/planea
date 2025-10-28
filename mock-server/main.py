@@ -1611,9 +1611,17 @@ def extract_member_data_from_conversation(conversation_history: List[dict], curr
 
 def detect_recipe_modification_request(message: str, user_context: dict) -> tuple:
     """Detect if user is requesting a recipe modification and extract details.
-    Returns: (is_modification, recipe_to_modify, message, modification_type)
+    Returns: (is_modification, is_question, recipe_to_modify, message, modification_type)
     """
     message_lower = message.lower()
+    
+    # Check if this is a QUESTION about modification (vs a direct command)
+    question_indicators = {
+        'fr': ['est-ce que', 'est ce que', 'puis-je', 'peux-je', 'peut-on', 'pourrais-je', 'devrais-je', 'dois-je', '?'],
+        'en': ['can i', 'could i', 'should i', 'is it possible', 'would it be', 'may i', '?']
+    }
+    
+    is_question = any(indicator in message_lower for indicators in question_indicators.values() for indicator in indicators)
     
     # Keywords indicating modification
     modification_keywords = {
@@ -1628,7 +1636,7 @@ def detect_recipe_modification_request(message: str, user_context: dict) -> tupl
     )
     
     if not is_modification:
-        return (False, None, None, None)
+        return (False, False, None, None, None)
     
     # Determine modification type
     modification_type = "replace_ingredient"  # default
@@ -1669,7 +1677,7 @@ def detect_recipe_modification_request(message: str, user_context: dict) -> tupl
                 recipe_to_modify = recipe
                 break
     
-    return (True, recipe_to_modify, message, modification_type)
+    return (True, is_question, recipe_to_modify, message, modification_type)
 
 
 def detect_add_meal_request(message: str) -> tuple:
@@ -1751,7 +1759,7 @@ async def ai_chat(req: ChatRequest):
     is_confirmation = detect_user_confirmation(req.message, req.language)
     
     # Check if this is a recipe modification request
-    is_modification, recipe_to_modify, modification_request, modification_type = detect_recipe_modification_request(req.message, req.user_context)
+    is_modification, is_question, recipe_to_modify, modification_request, modification_type = detect_recipe_modification_request(req.message, req.user_context)
     
     # Check if this is an add meal request
     is_add_meal, meal_type, weekday = detect_add_meal_request(req.message)
@@ -2049,8 +2057,8 @@ IMPORTANT:
                                 reply = "⚠️ Sorry, an error occurred while modifying the recipe."
                         break
         
-        elif is_modification and recipe_to_modify and not is_confirmation:
-            # New modification request - ask for confirmation first
+        elif is_modification and not is_question and recipe_to_modify and not is_confirmation:
+            # Direct modification command (not a question) - generate and ask for confirmation
             try:
                 print(f"\n🔧 Recipe modification detected!")
                 print(f"  Original recipe: {recipe_to_modify.get('title', 'Unknown')}")
