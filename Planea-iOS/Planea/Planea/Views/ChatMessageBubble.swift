@@ -100,20 +100,26 @@ struct ChatMessageBubble: View {
 }
 
 #Preview {
-    VStack(spacing: 16) {
+    let viewModel = ChatViewModel()
+    
+    return VStack(spacing: 16) {
         ChatMessageBubble(
             message: ChatMessage(
                 content: "Bonjour! Comment puis-je vous aider avec vos repas aujourd'hui?",
                 isFromUser: false,
                 detectedMode: .nutritionCoach
-            )
+            ),
+            isLastAgentMessage: true,
+            chatViewModel: viewModel
         )
         
         ChatMessageBubble(
             message: ChatMessage(
                 content: "Je voudrais des conseils pour des repas équilibrés",
                 isFromUser: true
-            )
+            ),
+            isLastAgentMessage: false,
+            chatViewModel: viewModel
         )
         
         ChatMessageBubble(
@@ -121,7 +127,9 @@ struct ChatMessageBubble: View {
                 content: "ℹ️ Cette information est à titre général seulement et ne remplace pas un avis médical professionnel.\n\nPour des repas équilibrés, voici quelques conseils...",
                 isFromUser: false,
                 detectedMode: .nutritionCoach
-            )
+            ),
+            isLastAgentMessage: true,
+            chatViewModel: viewModel
         )
     }
     .padding()

@@ -123,7 +123,7 @@ struct OnboardingMembersListView: View {
     private func addMember() {
         guard !newMemberName.isEmpty else { return }
         
-        let member = familyVM.addMember(name: newMemberName)
+        let newMember = familyVM.addMember(name: newMemberName)
         newMemberName = ""
         
         // Check if this is the first member
@@ -132,7 +132,7 @@ struct OnboardingMembersListView: View {
         }
         
         // Navigate to configure this new member
-        onConfigureMember(member)
+        onConfigureMember(newMember)
     }
     
     func checkForAddAnotherPrompt() {

@@ -62,7 +62,7 @@ struct FamilyManagementView: View {
             }
             Button("action.add".localized) {
                 if !newMemberName.isEmpty {
-                    familyVM.addMember(name: newMemberName)
+                    _ = familyVM.addMember(name: newMemberName)
                     newMemberName = ""
                 }
             }
