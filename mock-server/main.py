@@ -1647,7 +1647,7 @@ def detect_recipe_modification_request(message: str, user_context: dict) -> tupl
     )
     
     if not is_modification:
-        return (False, False, None, None, None)
+        return (False, False, None, None, None, None, None)
     
     # Determine modification type
     modification_type = "replace_ingredient"  # default
