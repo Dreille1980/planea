@@ -1854,19 +1854,40 @@ Tu NE PEUX PAS fournir:
 
 Garde tes conseils généraux et basés sur les preuves. Encourage toujours de consulter des professionnels de la santé pour des préoccupations spécifiques."""
     
-    # Build context from user data
+    # Build context from user data with detailed recipe information
     context_info = ""
+    
     if req.user_context.get("preferences"):
         prefs = req.user_context["preferences"]
-        context_info += f"\nUser preferences: {prefs}"
+        context_info += f"\n\nUser preferences: {prefs}"
+    
+    # Format current plan recipes with full details
+    if req.user_context.get("current_plan"):
+        context_info += "\n\n📅 CURRENT MEAL PLAN - You have FULL ACCESS to these recipes:"
+        for day, meals in req.user_context["current_plan"].items():
+            context_info += f"\n\n{day}:"
+            for meal in meals:
+                context_info += f"\n  - {meal.get('meal_type', 'Meal')}: {meal.get('title', 'Unknown')}"
+                context_info += f"\n    Servings: {meal.get('servings', 'N/A')}"
+                if meal.get('ingredients'):
+                    context_info += f"\n    Ingredients: {', '.join([ing.get('name', '') for ing in meal.get('ingredients', [])])}"
+                if meal.get('total_minutes'):
+                    context_info += f"\n    Time: {meal.get('total_minutes')} minutes"
     
     if req.user_context.get("recent_recipes"):
         recipes = req.user_context["recent_recipes"]
-        context_info += f"\nRecent recipes: {recipes}"
+        context_info += f"\n\n📝 Recent recipes (access available): {len(recipes)} recipes"
+        for idx, recipe in enumerate(recipes[:5]):  # Show first 5
+            context_info += f"\n  {idx+1}. {recipe.get('title', 'Unknown')} ({recipe.get('servings', 'N/A')} servings)"
     
     if req.user_context.get("favorite_recipes"):
         favorites = req.user_context["favorite_recipes"]
-        context_info += f"\nFavorite recipes: {favorites}"
+        context_info += f"\n\n⭐ Favorite recipes (access available): {len(favorites)} recipes"
+        for idx, recipe in enumerate(favorites[:5]):  # Show first 5
+            context_info += f"\n  {idx+1}. {recipe.get('title', 'Unknown')} ({recipe.get('servings', 'N/A')} servings)"
+    
+    if not context_info.strip():
+        context_info = "\n\nNo recipe data currently available in context."
     
     # Build conversation context
     messages = [
