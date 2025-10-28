@@ -1906,18 +1906,39 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
         prefs = req.user_context["preferences"]
         context_info += f"\n\nUser preferences: {prefs}"
     
-    # Format current plan recipes with full details
+    # Format current plan recipes with full details IN CHRONOLOGICAL ORDER
     if req.user_context.get("current_plan"):
-        context_info += "\n\n📅 CURRENT MEAL PLAN - You have FULL ACCESS to these recipes:"
-        for day, meals in req.user_context["current_plan"].items():
-            context_info += f"\n\n{day}:"
+        # Define day order
+        day_order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        day_names_fr = {
+            "Mon": "Lundi", "Tue": "Mardi", "Wed": "Mercredi", 
+            "Thu": "Jeudi", "Fri": "Vendredi", "Sat": "Samedi", "Sun": "Dimanche"
+        }
+        day_names_en = {
+            "Mon": "Monday", "Tue": "Tuesday", "Wed": "Wednesday",
+            "Thu": "Thursday", "Fri": "Friday", "Sat": "Saturday", "Sun": "Sunday"
+        }
+        
+        context_info += "\n\n📅 PLAN ACTUEL - Vous avez ACCÈS COMPLET à ces recettes:\n"
+        
+        # Sort days chronologically
+        sorted_days = sorted(
+            req.user_context["current_plan"].items(),
+            key=lambda x: day_order.index(x[0]) if x[0] in day_order else 999
+        )
+        
+        for day_abbr, meals in sorted_days:
+            # Use full day name
+            day_name = day_names_fr.get(day_abbr, day_abbr) if req.language == "fr" else day_names_en.get(day_abbr, day_abbr)
+            context_info += f"\n{day_name}:"
             for meal in meals:
-                context_info += f"\n  - {meal.get('meal_type', 'Meal')}: {meal.get('title', 'Unknown')}"
-                context_info += f"\n    Servings: {meal.get('servings', 'N/A')}"
-                if meal.get('ingredients'):
-                    context_info += f"\n    Ingredients: {', '.join([ing.get('name', '') for ing in meal.get('ingredients', [])])}"
-                if meal.get('total_minutes'):
-                    context_info += f"\n    Time: {meal.get('total_minutes')} minutes"
+                meal_type_fr = {"BREAKFAST": "Déjeuner", "LUNCH": "Dîner", "DINNER": "Souper"}.get(meal.get('meal_type', 'Repas'), meal.get('meal_type', 'Repas'))
+                meal_type_en = {"BREAKFAST": "Breakfast", "LUNCH": "Lunch", "DINNER": "Dinner"}.get(meal.get('meal_type', 'Meal'), meal.get('meal_type', 'Meal'))
+                meal_type_display = meal_type_fr if req.language == "fr" else meal_type_en
+                
+                context_info += f"\n  • {meal_type_display}: {meal.get('title', 'Unknown')}"
+                if meal.get('servings') and meal.get('total_minutes'):
+                    context_info += f" ({meal.get('servings')} portions, {meal.get('total_minutes')} min)"
     
     if req.user_context.get("recent_recipes"):
         recipes = req.user_context["recent_recipes"]
