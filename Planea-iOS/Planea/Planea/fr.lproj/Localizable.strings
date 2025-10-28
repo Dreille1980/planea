@@ -444,3 +444,7 @@
 "freetrial.expired.message" = "Votre essai gratuit de 7 jours est terminé. Continuez à profiter de toutes les fonctionnalités en vous abonnant à Planea Premium, ou continuez avec le plan gratuit avec génération limitée de recettes.";
 "freetrial.expired.subscribe" = "S'abonner maintenant";
 "freetrial.expired.continue" = "Continuer avec le plan gratuit";
+
+// Cartes de plan de repas dans le chat
+"chat.meal_plan.current_plan" = "Plan actuel";
+"chat.close" = "Fermer";

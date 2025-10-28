@@ -445,3 +445,7 @@
 "chat.pending_recipe.cancel" = "Cancel";
 "chat.confirm.button" = "Confirm";
 "chat.cancel.button" = "Cancel";
+
+// Meal Plan Cards in Chat
+"chat.meal_plan.current_plan" = "Current Plan";
+"chat.close" = "Close";

@@ -12,12 +12,19 @@ struct ChatMessageBubble: View {
             }
             
             VStack(alignment: message.isFromUser ? .trailing : .leading, spacing: 4) {
-                messageContentView
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(message.isFromUser ? Color.blue : Color(.systemGray5))
-                    .foregroundColor(message.isFromUser ? .white : .primary)
-                    .cornerRadius(16)
+                // Check if message contains meal plan data
+                if !message.isFromUser, let planData = parseMealPlanData(from: message.content) {
+                    // Show meal plan cards
+                    mealPlanView(planData: planData)
+                } else {
+                    // Show regular message bubble
+                    messageContentView
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(message.isFromUser ? Color.blue : Color(.systemGray5))
+                        .foregroundColor(message.isFromUser ? .white : .primary)
+                        .cornerRadius(16)
+                }
                 
                 // Show confirmation buttons if this is the last agent message and there's a pending modification
                 if !message.isFromUser && isLastAgentMessage && chatViewModel.pendingRecipeModification != nil {
@@ -64,6 +71,125 @@ struct ChatMessageBubble: View {
                 }
             }
         }
+    }
+    
+    @ViewBuilder
+    private func mealPlanView(planData: [DayPlanData]) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Text response before cards (if any)
+            if let textBefore = extractTextBeforePlan(from: message.content) {
+                Text(textBefore)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color(.systemGray5))
+                    .foregroundColor(.primary)
+                    .cornerRadius(16)
+                    .padding(.bottom, 12)
+            }
+            
+            // Meal plan cards
+            MealPlanCardsView(planData: planData)
+            
+            // Text response after cards (if any)
+            if let textAfter = extractTextAfterPlan(from: message.content) {
+                Text(textAfter)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color(.systemGray5))
+                    .foregroundColor(.primary)
+                    .cornerRadius(16)
+                    .padding(.top, 12)
+            }
+        }
+    }
+    
+    // MARK: - Meal Plan Parsing
+    
+    private func parseMealPlanData(from content: String) -> [DayPlanData]? {
+        // Check if message contains meal plan markers
+        guard content.contains("📅") || content.contains("PLAN ACTUEL") || 
+              content.contains("Lundi:") || content.contains("Monday:") else {
+            return nil
+        }
+        
+        // Get current plan from chat view model
+        guard let currentPlan = chatViewModel.getCurrentPlan?() else {
+            return nil
+        }
+        
+        var dayPlans: [DayPlanData] = []
+        
+        // Define day order and names
+        let dayMapping: [(abbr: String, fullNameFR: String, fullNameEN: String)] = [
+            ("Mon", "Lundi", "Monday"),
+            ("Tue", "Mardi", "Tuesday"),
+            ("Wed", "Mercredi", "Wednesday"),
+            ("Thu", "Jeudi", "Thursday"),
+            ("Fri", "Vendredi", "Friday"),
+            ("Sat", "Samedi", "Saturday"),
+            ("Sun", "Dimanche", "Sunday")
+        ]
+        
+        // Parse each day in order
+        for (dayAbbr, dayNameFR, dayNameEN) in dayMapping {
+            // Find meals for this day in the current plan
+            let dayMeals = currentPlan.items.filter { $0.weekday.rawValue == dayAbbr }
+            
+            guard !dayMeals.isEmpty else { continue }
+            
+            // Determine day name based on language in message
+            let dayName = content.contains("Lundi") || content.contains("Mardi") ? dayNameFR : dayNameEN
+            
+            var meals: [MealData] = []
+            for planItem in dayMeals {
+                let mealTypeDisplay: String
+                if content.contains("Déjeuner") || content.contains("Dîner") || content.contains("Souper") {
+                    // French
+                    switch planItem.mealType {
+                    case .breakfast: mealTypeDisplay = "Déjeuner"
+                    case .lunch: mealTypeDisplay = "Dîner"
+                    case .dinner: mealTypeDisplay = "Souper"
+                    }
+                } else {
+                    // English
+                    switch planItem.mealType {
+                    case .breakfast: mealTypeDisplay = "Breakfast"
+                    case .lunch: mealTypeDisplay = "Lunch"
+                    case .dinner: mealTypeDisplay = "Dinner"
+                    }
+                }
+                
+                let mealData = MealData(
+                    mealType: mealTypeDisplay,
+                    title: planItem.recipe.title,
+                    servings: planItem.recipe.servings,
+                    time: planItem.recipe.totalMinutes,
+                    fullRecipe: planItem.recipe
+                )
+                meals.append(mealData)
+            }
+            
+            if !meals.isEmpty {
+                dayPlans.append(DayPlanData(dayName: dayName, meals: meals))
+            }
+        }
+        
+        return dayPlans.isEmpty ? nil : dayPlans
+    }
+    
+    private func extractTextBeforePlan(from content: String) -> String? {
+        // Extract text before the plan section
+        if let range = content.range(of: "📅") {
+            let before = String(content[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+            return before.isEmpty ? nil : before
+        }
+        return nil
+    }
+    
+    private func extractTextAfterPlan(from content: String) -> String? {
+        // For now, we'll show any text after the plan section
+        // This can be enhanced based on specific markers
+        return nil
     }
     
     @ViewBuilder
