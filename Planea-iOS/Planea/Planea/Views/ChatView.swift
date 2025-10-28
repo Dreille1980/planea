@@ -275,14 +275,30 @@ struct ChatView: View {
             planVM?.draftPlan
         }
         
-        viewModel.updateRecipe = { [weak planVM, weak shoppingVM] recipe in
+        viewModel.updateRecipe = { [weak planVM, weak shoppingVM] recipe, weekdayStr, mealTypeStr in
             // Update recipe in plan if it exists
-            if let plan = planVM?.draftPlan {
-                // Find and update the recipe in the plan
+            guard let plan = planVM?.draftPlan else { return }
+            
+            // If we have weekday and meal_type metadata, use them for precise matching
+            if let wdStr = weekdayStr, let mtStr = mealTypeStr,
+               let weekday = Weekday(rawValue: wdStr),
+               let mealType = MealType(rawValue: mtStr) {
+                // Find the specific meal by weekday and meal_type
+                if let index = plan.items.firstIndex(where: { 
+                    $0.weekday == weekday && $0.mealType == mealType 
+                }) {
+                    var updatedPlan = plan
+                    updatedPlan.items[index].recipe = recipe
+                    planVM?.draftPlan = updatedPlan
+                    print("✅ Updated recipe at \(weekday.rawValue) \(mealType.rawValue)")
+                }
+            } else {
+                // Fallback: Find by recipe ID if no metadata available
                 if let index = plan.items.firstIndex(where: { $0.recipe.id == recipe.id }) {
                     var updatedPlan = plan
                     updatedPlan.items[index].recipe = recipe
                     planVM?.draftPlan = updatedPlan
+                    print("✅ Updated recipe by ID")
                 }
             }
         }

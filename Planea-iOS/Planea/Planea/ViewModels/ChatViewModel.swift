@@ -11,6 +11,7 @@ class ChatViewModel: ObservableObject {
     @Published var isOnline = true
     @Published var pendingRecipeModification: Recipe?
     @Published var pendingModificationType: String?
+    @Published var pendingModificationMetadata: [String: String]?
     
     private let chatService: ChatService
     private let storageService = ChatStorageService.shared
@@ -22,7 +23,7 @@ class ChatViewModel: ObservableObject {
     var getFavoriteRecipes: (() -> [Recipe])?
     var getPreferences: (() -> GenerationPreferences)?
     var getCurrentPlan: (() -> MealPlan?)?
-    var updateRecipe: ((Recipe) -> Void)?
+    var updateRecipe: ((Recipe, String?, String?) -> Void)?  // Recipe, weekday, meal_type
     var refreshShoppingList: (() -> Void)?
     var familyViewModel: FamilyViewModel?
     
@@ -174,22 +175,34 @@ class ChatViewModel: ObservableObject {
             if let pendingRecipe = response.pendingRecipeModification {
                 pendingRecipeModification = pendingRecipe
                 pendingModificationType = response.modificationType
+                pendingModificationMetadata = response.modificationMetadata
                 print("📝 Pending recipe modification stored, awaiting user confirmation")
+                if let metadata = response.modificationMetadata {
+                    print("   Metadata: weekday=\(metadata["weekday"] ?? "nil"), meal_type=\(metadata["meal_type"] ?? "nil")")
+                }
             }
             
             // Handle confirmed recipe modification
             if let modifiedRecipe = response.modifiedRecipe {
+                // Get metadata for plan update
+                let weekday = response.modificationMetadata?["weekday"]
+                let mealType = response.modificationMetadata?["meal_type"]
+                
                 // Clear any pending modification
                 pendingRecipeModification = nil
                 pendingModificationType = nil
+                pendingModificationMetadata = nil
                 
-                // Update the recipe in the plan
-                updateRecipe?(modifiedRecipe)
+                // Update the recipe in the plan with metadata
+                updateRecipe?(modifiedRecipe, weekday, mealType)
                 
                 // Refresh shopping list
                 refreshShoppingList?()
                 
                 print("✅ Recipe modification applied successfully")
+                if let wd = weekday, let mt = mealType {
+                    print("   Updated: \(wd) \(mt)")
+                }
             }
             
             // Save conversation
@@ -350,6 +363,7 @@ class ChatViewModel: ObservableObject {
     func cancelRecipeModification() {
         pendingRecipeModification = nil
         pendingModificationType = nil
+        pendingModificationMetadata = nil
         print("❌ Recipe modification cancelled by user")
     }
     
