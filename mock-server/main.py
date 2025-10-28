@@ -2249,6 +2249,9 @@ IMPORTANT: Implémente EXACTEMENT la modification demandée"""
             requires_confirmation=requires_confirmation,
             suggested_actions=suggested_actions,
             modified_recipe=modified_recipe,
+            pending_recipe_modification=pending_recipe_modification,
+            modification_type=modification_type,
+            modification_metadata=modification_metadata,
             member_data=None  # No longer support member addition via chat
         )
         
