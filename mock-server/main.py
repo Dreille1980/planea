@@ -1833,9 +1833,9 @@ You can provide:
 CALORIE CALCULATION CAPABILITIES:
 - You CAN calculate approximate calories for recipes using standard nutritional databases
 - Use average values from USDA or similar databases
-- Show your calculation methodology
-- Provide per-serving breakdowns
-- Include macronutrient distribution
+- FORMAT: Provide ONLY summary per serving/meal - NO detailed ingredient breakdown
+- Show: Total calories per serving, brief macronutrient split
+- Keep it concise and easy to read
 
 You CANNOT provide:
 - Medical diagnoses
@@ -1862,9 +1862,9 @@ Tu peux fournir:
 CAPACITÉS DE CALCUL CALORIQUE:
 - Tu PEUX calculer les calories approximatives des recettes en utilisant des bases de données nutritionnelles standard
 - Utilise les valeurs moyennes de l'USDA ou bases similaires
-- Montre ta méthodologie de calcul
-- Fournis des répartitions par portion
-- Inclus la distribution des macronutriments
+- FORMAT: Fournis SEULEMENT le résumé par portion/repas - PAS de détail par ingrédient
+- Affiche: Total calories par portion, répartition brève des macronutriments
+- Garde-le concis et facile à lire
 
 Tu NE PEUX PAS fournir:
 - Diagnostics médicaux
