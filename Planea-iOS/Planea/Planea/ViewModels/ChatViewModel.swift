@@ -12,6 +12,7 @@ class ChatViewModel: ObservableObject {
     @Published var pendingRecipeModification: Recipe?
     @Published var pendingModificationType: String?
     @Published var pendingModificationMetadata: [String: String]?
+    @Published var pendingMealToAdd: (recipe: Recipe, weekday: String, mealType: String)?
     
     private let chatService: ChatService
     private let storageService = ChatStorageService.shared
@@ -183,15 +184,28 @@ class ChatViewModel: ObservableObject {
                 }
             }
             
+            // Handle pending ADD MEAL (awaiting confirmation)
+            if response.modificationType == "pending_add_meal",
+               let pendingRecipe = response.modifiedRecipe,
+               let weekday = response.modificationMetadata?["weekday"],
+               let mealType = response.modificationMetadata?["meal_type"] {
+                
+                print("📋 Pending add meal stored, awaiting user confirmation")
+                print("   Recipe: \(pendingRecipe.title)")
+                print("   Weekday: \(weekday), MealType: \(mealType)")
+                
+                pendingMealToAdd = (recipe: pendingRecipe, weekday: weekday, mealType: mealType)
+            }
+            
             // Handle confirmed recipe modification OR add meal
-            if let modifiedRecipe = response.modifiedRecipe {
+            else if let modifiedRecipe = response.modifiedRecipe {
                 // Get metadata for plan update
                 let weekday = response.modificationMetadata?["weekday"]
                 let mealType = response.modificationMetadata?["meal_type"]
                 
-                // Check if this is an "add_meal" operation
+                // Check if this is a confirmed "add_meal" operation (old path, might not be used anymore)
                 if response.modificationType == "add_meal", let wd = weekday, let mt = mealType {
-                    print("🍽️ Adding meal to plan")
+                    print("🍽️ Adding meal to plan (direct)")
                     print("   Weekday: \(wd), MealType: \(mt)")
                     print("   Recipe: \(modifiedRecipe.title)")
                     
@@ -386,6 +400,39 @@ class ChatViewModel: ObservableObject {
         pendingModificationType = nil
         pendingModificationMetadata = nil
         print("❌ Recipe modification cancelled by user")
+    }
+    
+    // MARK: - Add Meal Confirmation
+    
+    func confirmAddMeal() {
+        guard let pending = pendingMealToAdd else {
+            print("⚠️ No pending meal to confirm")
+            return
+        }
+        
+        print("✅ User confirmed add meal")
+        print("   Recipe: \(pending.recipe.title)")
+        print("   Weekday: \(pending.weekday), MealType: \(pending.mealType)")
+        
+        // Add the meal to the plan
+        if let addMealToPlan = addMealToPlan {
+            addMealToPlan(pending.recipe, pending.weekday, pending.mealType)
+            
+            // Refresh shopping list
+            refreshShoppingList?()
+            
+            print("✅ Meal added to plan successfully")
+            
+            // Clear pending
+            pendingMealToAdd = nil
+        } else {
+            print("⚠️ addMealToPlan callback not configured")
+        }
+    }
+    
+    func cancelAddMeal() {
+        pendingMealToAdd = nil
+        print("❌ Add meal cancelled by user")
     }
     
     // MARK: - Helper Methods

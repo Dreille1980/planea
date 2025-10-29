@@ -2059,8 +2059,9 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
                 # Mark ingredients on sale if feature is enabled
                 await mark_ingredients_on_sale(recipe, req.user_context.get("preferences", {}))
                 
-                # Return the recipe with metadata so the client can add it to the plan
+                # Return the recipe as PENDING - user needs to confirm
                 print(f"  ✅ Recipe generated: {recipe.title}")
+                print(f"  📋 Returning as PENDING for user confirmation")
                 
                 if req.language == "fr":
                     day_names = {
@@ -2071,7 +2072,15 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
                     meal_names = {
                         "BREAKFAST": "petit-déjeuner", "LUNCH": "dîner", "DINNER": "souper"
                     }
-                    reply = f"✅ J'ai ajouté **{recipe.title}** au plan pour {day_names.get(weekday, weekday)} {meal_names.get(meal_type, meal_type)}."
+                    
+                    # Format the response with recipe card
+                    reply = f"""📋 **{recipe.title}**
+
+🍽️ Pour: {day_names.get(weekday, weekday)} {meal_names.get(meal_type, meal_type)}
+👥 Portions: {recipe.servings}
+⏱️ Temps: {recipe.totalMinutes} minutes
+
+Voulez-vous l'ajouter à votre plan?"""
                 else:
                     day_names = {
                         "Mon": "Monday", "Tue": "Tuesday", "Wed": "Wednesday",
@@ -2080,16 +2089,23 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
                     meal_names = {
                         "BREAKFAST": "breakfast", "LUNCH": "lunch", "DINNER": "dinner"
                     }
-                    reply = f"✅ I've added **{recipe.title}** to your plan for {day_names.get(weekday, weekday)} {meal_names.get(meal_type, meal_type)}."
+                    
+                    reply = f"""📋 **{recipe.title}**
+
+🍽️ For: {day_names.get(weekday, weekday)} {meal_names.get(meal_type, meal_type)}
+👥 Servings: {recipe.servings}
+⏱️ Time: {recipe.totalMinutes} minutes
+
+Would you like to add it to your plan?"""
                 
                 return ChatResponse(
                     reply=reply,
                     detected_mode=detected_mode,
                     requires_confirmation=False,
                     suggested_actions=[],
-                    modified_recipe=recipe,  # Return the recipe so client can add it
+                    modified_recipe=recipe,  # Return the recipe for pending storage
                     pending_recipe_modification=None,
-                    modification_type="add_meal",
+                    modification_type="pending_add_meal",  # Changed to pending!
                     modification_metadata={
                         "weekday": weekday,
                         "meal_type": meal_type

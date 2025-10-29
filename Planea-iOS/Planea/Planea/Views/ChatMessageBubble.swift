@@ -16,7 +16,13 @@ struct ChatMessageBubble: View {
                 if !message.isFromUser, let planData = parseMealPlanData(from: message.content) {
                     // Show meal plan cards
                     mealPlanView(planData: planData)
-                } else {
+                }
+                // Check if message contains pending recipe card (📋)
+                else if !message.isFromUser, message.content.contains("📋"), let recipeData = parsePendingRecipeData(from: message.content) {
+                    // Show recipe card
+                    pendingRecipeCardView(recipeData: recipeData)
+                }
+                else {
                     // Show regular message bubble
                     messageContentView
                         .padding(.horizontal, 12)
@@ -26,8 +32,12 @@ struct ChatMessageBubble: View {
                         .cornerRadius(16)
                 }
                 
+                // Show confirmation buttons for pending add meal
+                if !message.isFromUser && isLastAgentMessage && chatViewModel.pendingMealToAdd != nil {
+                    addMealConfirmationButtons
+                }
                 // Show confirmation buttons if this is the last agent message and there's a pending modification
-                if !message.isFromUser && isLastAgentMessage && chatViewModel.pendingRecipeModification != nil {
+                else if !message.isFromUser && isLastAgentMessage && chatViewModel.pendingRecipeModification != nil {
                     confirmationButtons
                 }
                 
@@ -192,6 +202,139 @@ struct ChatMessageBubble: View {
         // For now, we'll show any text after the plan section
         // This can be enhanced based on specific markers
         return nil
+    }
+    
+    // MARK: - Pending Recipe Parsing & View
+    
+    struct PendingRecipeData {
+        let title: String
+        let dayMeal: String
+        let servings: Int
+        let time: Int
+    }
+    
+    private func parsePendingRecipeData(from content: String) -> PendingRecipeData? {
+        // Parse format:
+        // 📋 **Titre de la recette**
+        // 🍽️ Pour: Lundi dîner
+        // 👥 Portions: 4
+        // ⏱️ Temps: 30 minutes
+        
+        let lines = content.components(separatedBy: "\n")
+        var title: String?
+        var dayMeal: String?
+        var servings: Int?
+        var time: Int?
+        
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            
+            if trimmed.hasPrefix("📋") {
+                // Extract title between ** **
+                if let startRange = trimmed.range(of: "**"),
+                   let endRange = trimmed.range(of: "**", range: startRange.upperBound..<trimmed.endIndex) {
+                    title = String(trimmed[startRange.upperBound..<endRange.lowerBound])
+                }
+            } else if trimmed.hasPrefix("🍽️") {
+                // Extract day and meal
+                if let colonRange = trimmed.range(of: ":") {
+                    dayMeal = String(trimmed[colonRange.upperBound...]).trimmingCharacters(in: .whitespaces)
+                }
+            } else if trimmed.hasPrefix("👥") {
+                // Extract servings
+                let numbers = trimmed.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+                servings = Int(numbers)
+            } else if trimmed.hasPrefix("⏱️") {
+                // Extract time
+                let numbers = trimmed.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+                time = Int(numbers)
+            }
+        }
+        
+        guard let title = title, let dayMeal = dayMeal, let servings = servings, let time = time else {
+            return nil
+        }
+        
+        return PendingRecipeData(title: title, dayMeal: dayMeal, servings: servings, time: time)
+    }
+    
+    @ViewBuilder
+    private func pendingRecipeCardView(recipeData: PendingRecipeData) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Title
+            HStack {
+                Image(systemName: "fork.knife")
+                    .foregroundColor(.orange)
+                Text(recipeData.title)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+            }
+            
+            // Details
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Image(systemName: "calendar")
+                        .foregroundColor(.blue)
+                        .frame(width: 20)
+                    Text(recipeData.dayMeal)
+                        .font(.subheadline)
+                }
+                
+                HStack {
+                    Image(systemName: "person.2")
+                        .foregroundColor(.green)
+                        .frame(width: 20)
+                    Text("\(recipeData.servings) portions")
+                        .font(.subheadline)
+                }
+                
+                HStack {
+                    Image(systemName: "clock")
+                        .foregroundColor(.purple)
+                        .frame(width: 20)
+                    Text("\(recipeData.time) min")
+                        .font(.subheadline)
+                }
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.orange.opacity(0.3), lineWidth: 2)
+        )
+    }
+    
+    @ViewBuilder
+    private var addMealConfirmationButtons: some View {
+        HStack(spacing: 12) {
+            Button(action: {
+                chatViewModel.confirmAddMeal()
+            }) {
+                Label("Ajouter au plan", systemImage: "plus.circle.fill")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.green)
+                    .cornerRadius(20)
+            }
+            
+            Button(action: {
+                chatViewModel.cancelAddMeal()
+            }) {
+                Label("Annuler", systemImage: "xmark.circle.fill")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.red)
+                    .cornerRadius(20)
+            }
+        }
+        .padding(.top, 8)
     }
     
     @ViewBuilder
