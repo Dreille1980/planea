@@ -1776,8 +1776,14 @@ async def ai_chat(req: ChatRequest):
     # Check if this is a recipe modification request
     is_modification, is_question, recipe_to_modify, modification_request, modification_type, found_weekday, found_meal_type = detect_recipe_modification_request(req.message, req.user_context)
     
-    # Check if this is an add meal request
+    # Check if this is an add meal request - CRITICAL for meal plan integration
     is_add_meal, meal_type, weekday = detect_add_meal_request(req.message)
+    
+    print(f"\n🔍 ADD MEAL DETECTION:")
+    print(f"  is_add_meal: {is_add_meal}")
+    print(f"  meal_type: {meal_type}")
+    print(f"  weekday: {weekday}")
+    print(f"  message: {req.message}")
     
     # Detect which mode to use
     detected_mode = detect_agent_mode(req.message, req.conversation_history)
@@ -1839,8 +1845,10 @@ CALORIE CALCULATION CAPABILITIES:
 - You CAN calculate approximate calories for recipes using standard nutritional databases
 - Use average values from USDA or similar databases
 - FORMAT: Provide ONLY summary per serving/meal - NO detailed ingredient breakdown
-- Show: Total calories per serving, brief macronutrient split
+- Show: Total calories per serving, brief macronutrient split on one line
+- Example: "~650 cal | Protéines: 45g | Glucides: 60g | Lipides: 20g"
 - Keep it concise and easy to read
+- NEVER provide per-ingredient calorie breakdown
 
 ACCESSING MEAL PLANS:
 - The user's current meal plan is provided in the context below (if available)
@@ -1874,16 +1882,14 @@ Tu peux fournir:
 CAPACITÉS DE CALCUL CALORIQUE:
 - Tu PEUX calculer les calories approximatives des recettes en utilisant des bases de données nutritionnelles standard
 - Utilise les valeurs moyennes de l'USDA ou bases similaires
+- NE FOURNIS JAMAIS de détails par ingrédient - UNIQUEMENT le total sommaire
 
-FORMAT OBLIGATOIRE pour les calculs caloriques:
+FORMAT OBLIGATOIRE pour les calculs caloriques (SOMMAIRE):
 📊 **[Nom de la recette]**
-• Calories par portion: XXX cal
-• Protéines: XXg | Glucides: XXg | Lipides: XXg
+~XXX cal | Protéines: XXg | Glucides: XXg | Lipides: XXg
 
-(Répète pour chaque repas demandé)
-
-Utilise des emojis et des puces pour une lecture facile
-Présente les macronutriments sur UNE seule ligne avec des séparateurs "|"
+NE FOURNIS JAMAIS de détails par ingrédient - UNIQUEMENT le total sommaire par repas.
+Utilise des emojis pour une lecture facile et garde tout sur une seule ligne compacte.
 
 ACCÈS AUX PLANS DE REPAS:
 - Le plan de repas actuel de l'utilisateur est fourni dans le contexte ci-dessous (si disponible)
@@ -2013,6 +2019,108 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
                 suggested_actions = ["Idées repas équilibrés", "Besoins en protéines", "Portions légumes", "Horaires repas"]
             else:
                 suggested_actions = ["Balanced meal ideas", "Protein needs", "Vegetable portions", "Meal timing"]
+        
+        # Handle ADD MEAL request - Generate and add to plan immediately
+        if is_add_meal and meal_type and weekday:
+            print(f"\n🍽️  ADDING MEAL TO PLAN")
+            print(f"  Weekday: {weekday}, Meal Type: {meal_type}")
+            
+            try:
+                # Extract recipe requirements from message
+                # Generate the recipe based on user's request
+                recipe = await generate_recipe_with_openai(
+                    meal_type=meal_type,
+                    constraints=req.user_context.get("preferences", {}).get("constraints", {}),
+                    units=req.user_context.get("preferences", {}).get("units", "METRIC"),
+                    servings=4,
+                    previous_recipes=None,
+                    diversity_seed=0,
+                    language=req.language,
+                    preferences=req.user_context.get("preferences", {}),
+                    suggested_protein=None,
+                    other_plan_proteins=[]
+                )
+                
+                # Mark ingredients on sale if feature is enabled
+                await mark_ingredients_on_sale(recipe, req.user_context.get("preferences", {}))
+                
+                # Return the recipe with metadata so the client can add it to the plan
+                print(f"  ✅ Recipe generated: {recipe.title}")
+                
+                if req.language == "fr":
+                    day_names = {
+                        "Mon": "Lundi", "Tue": "Mardi", "Wed": "Mercredi",
+                        "Thu": "Jeudi", "Fri": "Vendredi", "Sat": "Samedi", "Sun": "Dimanche"
+                    }
+                    meal_names = {
+                        "BREAKFAST": "déjeuner", "LUNCH": "dîner", "DINNER": "souper"
+                    }
+                    reply = f"✅ Parfait! J'ai ajouté **{recipe.title}** à votre plan pour {day_names.get(weekday, weekday)} {meal_names.get(meal_type, meal_type)}. La liste d'épicerie a été mise à jour automatiquement."
+                else:
+                    day_names = {
+                        "Mon": "Monday", "Tue": "Tuesday", "Wed": "Wednesday",
+                        "Thu": "Thursday", "Fri": "Friday", "Sat": "Saturday", "Sun": "Sunday"
+                    }
+                    meal_names = {
+                        "BREAKFAST": "breakfast", "LUNCH": "lunch", "DINNER": "dinner"
+                    }
+                    reply = f"✅ Perfect! I've added **{recipe.title}** to your plan for {day_names.get(weekday, weekday)} {meal_names.get(meal_type, meal_type)}. The shopping list has been updated automatically."
+                
+                return ChatResponse(
+                    reply=reply,
+                    detected_mode=detected_mode,
+                    requires_confirmation=False,
+                    suggested_actions=[],
+                    modified_recipe=recipe,  # Return the recipe so client can add it
+                    pending_recipe_modification=None,
+                    modification_type="add_meal",
+                    modification_metadata={
+                        "weekday": weekday,
+                        "meal_type": meal_type
+                    },
+                    member_data=None
+                )
+                
+            except Exception as e:
+                print(f"  ❌ Error generating recipe for add_meal: {e}")
+                if req.language == "fr":
+                    reply = f"⚠️ Désolé, je n'ai pas pu créer la recette pour {weekday} {meal_type}. Veuillez réessayer."
+                else:
+                    reply = f"⚠️ Sorry, I couldn't create the recipe for {weekday} {meal_type}. Please try again."
+        
+        # Handle ADD MEAL request when missing information - Ask for clarification
+        elif is_add_meal and (not meal_type or not weekday):
+            print(f"\n📋 ADD MEAL - MISSING INFO")
+            print(f"  Missing: {'meal_type' if not meal_type else ''} {'weekday' if not weekday else ''}")
+            
+            # Ask for missing information
+            if not weekday and not meal_type:
+                if req.language == "fr":
+                    reply = "Pour quel jour et quel repas souhaitez-vous ajouter cette recette? (Par exemple: 'lundi dîner' ou 'jeudi souper')"
+                else:
+                    reply = "Which day and meal would you like to add this recipe to? (For example: 'Monday lunch' or 'Thursday dinner')"
+            elif not weekday:
+                if req.language == "fr":
+                    reply = "Pour quel jour souhaitez-vous ajouter ce repas? (lundi, mardi, mercredi, jeudi, vendredi, samedi ou dimanche)"
+                else:
+                    reply = "Which day would you like to add this meal? (Monday, Tuesday, Wednesday, Thursday, Friday, Saturday or Sunday)"
+            elif not meal_type:
+                if req.language == "fr":
+                    reply = "Pour quel type de repas? (déjeuner, dîner ou souper)"
+                else:
+                    reply = "Which meal type? (breakfast, lunch or dinner)"
+            
+            return ChatResponse(
+                reply=reply,
+                detected_mode=detected_mode,
+                requires_confirmation=False,
+                suggested_actions=[],
+                modified_recipe=None,
+                pending_recipe_modification=None,
+                modification_type=None,
+                modification_metadata=None,
+                member_data=None
+            )
         
         # Handle recipe modifications with confirmation flow
         modified_recipe = None

@@ -24,6 +24,7 @@ class ChatViewModel: ObservableObject {
     var getPreferences: (() -> GenerationPreferences)?
     var getCurrentPlan: (() -> MealPlan?)?
     var updateRecipe: ((Recipe, String?, String?) -> Void)?  // Recipe, weekday, meal_type
+    var addMealToPlan: ((Recipe, String, String) -> Void)?  // Recipe, weekday, meal_type - REQUIRED for add_meal
     var refreshShoppingList: (() -> Void)?
     var familyViewModel: FamilyViewModel?
     
@@ -182,26 +183,46 @@ class ChatViewModel: ObservableObject {
                 }
             }
             
-            // Handle confirmed recipe modification
+            // Handle confirmed recipe modification OR add meal
             if let modifiedRecipe = response.modifiedRecipe {
                 // Get metadata for plan update
                 let weekday = response.modificationMetadata?["weekday"]
                 let mealType = response.modificationMetadata?["meal_type"]
                 
-                // Clear any pending modification
-                pendingRecipeModification = nil
-                pendingModificationType = nil
-                pendingModificationMetadata = nil
-                
-                // Update the recipe in the plan with metadata
-                updateRecipe?(modifiedRecipe, weekday, mealType)
-                
-                // Refresh shopping list
-                refreshShoppingList?()
-                
-                print("✅ Recipe modification applied successfully")
-                if let wd = weekday, let mt = mealType {
-                    print("   Updated: \(wd) \(mt)")
+                // Check if this is an "add_meal" operation
+                if response.modificationType == "add_meal", let wd = weekday, let mt = mealType {
+                    print("🍽️ Adding meal to plan")
+                    print("   Weekday: \(wd), MealType: \(mt)")
+                    print("   Recipe: \(modifiedRecipe.title)")
+                    
+                    // Add the meal to the plan (not update existing)
+                    if let addMealToPlan = addMealToPlan {
+                        addMealToPlan(modifiedRecipe, wd, mt)
+                        
+                        // Refresh shopping list
+                        refreshShoppingList?()
+                        
+                        print("✅ Meal added to plan successfully")
+                    } else {
+                        print("⚠️ addMealToPlan callback not configured")
+                    }
+                } else {
+                    // This is a regular recipe modification
+                    // Clear any pending modification
+                    pendingRecipeModification = nil
+                    pendingModificationType = nil
+                    pendingModificationMetadata = nil
+                    
+                    // Update the recipe in the plan with metadata
+                    updateRecipe?(modifiedRecipe, weekday, mealType)
+                    
+                    // Refresh shopping list
+                    refreshShoppingList?()
+                    
+                    print("✅ Recipe modification applied successfully")
+                    if let wd = weekday, let mt = mealType {
+                        print("   Updated: \(wd) \(mt)")
+                    }
                 }
             }
             

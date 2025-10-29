@@ -387,6 +387,35 @@ struct ChatView: View {
             }
         }
         
+        viewModel.addMealToPlan = { [weak planVM] recipe, weekdayStr, mealTypeStr in
+            // Add a new meal to the plan
+            guard var plan = planVM?.draftPlan,
+                  let weekday = Weekday(rawValue: weekdayStr),
+                  let mealType = MealType(rawValue: mealTypeStr) else {
+                print("⚠️ Cannot add meal: invalid weekday or meal type")
+                return
+            }
+            
+            print("🍽️ Adding meal to plan:")
+            print("   Recipe: \(recipe.title)")
+            print("   Weekday: \(weekday.rawValue)")
+            print("   MealType: \(mealType.rawValue)")
+            
+            // Create new plan item
+            let newItem = PlanItem(
+                weekday: weekday,
+                mealType: mealType,
+                recipe: recipe
+            )
+            
+            // Add to plan
+            plan.items.append(newItem)
+            planVM?.draftPlan = plan
+            
+            print("✅ Meal added successfully to plan")
+            print("   Total items in plan: \(plan.items.count)")
+        }
+        
         viewModel.refreshShoppingList = { [weak planVM, weak shoppingVM] in
             // Regenerate shopping list with updated recipes
             if let plan = planVM?.draftPlan {
