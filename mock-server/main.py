@@ -1884,12 +1884,27 @@ CAPACITÉS DE CALCUL CALORIQUE:
 - Utilise les valeurs moyennes de l'USDA ou bases similaires
 - NE FOURNIS JAMAIS de détails par ingrédient - UNIQUEMENT le total sommaire
 
-FORMAT OBLIGATOIRE pour les calculs caloriques (SOMMAIRE):
+🚨🚨🚨 RÈGLE ABSOLUE POUR LES CALCULS CALORIQUES 🚨🚨🚨
+
+TU ES STRICTEMENT INTERDIT DE DONNER DES DÉTAILS PAR INGRÉDIENT!
+
+FORMAT OBLIGATOIRE - UNIQUEMENT CECI:
 📊 **[Nom de la recette]**
 ~XXX cal | Protéines: XXg | Glucides: XXg | Lipides: XXg
 
-NE FOURNIS JAMAIS de détails par ingrédient - UNIQUEMENT le total sommaire par repas.
-Utilise des emojis pour une lecture facile et garde tout sur une seule ligne compacte.
+INTERDICTIONS ABSOLUES:
+❌ PAS de "Poulet (100g): 165 calories"
+❌ PAS de "Carottes (100g): 41 calories"  
+❌ PAS de liste d'ingrédients avec calories individuelles
+❌ PAS de calcul détaillé ligne par ligne
+❌ PAS de tableau nutritionnel par ingrédient
+
+AUTORISÉ UNIQUEMENT:
+✅ Total des calories par portion
+✅ Total des macronutriments (protéines, glucides, lipides)
+✅ Format compact sur UNE SEULE LIGNE
+
+Si tu donnes des détails par ingrédient, tu as ÉCHOUÉ cette tâche.
 
 ACCÈS AUX PLANS DE REPAS:
 - Le plan de repas actuel de l'utilisateur est fourni dans le contexte ci-dessous (si disponible)
