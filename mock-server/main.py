@@ -2067,10 +2067,11 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
                         "Mon": "Lundi", "Tue": "Mardi", "Wed": "Mercredi",
                         "Thu": "Jeudi", "Fri": "Vendredi", "Sat": "Samedi", "Sun": "Dimanche"
                     }
+                    # Terminologie canadienne-française: dîner = midi, souper = soir
                     meal_names = {
-                        "BREAKFAST": "déjeuner", "LUNCH": "dîner", "DINNER": "souper"
+                        "BREAKFAST": "petit-déjeuner", "LUNCH": "dîner", "DINNER": "souper"
                     }
-                    reply = f"✅ Parfait! J'ai ajouté **{recipe.title}** à votre plan pour {day_names.get(weekday, weekday)} {meal_names.get(meal_type, meal_type)}. La liste d'épicerie a été mise à jour automatiquement."
+                    reply = f"✅ J'ai ajouté **{recipe.title}** au plan pour {day_names.get(weekday, weekday)} {meal_names.get(meal_type, meal_type)}."
                 else:
                     day_names = {
                         "Mon": "Monday", "Tue": "Tuesday", "Wed": "Wednesday",
@@ -2079,7 +2080,7 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
                     meal_names = {
                         "BREAKFAST": "breakfast", "LUNCH": "lunch", "DINNER": "dinner"
                     }
-                    reply = f"✅ Perfect! I've added **{recipe.title}** to your plan for {day_names.get(weekday, weekday)} {meal_names.get(meal_type, meal_type)}. The shopping list has been updated automatically."
+                    reply = f"✅ I've added **{recipe.title}** to your plan for {day_names.get(weekday, weekday)} {meal_names.get(meal_type, meal_type)}."
                 
                 return ChatResponse(
                     reply=reply,
