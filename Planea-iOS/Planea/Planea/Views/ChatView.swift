@@ -389,10 +389,25 @@ struct ChatView: View {
         
         viewModel.addMealToPlan = { [weak planVM] recipe, weekdayStr, mealTypeStr in
             // Add a new meal to the plan
-            guard var plan = planVM?.draftPlan,
-                  let weekday = Weekday(rawValue: weekdayStr),
-                  let mealType = MealType(rawValue: mealTypeStr) else {
-                print("⚠️ Cannot add meal: invalid weekday or meal type")
+            print("🔍 addMealToPlan callback called:")
+            print("   weekdayStr: '\(weekdayStr)'")
+            print("   mealTypeStr: '\(mealTypeStr)'")
+            print("   Recipe: '\(recipe.title)'")
+            
+            guard var plan = planVM?.draftPlan else {
+                print("⚠️ Cannot add meal: no draft plan available")
+                return
+            }
+            
+            guard let weekday = Weekday(rawValue: weekdayStr) else {
+                print("⚠️ Cannot add meal: invalid weekday '\(weekdayStr)'")
+                print("   Valid values: Mon, Tue, Wed, Thu, Fri, Sat, Sun")
+                return
+            }
+            
+            guard let mealType = MealType(rawValue: mealTypeStr) else {
+                print("⚠️ Cannot add meal: invalid meal type '\(mealTypeStr)'")
+                print("   Valid values: BREAKFAST, LUNCH, DINNER")
                 return
             }
             
