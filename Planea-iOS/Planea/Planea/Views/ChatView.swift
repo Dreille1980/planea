@@ -401,8 +401,8 @@ struct ChatView: View {
             print("   Weekday: \(weekday.rawValue)")
             print("   MealType: \(mealType.rawValue)")
             
-            // Create new plan item
-            let newItem = PlanItem(
+            // Create new meal item
+            let newItem = MealItem(
                 weekday: weekday,
                 mealType: mealType,
                 recipe: recipe
