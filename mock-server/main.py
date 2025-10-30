@@ -2039,22 +2039,59 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
         if is_add_meal and meal_type and weekday:
             print(f"\n🍽️  ADDING MEAL TO PLAN")
             print(f"  Weekday: {weekday}, Meal Type: {meal_type}")
+            print(f"  User message: {req.message}")
             
             try:
-                # Extract recipe requirements from message
-                # Generate the recipe based on user's request
-                recipe = await generate_recipe_with_openai(
-                    meal_type=meal_type,
-                    constraints=req.user_context.get("preferences", {}).get("constraints", {}),
-                    units=req.user_context.get("preferences", {}).get("units", "METRIC"),
-                    servings=4,
-                    previous_recipes=None,
-                    diversity_seed=0,
-                    language=req.language,
-                    preferences=req.user_context.get("preferences", {}),
-                    suggested_protein=None,
-                    other_plan_proteins=[]
-                )
+                # Extract recipe description from user's message
+                # Remove add keywords and day/meal keywords to get the actual dish request
+                recipe_description = req.message.lower()
+                
+                # Remove common keywords
+                remove_keywords = [
+                    'ajoute', 'ajouter', 'crée', 'créer', 'génère', 'générer', 'propose', 'proposer',
+                    'add', 'create', 'generate', 'suggest', 'propose',
+                    'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche',
+                    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+                    'petit-déjeuner', 'petit déjeuner', 'déjeuner', 'dîner', 'souper',
+                    'breakfast', 'lunch', 'dinner',
+                    'pour', 'for', 'le', 'la', 'un', 'une', 'a', 'an', 'au', 'à', 'at', 'on',
+                    'midi', 'soir', 'matin', 'morning', 'noon', 'evening'
+                ]
+                
+                for keyword in remove_keywords:
+                    recipe_description = recipe_description.replace(keyword, ' ')
+                
+                recipe_description = ' '.join(recipe_description.split()).strip()
+                
+                print(f"  Extracted recipe description: '{recipe_description}'")
+                
+                # If we have a description, use it like ai_recipe endpoint
+                # Otherwise fall back to generic generation
+                if recipe_description and len(recipe_description) > 2:
+                    # Use the recipe generation similar to /ai/recipe endpoint
+                    recipe_request = RecipeRequest(
+                        idea=recipe_description,
+                        constraints=req.user_context.get("preferences", {}).get("constraints", {}),
+                        servings=4,
+                        units=req.user_context.get("preferences", {}).get("units", "METRIC"),
+                        language=req.language,
+                        preferences=req.user_context.get("preferences", {})
+                    )
+                    recipe = await ai_recipe(recipe_request)
+                else:
+                    # Fallback to generic generation based on meal_type
+                    recipe = await generate_recipe_with_openai(
+                        meal_type=meal_type,
+                        constraints=req.user_context.get("preferences", {}).get("constraints", {}),
+                        units=req.user_context.get("preferences", {}).get("units", "METRIC"),
+                        servings=4,
+                        previous_recipes=None,
+                        diversity_seed=0,
+                        language=req.language,
+                        preferences=req.user_context.get("preferences", {}),
+                        suggested_protein=None,
+                        other_plan_proteins=[]
+                    )
                 
                 # Mark ingredients on sale if feature is enabled
                 await mark_ingredients_on_sale(recipe, req.user_context.get("preferences", {}))
