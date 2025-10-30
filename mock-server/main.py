@@ -2078,7 +2078,7 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
 
 🍽️ Pour: {day_names.get(weekday, weekday)} {meal_names.get(meal_type, meal_type)}
 👥 Portions: {recipe.servings}
-⏱️ Temps: {recipe.totalMinutes} minutes
+⏱️ Temps: {recipe.total_minutes} minutes
 
 Voulez-vous l'ajouter à votre plan?"""
                 else:
