@@ -264,7 +264,7 @@ struct ChatMessageBubble: View {
             // Title
             HStack {
                 Image(systemName: "fork.knife")
-                    .foregroundColor(.orange)
+                    .foregroundColor(.secondary)
                 Text(recipeData.title)
                     .font(.headline)
                     .fontWeight(.semibold)
@@ -274,7 +274,7 @@ struct ChatMessageBubble: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Image(systemName: "calendar")
-                        .foregroundColor(.blue)
+                        .foregroundColor(.secondary)
                         .frame(width: 20)
                     Text(recipeData.dayMeal)
                         .font(.subheadline)
@@ -282,7 +282,7 @@ struct ChatMessageBubble: View {
                 
                 HStack {
                     Image(systemName: "person.2")
-                        .foregroundColor(.green)
+                        .foregroundColor(.secondary)
                         .frame(width: 20)
                     Text("\(recipeData.servings) portions")
                         .font(.subheadline)
@@ -290,7 +290,7 @@ struct ChatMessageBubble: View {
                 
                 HStack {
                     Image(systemName: "clock")
-                        .foregroundColor(.purple)
+                        .foregroundColor(.secondary)
                         .frame(width: 20)
                     Text("\(recipeData.time) min")
                         .font(.subheadline)
@@ -301,10 +301,6 @@ struct ChatMessageBubble: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.systemGray6))
         .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.orange.opacity(0.3), lineWidth: 2)
-        )
     }
     
     @ViewBuilder
@@ -315,10 +311,10 @@ struct ChatMessageBubble: View {
             }) {
                 Label("Ajouter au plan", systemImage: "plus.circle.fill")
                     .font(.subheadline.weight(.medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background(Color.green)
+                    .background(Color(.systemGray5))
                     .cornerRadius(20)
             }
             
@@ -327,10 +323,10 @@ struct ChatMessageBubble: View {
             }) {
                 Label("Annuler", systemImage: "xmark.circle.fill")
                     .font(.subheadline.weight(.medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(.secondary)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background(Color.red)
+                    .background(Color(.systemGray6))
                     .cornerRadius(20)
             }
         }
@@ -347,10 +343,10 @@ struct ChatMessageBubble: View {
             }) {
                 Label("chat.confirm.button".localized, systemImage: "checkmark.circle.fill")
                     .font(.subheadline.weight(.medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background(Color.green)
+                    .background(Color(.systemGray5))
                     .cornerRadius(20)
             }
             
@@ -359,10 +355,10 @@ struct ChatMessageBubble: View {
             }) {
                 Label("chat.cancel.button".localized, systemImage: "xmark.circle.fill")
                     .font(.subheadline.weight(.medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(.secondary)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background(Color.red)
+                    .background(Color(.systemGray6))
                     .cornerRadius(20)
             }
         }

@@ -13,16 +13,13 @@ struct MealPlanCardsView: View {
                 .foregroundColor(.secondary)
                 .padding(.horizontal, 4)
             
-            // Horizontal scrolling cards
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(planData) { dayData in
-                        MealPlanDayCard(dayData: dayData)
-                    }
+            // Vertical stacked cards
+            VStack(spacing: 12) {
+                ForEach(planData) { dayData in
+                    MealPlanDayCard(dayData: dayData)
                 }
-                .padding(.horizontal, 4)
-                .padding(.vertical, 2)
             }
+            .padding(.horizontal, 4)
         }
         .padding(.vertical, 8)
     }
@@ -40,15 +37,28 @@ struct MealPlanDayCard: View {
             HStack {
                 Text(dayData.dayName)
                     .font(.headline)
-                    .fontWeight(.bold)
+                    .bold()
+                
                 Spacer()
-                Image(systemName: "calendar")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                
+                HStack(spacing: 4) {
+                    Image(systemName: "fork.knife")
+                        .font(.caption)
+                    Text("\(dayData.meals.count)")
+                        .font(.caption)
+                        .bold()
+                }
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color(.systemGray5))
+                .cornerRadius(8)
             }
             
+            Divider()
+            
             // Meals list
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(spacing: 12) {
                 ForEach(dayData.meals) { meal in
                     Button(action: {
                         selectedMeal = meal
@@ -56,17 +66,15 @@ struct MealPlanDayCard: View {
                     }) {
                         mealRow(meal: meal)
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
-        .padding(16)
-        .frame(width: 280)
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color(.systemGray4), lineWidth: 1)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
         )
         .sheet(item: $selectedMeal) { meal in
             if let recipe = meal.fullRecipe {
@@ -112,53 +120,53 @@ struct MealPlanDayCard: View {
     
     @ViewBuilder
     private func mealRow(meal: MealData) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            // Meal type badge
-            HStack {
+        HStack(spacing: 12) {
+            // Icon
+            Image(systemName: iconName(for: meal.mealType))
+                .font(.title3)
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(.secondary)
+                .frame(width: 32, height: 32)
+                .background(Color(.systemGray5))
+                .cornerRadius(8)
+            
+            // Content
+            VStack(alignment: .leading, spacing: 2) {
                 Text(meal.mealType)
-                    .font(.caption2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(mealTypeColor(meal.mealType))
-                    .cornerRadius(6)
-                Spacer()
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Text(meal.title)
+                    .font(.subheadline)
+                    .bold()
+                    .foregroundStyle(.primary)
             }
             
-            // Recipe title
-            Text(meal.title)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(.primary)
-                .lineLimit(2)
+            Spacer()
             
-            // Meta info
-            if let servings = meal.servings, let time = meal.time {
-                HStack(spacing: 12) {
-                    Label("\(servings)", systemImage: "person.2")
-                    Label("\(time)'", systemImage: "clock")
-                }
-                .font(.caption2)
-                .foregroundColor(.secondary)
-            }
+            // Navigate icon
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .frame(width: 20)
         }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
         .background(Color(.systemGray6))
         .cornerRadius(10)
     }
     
-    private func mealTypeColor(_ mealType: String) -> Color {
+    private func iconName(for mealType: String) -> String {
         switch mealType.lowercased() {
         case let type where type.contains("déjeuner") || type.contains("breakfast"):
-            return Color.orange
+            return "sunrise.fill"
         case let type where type.contains("dîner") || type.contains("lunch"):
-            return Color.green
+            return "sun.max.fill"
         case let type where type.contains("souper") || type.contains("dinner"):
-            return Color.blue
+            return "moon.stars.fill"
+        case let type where type.contains("collation") || type.contains("snack"):
+            return "cup.and.saucer.fill"
         default:
-            return Color.gray
+            return "fork.knife"
         }
     }
 }

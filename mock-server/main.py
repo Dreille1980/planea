@@ -1761,6 +1761,30 @@ def detect_user_confirmation(message: str, language: str) -> bool:
     return is_confirmation
 
 
+def detect_plan_display_request(message: str) -> bool:
+    """Detect if user wants to see their meal plan."""
+    message_lower = message.lower()
+    
+    # Keywords indicating plan display request
+    plan_keywords_fr = ['mon plan', 'le plan', 'mon menu', 'le menu', 'semaine', 'cette semaine', 'plan actuel', 'plan de la semaine', 'mes repas', 'repas de la semaine']
+    plan_keywords_en = ['my plan', 'the plan', 'my menu', 'the menu', 'week', 'this week', 'current plan', 'week plan', 'my meals', 'week meals']
+    
+    # Question words
+    question_words_fr = ['quel', 'quelle', 'quels', 'quelles', 'montre', 'voir', 'affiche', 'afficher']
+    question_words_en = ['what', 'which', 'show', 'display', 'see', 'view']
+    
+    # Check if asking about the plan
+    is_plan_request = (
+        any(keyword in message_lower for keyword in plan_keywords_fr + plan_keywords_en) and
+        (any(q in message_lower for q in question_words_fr + question_words_en) or 
+         message_lower.endswith('?') or 
+         message_lower.startswith('montre') or 
+         message_lower.startswith('show'))
+    )
+    
+    return is_plan_request
+
+
 @app.post("/ai/chat", response_model=ChatResponse)
 async def ai_chat(req: ChatRequest):
     """Conversational agent with 3 modes: onboarding, recipe Q&A, and nutrition coach."""
@@ -1769,6 +1793,9 @@ async def ai_chat(req: ChatRequest):
     has_premium = req.user_context.get("has_premium", False)
     if not has_premium:
         raise HTTPException(status_code=403, detail="Premium subscription required for conversational agent")
+    
+    # Check if user wants to see their plan - PRIORITY CHECK
+    is_plan_display = detect_plan_display_request(req.message)
     
     # Check if user is confirming a previous action
     is_confirmation = detect_user_confirmation(req.message, req.language)
@@ -1990,6 +2017,64 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
     
     # Add current message
     messages.append({"role": "user", "content": req.message})
+    
+    # SPECIAL HANDLING: If user wants to see their plan, format it with card markers
+    if is_plan_display and req.user_context.get("current_plan"):
+        print(f"\n📅 Plan display request detected!")
+        
+        day_order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        day_names_fr = {
+            "Mon": "Lundi", "Tue": "Mardi", "Wed": "Mercredi",
+            "Thu": "Jeudi", "Fri": "Vendredi", "Sat": "Samedi", "Sun": "Dimanche"
+        }
+        day_names_en = {
+            "Mon": "Monday", "Tue": "Tuesday", "Wed": "Wednesday",
+            "Thu": "Thursday", "Fri": "Friday", "Sat": "Saturday", "Sun": "Sunday"
+        }
+        
+        # Build formatted plan response with 📅 marker for iOS parsing
+        if req.language == "fr":
+            reply = "📅 PLAN ACTUEL\n\nVoici votre plan de repas pour la semaine:\n\n"
+        else:
+            reply = "📅 CURRENT PLAN\n\nHere's your meal plan for the week:\n\n"
+        
+        # Sort days chronologically
+        sorted_days = sorted(
+            req.user_context["current_plan"].items(),
+            key=lambda x: day_order.index(x[0]) if x[0] in day_order else 999
+        )
+        
+        for day_abbr, meals in sorted_days:
+            day_name = day_names_fr.get(day_abbr, day_abbr) if req.language == "fr" else day_names_en.get(day_abbr, day_abbr)
+            reply += f"{day_name}:\n"
+            
+            for meal in meals:
+                if req.language == "fr":
+                    meal_type_display = {"BREAKFAST": "Déjeuner", "LUNCH": "Dîner", "DINNER": "Souper"}.get(meal.get('meal_type', ''), meal.get('meal_type', ''))
+                else:
+                    meal_type_display = {"BREAKFAST": "Breakfast", "LUNCH": "Lunch", "DINNER": "Dinner"}.get(meal.get('meal_type', ''), meal.get('meal_type', ''))
+                
+                reply += f"  • {meal_type_display}: {meal.get('title', 'Unknown')}\n"
+            
+            reply += "\n"
+        
+        # Add helpful message
+        if req.language == "fr":
+            reply += "💬 Vous pouvez me demander de modifier une recette ou d'en ajouter une nouvelle!"
+        else:
+            reply += "💬 You can ask me to modify a recipe or add a new one!"
+        
+        return ChatResponse(
+            reply=reply,
+            detected_mode=detected_mode,
+            requires_confirmation=False,
+            suggested_actions=["Modifier une recette", "Ajouter un repas", "Calculer les calories"] if req.language == "fr" else ["Modify a recipe", "Add a meal", "Calculate calories"],
+            modified_recipe=None,
+            pending_recipe_modification=None,
+            modification_type=None,
+            modification_metadata=None,
+            member_data=None
+        )
     
     try:
         # Call OpenAI
