@@ -393,9 +393,71 @@ async def generate_recipe_with_openai(
     preferences: dict = None,
     suggested_protein: str = None,
     other_plan_proteins: List[str] = None,
-    flyer_deals: List[str] = None
+    flyer_deals: List[str] = None,
+    weekday: str = None
 ) -> Recipe:
     """Generate a single recipe using OpenAI with diversity awareness (async)."""
+    
+    # Determine complexity level based on weekday and time constraints
+    is_weekend = weekday in ['Sat', 'Sun'] if weekday else False
+    weekday_max = preferences.get("weekdayMaxMinutes", 30) if preferences else 30
+    weekend_max = preferences.get("weekendMaxMinutes", 60) if preferences else 60
+    
+    # Assign complexity intelligently based on day and available time
+    if is_weekend and weekend_max >= 60:
+        # Weekend with sufficient time: vary between medium and complex
+        complexity_level = "complex" if diversity_seed % 2 == 0 else "medium"
+        max_time = weekend_max
+    elif is_weekend:
+        # Weekend with limited time: medium
+        complexity_level = "medium"
+        max_time = weekend_max
+    else:
+        # Weekday: simple or medium based on time
+        complexity_level = "simple" if weekday_max <= 30 else "medium"
+        max_time = weekday_max
+    
+    print(f"🎯 Recipe complexity for {weekday or 'unknown'}: {complexity_level} (max {max_time} min)")
+    
+    # Build complexity-specific instructions
+    if complexity_level == "simple":
+        complexity_instructions_fr = f"""RECETTE SIMPLE et RAPIDE (max {max_time} minutes):
+- Techniques basiques: grillé, poêlé, sauté, rôti, vapeur
+- Formats acceptés: protéine + légumes, salades composées, omelettes, sandwiches élaborés
+- Sauces simples autorisées: vinaigrettes, marinades rapides, réductions simples"""
+        
+        complexity_instructions_en = f"""SIMPLE and QUICK recipe (max {max_time} minutes):
+- Basic techniques: grilled, pan-fried, sautéed, roasted, steamed
+- Accepted formats: protein + vegetables, composed salads, omelets, elaborate sandwiches
+- Simple sauces allowed: vinaigrettes, quick marinades, simple reductions"""
+    
+    elif complexity_level == "medium":
+        complexity_instructions_fr = f"""RECETTE DE COMPLEXITÉ MOYENNE (max {max_time} minutes):
+- Inclure UNE sauce ou garniture élaborée
+- Formats privilégiés: pâtes avec sauce, sautés asiatiques, tacos élaborés, bowls composés
+- Techniques intermédiaires: mijoter brièvement, réduire, caraméliser, gratiner rapidement
+- Minimum 6-7 ingrédients différents pour créer des profils de saveurs intéressants"""
+        
+        complexity_instructions_en = f"""MEDIUM COMPLEXITY recipe (max {max_time} minutes):
+- Include ONE elaborate sauce or garnish
+- Preferred formats: pasta with sauce, Asian stir-fries, elaborate tacos, composed bowls
+- Intermediate techniques: brief simmering, reducing, caramelizing, quick gratinating
+- Minimum 6-7 different ingredients to create interesting flavor profiles"""
+    
+    else:  # complex
+        complexity_instructions_fr = f"""RECETTE ÉLABORÉE (max {max_time} minutes):
+- PRIVILÉGIER ABSOLUMENT: casseroles, lasagnes, gratins, plats mijotés, pâtes au four
+- Sauces riches et complexes: béchamel, sauce tomate maison, crème réduites, bouillons mijotés
+- Techniques avancées: étages de saveurs, cuisson au four, assemblage complexe
+- Minimum 8-10 ingrédients variés incluant herbes, épices, condiments spéciaux
+- Créer des profils de saveurs multicouches: umami, acidité, douceur, épices"""
+        
+        complexity_instructions_en = f"""ELABORATE recipe (max {max_time} minutes):
+- ABSOLUTELY PRIORITIZE: casseroles, lasagnas, gratins, braised dishes, baked pasta
+- Rich and complex sauces: béchamel, homemade tomato sauce, reduced creams, simmered broths
+- Advanced techniques: flavor layering, oven cooking, complex assembly
+- Minimum 8-10 varied ingredients including herbs, spices, special condiments
+- Create multi-layered flavor profiles: umami, acidity, sweetness, spices"""
     
     # Build constraints text
     constraints_text = ""
@@ -409,20 +471,7 @@ async def generate_recipe_with_openai(
     # Build preferences text from preferences dict
     preferences_text = ""
     if preferences:
-        # Time constraints based on meal day
-        if preferences.get("weekdayMaxMinutes") is not None or preferences.get("weekendMaxMinutes") is not None:
-            weekday_max = preferences.get("weekdayMaxMinutes", 30)
-            weekend_max = preferences.get("weekendMaxMinutes", 60)
-            preferences_text += f"TIMING CONSTRAINT: Weekday recipes must take NO MORE than {weekday_max} minutes. Weekend recipes can take up to {weekend_max} minutes. "
-        
-        # Complexity based on time
-        max_time = preferences.get("maxMinutes", 30)  # For ad-hoc recipes
-        if max_time <= 30:
-            preferences_text += "COMPLEXITY: Keep the recipe simple with basic cooking techniques. "
-        elif max_time <= 60:
-            preferences_text += "COMPLEXITY: Use intermediate cooking techniques and interesting flavor combinations. "
-        else:
-            preferences_text += "COMPLEXITY: Use advanced culinary techniques, complex flavor profiles, and sophisticated presentations. "
+        # Note: Complexity is now determined by weekday/time and added separately
         
         # Spice level
         if preferences.get("spiceLevel") and preferences["spiceLevel"] != "none":
@@ -458,16 +507,24 @@ async def generate_recipe_with_openai(
     protein_portions_text += "These portions ensure adequate protein intake for a satisfying meal.\n"
     
     # Build diversity instructions with protein guidance
-    diversity_text = "\n\nIMPÉRATIF - DIVERSITÉ MAXIMALE:\n"
+    # Build diversity instructions with recipe type variety
+    diversity_text = "\n\n🎯 IMPÉRATIF - DIVERSITÉ DES TYPES DE PLATS:\n"
+    diversity_text += "Varie les formats pour créer un menu intéressant et équilibré:\n"
+    diversity_text += "- Plats simples: grillés, poêlés, rôtis (protéine + légumes)\n"
+    diversity_text += "- Plats avec sauce: currys, stroganoffs, fricassées, sautés en sauce\n"
+    diversity_text += "- Plats au four: gratins, casseroles, lasagnes, enchiladas\n"
+    diversity_text += "- Plats mijotés: ragoûts, braisés, tajines, chili\n"
+    diversity_text += "- Plats de pâtes/riz: risottos, pasta bakes, paellas, bols de riz\n"
+    diversity_text += "- Plats internationaux: pad thai, butter chicken, moussaka, fajitas\n\n"
+    
     if suggested_protein and other_plan_proteins:
-        diversity_text += f"- PROTÉINE SUGGÉRÉE pour cette recette: {suggested_protein}\n"
-        diversity_text += f"- INTERDICTION d'utiliser ces protéines (déjà dans le plan): {', '.join(other_plan_proteins)}\n"
-        diversity_text += f"- Tu DOIS utiliser {suggested_protein} ou une alternative DIFFÉRENTE des protéines interdites\n"
-    diversity_text += "- Crée une recette TOTALEMENT UNIQUE et DIFFÉRENTE\n"
-    diversity_text += "- Varie librement: cuisines du monde, légumes, épices, techniques\n"
-    diversity_text += "- Explore des combinaisons créatives et inattendues\n"
-    diversity_text += "- Chaque recette doit être distincte des autres\n"
-    diversity_text += "- Utilise la créativité maximale sans limitations\n"
+        diversity_text += f"PROTÉINE SUGGÉRÉE: {suggested_protein}\n"
+        diversity_text += f"INTERDICTION d'utiliser: {', '.join(other_plan_proteins)}\n\n"
+    
+    diversity_text += "Crée une recette UNIQUE avec:\n"
+    diversity_text += "- Combinaisons de saveurs créatives et intéressantes\n"
+    diversity_text += "- Ingrédients variés (herbes, épices, condiments)\n"
+    diversity_text += "- Techniques de cuisson appropriées au niveau de complexité\n"
     
     unit_system = "métrique (grammes, ml)" if units == "METRIC" else "impérial (oz, cups)"
     
@@ -522,7 +579,8 @@ async def generate_recipe_with_openai(
         
         prompt = f"""Generate a {meal_type_name} recipe in English for {servings} people.
 
-{constraints_text_en}{preferences_text}{protein_portions_text_en}{diversity_text_en}
+{constraints_text_en}{complexity_instructions_en}
+{preferences_text}{protein_portions_text_en}{diversity_text_en}
 
 CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
 - First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
@@ -557,7 +615,8 @@ IMPORTANT: Generate at least 6-8 detailed steps with EXPLICIT preparation steps 
     else:
         prompt = f"""Génère une recette de {meal_type_fr} en français pour {servings} personnes.
 
-{constraints_text}{preferences_text}{protein_portions_text}{diversity_text}
+{constraints_text}{complexity_instructions_fr}
+{preferences_text}{protein_portions_text}{diversity_text}
 
 CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
 - Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
@@ -727,7 +786,8 @@ async def ai_plan(req: PlanRequest):
             language=req.language,
             preferences=req.preferences,
             suggested_protein=suggested_proteins[idx],
-            other_plan_proteins=[p for i, p in enumerate(suggested_proteins) if i != idx]
+            other_plan_proteins=[p for i, p in enumerate(suggested_proteins) if i != idx],
+            weekday=slot.weekday  # Pass weekday for complexity determination
         )
         for idx, slot in enumerate(req.slots)
     ]
@@ -782,7 +842,8 @@ async def regenerate_meal(req: RegenerateMealRequest):
         previous_recipes=None,
         diversity_seed=req.diversity_seed,
         language=req.language,
-        preferences=req.preferences
+        preferences=req.preferences,
+        weekday=req.weekday  # Pass weekday for complexity determination
     )
     
     # Mark ingredients on sale if feature is enabled
