@@ -650,7 +650,7 @@ IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de prépa
 
     try:
         response = await client.chat.completions.create(
-            model="gpt-5.1",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "Tu es un chef cuisinier créatif et expert qui génère des recettes uniques et détaillées en JSON. Tu varies toujours les ingrédients, cuisines et techniques."},
                 {"role": "user", "content": prompt}
@@ -990,7 +990,7 @@ IMPORTANT: Génère au moins 5-7 étapes détaillées avec des étapes de prépa
 
     try:
         response = await client.chat.completions.create(
-            model="gpt-5.1",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "Tu es un chef cuisinier créatif et expert qui génère des recettes uniques et détaillées en JSON."},
                 {"role": "user", "content": prompt}
@@ -1176,7 +1176,7 @@ IMPORTANT:
 
     try:
         response = await client.chat.completions.create(
-            model="gpt-5.1",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
@@ -1410,7 +1410,7 @@ Catégories: légumes, fruits, viandes, poissons, produits laitiers, sec, condim
     try:
         # Use OpenAI Vision API to analyze the image
         response = await client.chat.completions.create(
-            model="gpt-5.1",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
@@ -2140,7 +2140,7 @@ Garde tes conseils généraux et basés sur les preuves. Pour les calculs calori
     try:
         # Call OpenAI
         response = await client.chat.completions.create(
-            model="gpt-5.1",
+            model="gpt-4o",
             messages=messages,
             temperature=0.7,
             max_tokens=800
@@ -2428,7 +2428,7 @@ IMPORTANT:
 - Ajuste les quantités et étapes selon la modification"""
                             
                             modification_response = await client.chat.completions.create(
-                                model="gpt-5.1",
+                                model="gpt-4o",
                                 messages=[
                                     {"role": "system", "content": "Tu es un chef expert qui modifie des recettes selon les demandes des utilisateurs."},
                                     {"role": "user", "content": full_prompt}
@@ -2544,7 +2544,7 @@ IMPORTANT: Implémente EXACTEMENT la modification demandée"""
                 
                 # Generate proposed modification
                 modification_response = await client.chat.completions.create(
-                    model="gpt-5.1",
+                    model="gpt-4o",
                     messages=[
                         {"role": "system", "content": "Tu es un chef expert qui modifie des recettes selon les demandes des utilisateurs."},
                         {"role": "user", "content": full_prompt}
