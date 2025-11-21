@@ -148,8 +148,10 @@ struct OnboardingContainerView: View {
         hasCompletedOnboarding = true
         OnboardingProgress.reset() // Clear progress for next time
         
-        // Start the 7-day free trial
-        FreeTrialService.shared.startTrial()
+                        // Start the 7-day free trial (only if not in free version mode)
+                        if !Config.isFreeVersion {
+                            FreeTrialService.shared.startTrial()
+                        }
         
         isPresented = false
     }

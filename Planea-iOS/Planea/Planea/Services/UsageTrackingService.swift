@@ -6,7 +6,9 @@ class UsageTrackingService {
     
     // MARK: - Constants
     
-    private let FREE_PLAN_LIMIT = 15
+    private var FREE_PLAN_LIMIT: Int {
+        return Config.monthlyGenerationLimit
+    }
     
     // MARK: - UserDefaults Keys
     

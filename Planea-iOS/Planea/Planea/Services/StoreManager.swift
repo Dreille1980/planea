@@ -79,6 +79,17 @@ class StoreManager: ObservableObject {
     // MARK: - Subscription Status
     
     func updateSubscriptionStatus() async {
+        // Check if free version mode is enabled
+        if Config.isFreeVersion {
+            subscriptionInfo = SubscriptionInfo(
+                status: .active,
+                expirationDate: nil,
+                product: nil,
+                renewalInfo: nil
+            )
+            return
+        }
+        
         // First check for developer access
         if hasDeveloperAccess() {
             subscriptionInfo = SubscriptionInfo(

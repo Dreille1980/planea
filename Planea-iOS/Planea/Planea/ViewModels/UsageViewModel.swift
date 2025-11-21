@@ -17,6 +17,11 @@ class UsageViewModel: ObservableObject {
     
     /// Check if user can generate recipes (considering subscription and usage limits)
     var canGenerateRecipes: Bool {
+        // In free version mode, always check usage limit
+        if Config.isFreeVersion {
+            return generationsRemaining > 0
+        }
+        
         // Premium and trial users have unlimited access
         if storeManager.hasActiveSubscription {
             return true
@@ -60,6 +65,11 @@ class UsageViewModel: ObservableObject {
     
     /// Check if user can generate a specific number of recipes
     func canGenerate(count: Int) -> Bool {
+        // In free version mode, always check usage limit
+        if Config.isFreeVersion {
+            return usageTracking.canGenerate(count: count)
+        }
+        
         // Premium and trial users can always generate
         if storeManager.hasActiveSubscription {
             return true
@@ -71,6 +81,13 @@ class UsageViewModel: ObservableObject {
     
     /// Record that recipes were generated
     func recordGenerations(count: Int) {
+        // In free version mode, always track usage
+        if Config.isFreeVersion {
+            usageTracking.recordGenerations(count: count)
+            updateUsageStats()
+            return
+        }
+        
         // Only track for free users
         guard !storeManager.hasActiveSubscription else {
             return
@@ -94,10 +111,14 @@ class UsageViewModel: ObservableObject {
     
     /// Get usage display string for UI
     func usageDisplayString() -> String {
+        if Config.isFreeVersion {
+            return String(format: String(localized: "usage.remaining"), generationsUsed, Config.monthlyGenerationLimit)
+        }
+        
         if storeManager.hasActiveSubscription {
             return String(localized: "usage.unlimited")
         } else {
-            return String(format: String(localized: "usage.remaining"), generationsUsed, 15)
+            return String(format: String(localized: "usage.remaining"), generationsUsed, Config.monthlyGenerationLimit)
         }
     }
 }

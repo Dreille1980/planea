@@ -142,7 +142,7 @@ struct AdHocRecipeView: View {
                     
                     Section {
                         Button(action: {
-                            if usageVM.hasFreePlanRestrictions {
+                            if !usageVM.canGenerateRecipes {
                                 showPaywall = true
                             } else {
                                 if mode == .text {
@@ -152,13 +152,7 @@ struct AdHocRecipeView: View {
                                 }
                             }
                         }) {
-                            HStack {
-                                Text("action.generateRecipe".localized)
-                                if usageVM.hasFreePlanRestrictions {
-                                    Image(systemName: "lock.fill")
-                                        .font(.caption)
-                                }
-                            }
+                            Text("action.generateRecipe".localized)
                         }
                         .buttonStyle(.borderedProminent)
                         .disabled((mode == .text && prompt.isEmpty) || (mode == .photo && selectedImage == nil) || isGenerating)
@@ -188,7 +182,13 @@ struct AdHocRecipeView: View {
                 }
             }
             .sheet(isPresented: $showPaywall) {
-                SubscriptionPaywallView(limitReached: false)
+                if Config.isFreeVersion {
+                    UsageLimitReachedView(canDismiss: true, onDismiss: {
+                        showPaywall = false
+                    })
+                } else {
+                    SubscriptionPaywallView(limitReached: false)
+                }
             }
             .sheet(isPresented: $showCamera) {
                 ImagePicker(image: $selectedImage, sourceType: .camera)
@@ -238,6 +238,9 @@ struct AdHocRecipeView: View {
             
             // Auto-save to recent recipes
             recipeHistoryVM.saveRecipe(recipe, source: "adhoc-text")
+            
+            // Record generation
+            usageVM.recordGenerations(count: 1)
             
             showingRecipe = true
         } catch {
@@ -314,6 +317,9 @@ struct AdHocRecipeView: View {
             
             // Auto-save to recent recipes
             recipeHistoryVM.saveRecipe(recipe, source: "adhoc-photo")
+            
+            // Record generation
+            usageVM.recordGenerations(count: 1)
             
             // Reset image and instructions after successful generation
             selectedImage = nil

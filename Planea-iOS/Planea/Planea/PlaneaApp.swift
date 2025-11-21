@@ -56,7 +56,9 @@ struct RootView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Free trial banner at the top
-            FreeTrialBanner()
+            if !Config.isFreeVersion {
+                FreeTrialBanner()
+            }
             
             TabView {
                 // Recipes tab - combines Plan and Ad hoc generation
@@ -80,7 +82,9 @@ struct RootView: View {
             OnboardingContainerView(isPresented: $showOnboarding)
         }
         .sheet(isPresented: $showFreeTrialExpiration) {
-            FreeTrialExpirationView()
+            if !Config.isFreeVersion {
+                FreeTrialExpirationView()
+            }
         }
         .onAppear {
             if !hasCompletedOnboarding {

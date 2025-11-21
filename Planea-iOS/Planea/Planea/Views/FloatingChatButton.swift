@@ -2,6 +2,7 @@ import SwiftUI
 
 struct FloatingChatButton: View {
     @EnvironmentObject var storeManager: StoreManager
+    @EnvironmentObject var usageVM: UsageViewModel
     @State private var showChatView = false
     @State private var showPaywall = false
     
@@ -10,6 +11,15 @@ struct FloatingChatButton: View {
     }
     
     var body: some View {
+        // Don't show chat button if usage limit is reached in free version mode
+        if Config.isFreeVersion && !usageVM.canGenerateRecipes {
+            EmptyView()
+        } else {
+            chatButton
+        }
+    }
+    
+    private var chatButton: some View {
         VStack {
             Spacer()
             HStack {

@@ -43,6 +43,12 @@ class FreeTrialService {
     
     /// Start the free trial (called after onboarding completion)
     func startTrial() {
+        // Don't start trial if free version mode is enabled
+        if Config.isFreeVersion {
+            print("ℹ️ [FreeTrialService] Free version mode enabled, skipping trial start")
+            return
+        }
+        
         guard !hasTrialStarted else {
             print("⚠️ [FreeTrialService] Trial already started, ignoring")
             return

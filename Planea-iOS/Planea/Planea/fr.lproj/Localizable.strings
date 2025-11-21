@@ -252,6 +252,9 @@
 "prefs.kidfriendly" = "Repas adaptés aux enfants";
 "prefs.kidfriendly.footer" = "Préférer des repas adaptés aux enfants";
 "prefs.reset" = "Réinitialiser par défaut";
+"prefs.calendar" = "Calendrier";
+"prefs.weekstart" = "Premier jour de la semaine";
+"prefs.weekstart.footer" = "Choisissez le premier jour de votre semaine";
 
 // Niveaux d'épices
 "spice.none" = "Aucun";
@@ -296,6 +299,11 @@
 
 // Plans
 "plan.draft" = "Brouillon";
+"plan.active.badge" = "Plan de la semaine";
+"plan.activate.button" = "Sauvegarder comme plan de la semaine";
+"plan.archive.alert.title" = "Créer un nouveau plan?";
+"plan.archive.alert.message" = "Votre plan actuel sera archivé dans l'historique. Continuer?";
+"plan.archive.alert.confirm" = "Archiver et créer";
 "plan.confirmPlan" = "Confirmer le plan";
 "plan.confirmAlert.title" = "Archiver le plan actuel ?";
 "plan.confirmAlert.message" = "Le plan actuel sera enregistré dans l'historique avant de créer un nouveau plan.";
@@ -448,3 +456,25 @@
 // Cartes de plan de repas dans le chat
 "chat.meal_plan.current_plan" = "Plan actuel";
 "chat.close" = "Fermer";
+
+// Reconnaissance vocale
+"speech.error.not_authorized" = "Accès au microphone refusé. Veuillez l'activer dans les Réglages.";
+"speech.error.not_available" = "La reconnaissance vocale n'est pas disponible sur cet appareil.";
+"speech.error.cannot_create_request" = "Impossible de démarrer la reconnaissance vocale. Veuillez réessayer.";
+"speech.error.generic" = "Erreur de saisie vocale. Veuillez utiliser la saisie texte.";
+
+// Usage Limit Reached
+"usage.limit.reached.title" = "Wow, vous avez adoré Planea! 🎉";
+"usage.limit.reached.message" = "Vous avez utilisé vos 30 générations ce mois-ci.\nRevenez le %@ pour continuer!";
+"usage.limit.accessible" = "Vous pouvez toujours accéder à :";
+"usage.limit.feature.plans" = "Vos plans de repas existants";
+"usage.limit.feature.shopping" = "Listes d'épicerie";
+"usage.limit.feature.favorites" = "Recettes sauvegardées";
+"usage.limit.feature.history" = "Historique des recettes et plans";
+"usage.limit.feature.settings" = "Tous les paramètres";
+"usage.limit.share.button" = "Partager avec des amis";
+"usage.limit.share.message" = "J'adore Planea pour planifier mes repas! Découvrez-le : https://apps.apple.com/app/planea";
+"usage.limit.feedback.button" = "Envoyer un commentaire";
+"usage.limit.feedback.subject" = "Commentaires Planea";
+"usage.limit.feedback.body" = "Bonjour! J'aimerais partager des commentaires sur Planea :\n\n";
+"usage.limit.chat.disabled" = "Le chat est désactivé lorsque vous avez atteint votre limite mensuelle. Revenez le mois prochain!";

@@ -64,7 +64,13 @@ class ChatViewModel: ObservableObject {
     // MARK: - Premium Check
     
     var hasPremiumAccess: Bool {
-        storeManager.hasActiveSubscription
+        // In free version mode, check usage limit
+        if Config.isFreeVersion {
+            let usageVM = UsageViewModel()
+            return usageVM.canGenerateRecipes
+        }
+        
+        return storeManager.hasActiveSubscription
     }
     
     // MARK: - Send Message
@@ -78,9 +84,13 @@ class ChatViewModel: ObservableObject {
             return
         }
         
-        // Check for Premium access
+        // Check for Premium access or usage limit
         guard hasPremiumAccess else {
-            errorMessage = "chat.error.premium".localized
+            if Config.isFreeVersion {
+                errorMessage = "usage.limit.chat.disabled".localized
+            } else {
+                errorMessage = "chat.error.premium".localized
+            }
             return
         }
         
@@ -439,6 +449,10 @@ class ChatViewModel: ObservableObject {
     
     func clearError() {
         errorMessage = nil
+    }
+    
+    func showError(_ message: String) {
+        errorMessage = message
     }
     
     func useSuggestedAction(_ action: String) async {

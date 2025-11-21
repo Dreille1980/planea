@@ -252,6 +252,9 @@
 "prefs.kidfriendly" = "Kid-Friendly Meals";
 "prefs.kidfriendly.footer" = "Prefer meals suitable for children";
 "prefs.reset" = "Reset to Defaults";
+"prefs.calendar" = "Calendar";
+"prefs.weekstart" = "Week Starts On";
+"prefs.weekstart.footer" = "Choose the first day of your week";
 
 // Spice Levels
 "spice.none" = "None";
@@ -296,6 +299,11 @@
 
 // Plans
 "plan.draft" = "Draft";
+"plan.active.badge" = "Weekly Plan";
+"plan.activate.button" = "Save as Weekly Plan";
+"plan.archive.alert.title" = "Create New Plan?";
+"plan.archive.alert.message" = "Your current plan will be archived to history. Continue?";
+"plan.archive.alert.confirm" = "Archive and Create";
 "plan.confirmPlan" = "Confirm Plan";
 "plan.confirmAlert.title" = "Archive Current Plan?";
 "plan.confirmAlert.message" = "The current plan will be saved to history before creating a new plan.";
@@ -449,3 +457,25 @@
 // Meal Plan Cards in Chat
 "chat.meal_plan.current_plan" = "Current Plan";
 "chat.close" = "Close";
+
+// Speech Recognition
+"speech.error.not_authorized" = "Microphone access denied. Please enable it in Settings.";
+"speech.error.not_available" = "Speech recognition is not available on this device.";
+"speech.error.cannot_create_request" = "Cannot start speech recognition. Please try again.";
+"speech.error.generic" = "Voice input error. Please try text input.";
+
+// Usage Limit Reached
+"usage.limit.reached.title" = "Wow, you loved Planea! 🎉";
+"usage.limit.reached.message" = "You've used your 30 generations this month.\nCome back on %@ to continue!";
+"usage.limit.accessible" = "You can still access:";
+"usage.limit.feature.plans" = "Your existing meal plans";
+"usage.limit.feature.shopping" = "Shopping lists";
+"usage.limit.feature.favorites" = "Saved recipes";
+"usage.limit.feature.history" = "Recipe and plan history";
+"usage.limit.feature.settings" = "All settings";
+"usage.limit.share.button" = "Share with Friends";
+"usage.limit.share.message" = "I'm loving Planea for meal planning! Check it out: https://apps.apple.com/app/planea";
+"usage.limit.feedback.button" = "Send Feedback";
+"usage.limit.feedback.subject" = "Planea Feedback";
+"usage.limit.feedback.body" = "Hi! I'd like to share some feedback about Planea:\n\n";
+"usage.limit.chat.disabled" = "Chat is disabled when you've reached your monthly limit. Come back next month!";

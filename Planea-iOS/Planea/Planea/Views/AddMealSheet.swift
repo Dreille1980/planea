@@ -22,7 +22,9 @@ struct AddMealSheet: View {
         case replace, add
     }
     
-    let weekdays: [Weekday] = [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
+    var weekdays: [Weekday] {
+        PreferencesService.shared.loadPreferences().sortedWeekdays()
+    }
     let mealTypes: [MealType] = [.breakfast, .lunch, .dinner, .snack]
     
     var body: some View {
@@ -142,7 +144,13 @@ struct AddMealSheet: View {
                 Text("add_meal.conflict_message".localized)
             }
             .sheet(isPresented: $showPaywall) {
-                SubscriptionPaywallView(limitReached: true)
+                if Config.isFreeVersion {
+                    UsageLimitReachedView(canDismiss: true, onDismiss: {
+                        showPaywall = false
+                    })
+                } else {
+                    SubscriptionPaywallView(limitReached: true)
+                }
             }
         }
     }
@@ -251,8 +259,8 @@ struct AddMealSheet: View {
         
         // If replacing, remove existing meal first
         if conflictAction == .replace {
-            if let existingMeal = planVM.draftPlan?.items.first(where: { 
-                $0.weekday == selectedDay && $0.mealType == selectedMealType 
+            if let existingMeal = planVM.currentPlan?.items.first(where: {
+                $0.weekday == selectedDay && $0.mealType == selectedMealType
             }) {
                 planVM.removeMeal(mealItem: existingMeal)
             }
