@@ -30,6 +30,38 @@ struct MealPrepKit: Identifiable, Codable {
         self.recipes = recipes
         self.createdAt = createdAt
     }
+    
+    // Custom decoding to handle ISO date strings from backend
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        description = try container.decodeIfPresent(String.self, forKey: .description)
+        totalPortions = try container.decode(Int.self, forKey: .totalPortions)
+        estimatedPrepMinutes = try container.decode(Int.self, forKey: .estimatedPrepMinutes)
+        recipes = try container.decode([MealPrepRecipeRef].self, forKey: .recipes)
+        
+        // Try to decode created_at as ISO string first, then fall back to Date
+        if let dateString = try? container.decode(String.self, forKey: .createdAt) {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = formatter.date(from: dateString) {
+                createdAt = date
+            } else {
+                // Try without fractional seconds
+                formatter.formatOptions = [.withInternetDateTime]
+                if let date = formatter.date(from: dateString) {
+                    createdAt = date
+                } else {
+                    createdAt = Date()
+                }
+            }
+        } else {
+            // Fall back to direct Date decoding
+            createdAt = try container.decode(Date.self, forKey: .createdAt)
+        }
+    }
 }
 
 // MARK: - Meal Prep Recipe Reference
