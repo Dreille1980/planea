@@ -479,3 +479,106 @@
 "usage.limit.feedback.subject" = "Planea Feedback";
 "usage.limit.feedback.body" = "Hi! I'd like to share some feedback about Planea:\n\n";
 "usage.limit.chat.disabled" = "Chat is disabled when you've reached your monthly limit. Come back next month!";
+
+// Meal Prep
+"recipes.segment.recipes" = "Recipes";
+"recipes.segment.mealPrep" = "Meal prep";
+"recipes.segment.adHoc" = "Ad hoc";
+
+"meal_prep_title" = "Meal Prep";
+"meal_prep_subtitle" = "Plan and prepare your meals ahead of time with smart recipes";
+"meal_prep_create_button" = "Create Meal Prep";
+"meal_prep_recommended_kits" = "Recommended Kits";
+"meal_prep_history_title" = "Past Meal Preps";
+"meal_prep_choose_kit" = "Choose This Kit";
+"meal_prep_replay" = "Replay";
+"meal_prep_completed_date" = "Week of %@";
+
+"mealprep.title" = "Meal prep";
+"mealprep.subtitle" = "Plan your week's meals ahead of time.";
+"mealprep.cta" = "Create my meal prep";
+"mealprep.recommendedKits" = "Recommended kits";
+"mealprep.history" = "My past meal preps";
+"mealprep.replay" = "Replay";
+"mealprep.chooseKit" = "Choose this kit";
+"mealprep.viewDetails" = "View details";
+
+// Wizard
+"mealprep.wizard.step1" = "Settings";
+"mealprep.wizard.step2" = "Preferences";
+"mealprep.wizard.step3" = "Choose kit";
+"mealprep.wizard.next" = "Next";
+"mealprep.wizard.back" = "Back";
+"mealprep.wizard.generate" = "Generate kits";
+"mealprep.wizard.confirm" = "Confirm";
+
+// Settings
+"mealprep.wizard.days" = "Days covered";
+"mealprep.wizard.meals" = "Meals to cover";
+"mealprep.wizard.servings" = "Servings per meal";
+"mealprep.wizard.servingsCount" = "servings";
+
+"mealprep.days.monToFri" = "Monday to Friday";
+"mealprep.days.monToSun" = "Monday to Sunday";
+"mealprep.days.custom" = "Custom";
+
+// Preferences
+"mealprep.prepTime" = "Total prep time";
+"mealprep.time.1h" = "1h";
+"mealprep.time.1h30" = "1h30";
+"mealprep.time.2h+" = "2h+";
+
+"mealprep.skillLevel" = "Level";
+"mealprep.skill.beginner" = "Beginner";
+"mealprep.skill.intermediate" = "Intermediate";
+"mealprep.skill.quick" = "Quick & efficient";
+
+"mealprep.options.rareIngredients" = "Limit rare ingredients";
+"mealprep.options.longShelfLife" = "Prefer recipes that keep 3-4 days";
+
+// Kit details
+"mealprep.kit.meals" = "meals";
+"mealprep.kit.portions" = "servings";
+"mealprep.kit.prepTime" = "Prep time";
+"mealprep.kit.recipes" = "Included recipes";
+
+// Storage notes
+"mealprep.storage.days" = "Keeps %d days in the fridge";
+"mealprep.storage.freezable" = "Freezable";
+"mealprep.storage.notFreezable" = "Not suitable for freezing";
+"mealprep.storage.freezeAfterPrep" = "Freeze after preparation";
+
+// History
+"mealprep.history.number" = "Meal prep #%d";
+"mealprep.history.portions" = "%d servings";
+"mealprep.history.completedOn" = "Completed %@";
+"mealprep.history.empty" = "No past meal preps";
+
+// Meal Prep Wizard
+"meal_prep_wizard_title" = "Meal Prep Wizard";
+"meal_prep_step1_title" = "Configure Your Week";
+"meal_prep_step1_subtitle" = "Choose the days and meals you want to prepare";
+"meal_prep_days_covered" = "Days covered";
+"meal_prep_meals_to_cover" = "Meals to cover";
+"meal_prep_servings_per_meal" = "Servings per meal";
+"portions" = "portions";
+"meal_prep_family_size_hint" = "Your family has %d members";
+"next" = "Next";
+"back" = "Back";
+"meal_prep_generate_kits" = "Generate Kits";
+"confirm" = "Confirm";
+
+"meal_prep_step2_title" = "Your Preferences";
+"meal_prep_step2_subtitle" = "Help us tailor the recipes to your needs";
+"meal_prep_total_prep_time" = "Total prep time";
+"meal_prep_skill_level" = "Skill level";
+"meal_prep_options" = "Additional Options";
+"meal_prep_avoid_rare" = "Avoid rare ingredients";
+"meal_prep_avoid_rare_hint" = "Focus on common, easy-to-find ingredients";
+"meal_prep_prefer_long_shelf" = "Prefer longer shelf life";
+"meal_prep_prefer_long_shelf_hint" = "Prioritize recipes that keep well for 3-4 days";
+
+"meal_prep_step3_title" = "Choose Your Kit";
+"meal_prep_generating" = "Generating your meal prep kits...";
+"meal_prep_step3_subtitle" = "Select the kit that best fits your needs";
+"meal_prep_please_wait" = "This may take a moment...";

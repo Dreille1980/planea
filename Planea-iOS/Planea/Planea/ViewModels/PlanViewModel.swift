@@ -38,7 +38,7 @@ final class PlanViewModel: ObservableObject {
         slots.remove(slot)
     }
     
-    func savePlan(_ plan: MealPlan) {
+    @MainActor func savePlan(_ plan: MealPlan) {
         var mutablePlan = plan
         mutablePlan.status = .draft
         currentPlan = mutablePlan
@@ -121,7 +121,7 @@ final class PlanViewModel: ObservableObject {
         }
     }
     
-    func addMeal(mealItem: MealItem) {
+    @MainActor func addMeal(mealItem: MealItem) {
         guard var plan = currentPlan else { return }
         
         // Add the new meal item

@@ -37,6 +37,19 @@ class LocalizationHelper {
     func localizedString(_ key: String) -> String {
         return bundle.localizedString(forKey: key, value: nil, table: nil)
     }
+    
+    static func currentLanguageCode() -> String {
+        let language = AppLanguage(rawValue: shared.currentLanguage) ?? .system
+        
+        switch language {
+        case .system:
+            return Locale.current.language.languageCode?.identifier ?? "en"
+        case .fr:
+            return "fr"
+        case .en:
+            return "en"
+        }
+    }
 }
 
 extension Notification.Name {

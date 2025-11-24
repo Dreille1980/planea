@@ -11,6 +11,17 @@ final class PersistenceController: ObservableObject {
         
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+        } else {
+            // Configure to use App Group for sharing data with widget
+            if let appGroupURL = FileManager.default.containerURL(
+                forSecurityApplicationGroupIdentifier: "group.com.dreille.planea"
+            ) {
+                let storeURL = appGroupURL.appendingPathComponent("Planea.sqlite")
+                let description = NSPersistentStoreDescription(url: storeURL)
+                description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+                description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+                container.persistentStoreDescriptions = [description]
+            }
         }
         
         container.loadPersistentStores { description, error in
@@ -124,35 +135,92 @@ final class PersistenceController: ObservableObject {
         }
     }
     
-    func loadConfirmedPlans() -> [MealPlan] {
+    func loadActivePlan() -> MealPlan? {
         let context = container.viewContext
         let request: NSFetchRequest<MealPlanEntity> = MealPlanEntity.fetchRequest()
-        request.predicate = NSPredicate(format: "status == %@", PlanStatus.confirmed.rawValue)
+        request.predicate = NSPredicate(format: "status == %@", PlanStatus.active.rawValue)
+        request.fetchLimit = 1
+        
+        do {
+            guard let entity = try context.fetch(request).first else { return nil }
+            return convertEntityToPlan(entity)
+        } catch {
+            print("Error loading active plan: \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    func loadArchivedPlans() -> [MealPlan] {
+        let context = container.viewContext
+        let request: NSFetchRequest<MealPlanEntity> = MealPlanEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "status == %@", PlanStatus.archived.rawValue)
         request.sortDescriptors = [NSSortDescriptor(keyPath: \MealPlanEntity.confirmedDate, ascending: false)]
         
         do {
             let entities = try context.fetch(request)
             return entities.compactMap { convertEntityToPlan($0) }
         } catch {
-            print("Error loading confirmed plans: \(error.localizedDescription)")
+            print("Error loading archived plans: \(error.localizedDescription)")
             return []
         }
     }
     
-    func confirmPlan(id: UUID) {
+    func activatePlan(id: UUID) {
+        let context = container.viewContext
+        
+        // First, archive any existing active plan
+        let activeRequest: NSFetchRequest<MealPlanEntity> = MealPlanEntity.fetchRequest()
+        activeRequest.predicate = NSPredicate(format: "status == %@", PlanStatus.active.rawValue)
+        
+        do {
+            let activePlans = try context.fetch(activeRequest)
+            for plan in activePlans {
+                plan.status = PlanStatus.archived.rawValue
+                if plan.confirmedDate == nil {
+                    plan.confirmedDate = Date()
+                }
+            }
+            
+            // Now activate the specified plan
+            let request: NSFetchRequest<MealPlanEntity> = MealPlanEntity.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+            
+            if let entity = try context.fetch(request).first {
+                entity.status = PlanStatus.active.rawValue
+                entity.confirmedDate = Date()
+                save()
+            }
+        } catch {
+            print("Error activating plan: \(error.localizedDescription)")
+        }
+    }
+    
+    func archivePlan(id: UUID) {
         let context = container.viewContext
         let request: NSFetchRequest<MealPlanEntity> = MealPlanEntity.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         
         do {
             if let entity = try context.fetch(request).first {
-                entity.status = PlanStatus.confirmed.rawValue
-                entity.confirmedDate = Date()
+                entity.status = PlanStatus.archived.rawValue
+                if entity.confirmedDate == nil {
+                    entity.confirmedDate = Date()
+                }
                 save()
             }
         } catch {
-            print("Error confirming plan: \(error.localizedDescription)")
+            print("Error archiving plan: \(error.localizedDescription)")
         }
+    }
+    
+    @available(*, deprecated, message: "Use loadArchivedPlans() instead")
+    func loadConfirmedPlans() -> [MealPlan] {
+        return loadArchivedPlans()
+    }
+    
+    @available(*, deprecated, message: "Use activatePlan(id:) instead")
+    func confirmPlan(id: UUID) {
+        activatePlan(id: id)
     }
     
     func deletePlan(id: UUID) {

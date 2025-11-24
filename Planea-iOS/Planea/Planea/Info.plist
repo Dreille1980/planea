@@ -6,6 +6,10 @@
 	<string>Planea needs access to your camera to take photos of your fridge for recipe generation.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Planea needs access to your photo library to analyze fridge photos for recipe generation.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Planea needs access to your microphone to enable voice input in the chat.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Planea needs access to speech recognition to convert your voice input to text.</string>
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>

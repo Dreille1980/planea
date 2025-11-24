@@ -1,8 +1,9 @@
 import Foundation
 
 enum PlanStatus: String, Codable {
-    case draft
-    case confirmed
+    case draft      // Plan en cours de création/modification
+    case active     // Plan de la semaine actif
+    case archived   // Plans précédents (historique)
 }
 
 struct SlotSelection: Codable, Identifiable, Hashable {

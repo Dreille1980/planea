@@ -121,7 +121,7 @@ struct ShoppingListView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                         
-                        if let plan = planVM.draftPlan {
+                        if let plan = planVM.currentPlan {
                             Button("plan.generateList".localized) {
                                 generateShoppingList(from: plan)
                             }
@@ -135,7 +135,7 @@ struct ShoppingListView: View {
             .toolbar {
                 if shoppingVM.currentList != nil {
                     Button("action.refresh".localized) {
-                        if let plan = planVM.draftPlan {
+                        if let plan = planVM.currentPlan {
                             generateShoppingList(from: plan)
                         }
                     }
@@ -167,9 +167,10 @@ struct ShoppingListView: View {
             }
             
             FloatingChatButton()
+                .environmentObject(usageVM)
         }
         .onAppear {
-            if let plan = planVM.draftPlan, shoppingVM.currentList == nil {
+            if let plan = planVM.currentPlan, shoppingVM.currentList == nil {
                 generateShoppingList(from: plan)
             }
         }

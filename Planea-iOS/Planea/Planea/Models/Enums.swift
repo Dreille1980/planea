@@ -12,11 +12,57 @@ enum MealType: String, Codable, CaseIterable, Identifiable {
     case dinner = "DINNER"
     case snack = "SNACK"
     var id: String { rawValue }
+    
+    var localizedName: String {
+        switch self {
+        case .breakfast: return "meal.breakfast".localized
+        case .lunch: return "meal.lunch".localized
+        case .dinner: return "meal.dinner".localized
+        case .snack: return "meal.snack".localized
+        }
+    }
 }
 
 enum Weekday: String, Codable, CaseIterable, Identifiable {
     case monday = "Mon", tuesday = "Tue", wednesday = "Wed", thursday = "Thu", friday = "Fri", saturday = "Sat", sunday = "Sun"
     var id: String { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .monday: return "week.monday".localized
+        case .tuesday: return "week.tuesday".localized
+        case .wednesday: return "week.wednesday".localized
+        case .thursday: return "week.thursday".localized
+        case .friday: return "week.friday".localized
+        case .saturday: return "week.saturday".localized
+        case .sunday: return "week.sunday".localized
+        }
+    }
+    
+    var localizedName: String {
+        return displayName
+    }
+    
+    var localizedShortName: String {
+        switch self {
+        case .monday: return String("week.monday".localized.prefix(3))
+        case .tuesday: return String("week.tuesday".localized.prefix(3))
+        case .wednesday: return String("week.wednesday".localized.prefix(3))
+        case .thursday: return String("week.thursday".localized.prefix(3))
+        case .friday: return String("week.friday".localized.prefix(3))
+        case .saturday: return String("week.saturday".localized.prefix(3))
+        case .sunday: return String("week.sunday".localized.prefix(3))
+        }
+    }
+    
+    /// Returns all weekdays in order starting from the specified day
+    static func sortedWeekdays(startingFrom start: Weekday) -> [Weekday] {
+        let all = Self.allCases
+        guard let startIndex = all.firstIndex(of: start) else {
+            return all
+        }
+        return Array(all[startIndex...]) + Array(all[..<startIndex])
+    }
 }
 
 enum PreferenceType: String, Codable {
@@ -136,6 +182,9 @@ struct GenerationPreferences: Codable {
     var postalCode: String
     var preferredGroceryStore: String
     
+    // Week start preference
+    var weekStartDay: Weekday
+    
     static let `default` = GenerationPreferences(
         weekdayMaxMinutes: 30,
         weekendMaxMinutes: 60,
@@ -145,8 +194,14 @@ struct GenerationPreferences: Codable {
         kidFriendly: false,
         useWeeklyFlyers: false,
         postalCode: "",
-        preferredGroceryStore: ""
+        preferredGroceryStore: "",
+        weekStartDay: .monday
     )
+    
+    /// Returns weekdays sorted according to the user's week start preference
+    func sortedWeekdays() -> [Weekday] {
+        return Weekday.sortedWeekdays(startingFrom: weekStartDay)
+    }
     
     func toPromptString() -> String {
         var constraints: [String] = []

@@ -10,7 +10,7 @@ struct Config {
     static let monthlyGenerationLimit = 30
     
     /// Support email for feedback
-    static let supportEmail = "support@planea.app"
+    static let supportEmail = "dreyerfred+planea@gmail.com"
     
     // MARK: - Backend
     

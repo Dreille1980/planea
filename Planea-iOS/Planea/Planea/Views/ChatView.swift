@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ChatView: View {
     @StateObject private var viewModel = ChatViewModel()
+    @StateObject private var speechService = SpeechRecognitionService()
     @EnvironmentObject var storeManager: StoreManager
     @EnvironmentObject var recipeHistoryVM: RecipeHistoryViewModel
     @EnvironmentObject var favoritesVM: FavoritesViewModel
@@ -214,6 +215,13 @@ struct ChatView: View {
                         .focused($isInputFocused)
                         .disabled(viewModel.isLoading || !viewModel.isOnline)
                     
+                    Button(action: toggleRecording) {
+                        Image(systemName: speechService.isRecording ? "mic.fill" : "mic")
+                            .font(.title2)
+                            .foregroundColor(speechService.isRecording ? .red : .blue)
+                    }
+                    .disabled(viewModel.isLoading || !viewModel.isOnline)
+                    
                     Button(action: sendMessage) {
                         Image(systemName: "arrow.up.circle.fill")
                             .font(.title2)
@@ -245,6 +253,12 @@ struct ChatView: View {
             .onAppear {
                 setupViewModel()
                 checkPremiumAccess()
+            }
+            .onChange(of: speechService.recognizedText) { oldValue, newValue in
+                // Update message text with recognized speech
+                if !newValue.isEmpty && newValue != oldValue {
+                    messageText = newValue
+                }
             }
             .sheet(isPresented: $showPaywall) {
                 SubscriptionPaywallView()
@@ -356,12 +370,12 @@ struct ChatView: View {
         }
         
         viewModel.getCurrentPlan = { [weak planVM] in
-            planVM?.draftPlan
+            planVM?.currentPlan
         }
         
         viewModel.updateRecipe = { [weak planVM, weak shoppingVM] recipe, weekdayStr, mealTypeStr in
             // Update recipe in plan if it exists
-            guard let plan = planVM?.draftPlan else { return }
+            guard let plan = planVM?.currentPlan else { return }
             
             // If we have weekday and meal_type metadata, use them for precise matching
             if let wdStr = weekdayStr, let mtStr = mealTypeStr,
@@ -373,7 +387,7 @@ struct ChatView: View {
                 }) {
                     var updatedPlan = plan
                     updatedPlan.items[index].recipe = recipe
-                    planVM?.draftPlan = updatedPlan
+                    planVM?.currentPlan = updatedPlan
                     print("✅ Updated recipe at \(weekday.rawValue) \(mealType.rawValue)")
                 }
             } else {
@@ -381,7 +395,7 @@ struct ChatView: View {
                 if let index = plan.items.firstIndex(where: { $0.recipe.id == recipe.id }) {
                     var updatedPlan = plan
                     updatedPlan.items[index].recipe = recipe
-                    planVM?.draftPlan = updatedPlan
+                    planVM?.currentPlan = updatedPlan
                     print("✅ Updated recipe by ID")
                 }
             }
@@ -394,8 +408,8 @@ struct ChatView: View {
             print("   mealTypeStr: '\(mealTypeStr)'")
             print("   Recipe: '\(recipe.title)'")
             
-            guard var plan = planVM?.draftPlan else {
-                print("⚠️ Cannot add meal: no draft plan available")
+            guard var plan = planVM?.currentPlan else {
+                print("⚠️ Cannot add meal: no current plan available")
                 return
             }
             
@@ -425,7 +439,7 @@ struct ChatView: View {
             
             // Add to plan
             plan.items.append(newItem)
-            planVM?.draftPlan = plan
+            planVM?.currentPlan = plan
             
             print("✅ Meal added successfully to plan")
             print("   Total items in plan: \(plan.items.count)")
@@ -433,7 +447,7 @@ struct ChatView: View {
         
         viewModel.refreshShoppingList = { [weak planVM, weak shoppingVM] in
             // Regenerate shopping list with updated recipes
-            if let plan = planVM?.draftPlan {
+            if let plan = planVM?.currentPlan {
                 let units = UnitSystem(rawValue: UserDefaults.standard.string(forKey: "unitSystem") ?? "metric") ?? .metric
                 _ = shoppingVM?.generateList(from: plan.items, units: units)
             }
@@ -446,6 +460,24 @@ struct ChatView: View {
     private func checkPremiumAccess() {
         if !viewModel.hasPremiumAccess {
             showPaywall = true
+        }
+    }
+    
+    private func toggleRecording() {
+        if speechService.isRecording {
+            speechService.stopRecording()
+        } else {
+            Task {
+                do {
+                    try await speechService.startRecording()
+                } catch {
+                    if let speechError = error as? SpeechRecognitionError {
+                        viewModel.showError(speechError.localizedDescription)
+                    } else {
+                        viewModel.showError("speech.error.generic".localized)
+                    }
+                }
+            }
         }
     }
 }

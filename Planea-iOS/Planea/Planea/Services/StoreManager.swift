@@ -79,10 +79,10 @@ class StoreManager: ObservableObject {
     // MARK: - Subscription Status
     
     func updateSubscriptionStatus() async {
-        // Check if free version mode is enabled
-        if Config.isFreeVersion {
+        // First check for developer access (highest priority)
+        if hasDeveloperAccess() {
             subscriptionInfo = SubscriptionInfo(
-                status: .active,
+                status: .developerAccess,
                 expirationDate: nil,
                 product: nil,
                 renewalInfo: nil
@@ -90,10 +90,12 @@ class StoreManager: ObservableObject {
             return
         }
         
-        // First check for developer access
-        if hasDeveloperAccess() {
+        // Check if free version mode is enabled
+        if Config.isFreeVersion {
+            // Free version mode: users start as not subscribed (with 30 generation limit)
+            // They can upgrade to premium or use developer code for unlimited access
             subscriptionInfo = SubscriptionInfo(
-                status: .developerAccess,
+                status: .notSubscribed,
                 expirationDate: nil,
                 product: nil,
                 renewalInfo: nil

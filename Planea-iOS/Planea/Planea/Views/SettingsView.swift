@@ -74,7 +74,7 @@ struct SettingsView: View {
                                 }
                             }
                         }
-                    } else {
+                    } else if !Config.isFreeVersion {
                         Button(action: {
                             showSubscriptionSheet = true
                         }) {

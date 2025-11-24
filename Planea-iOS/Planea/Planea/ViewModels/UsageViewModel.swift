@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor
 class UsageViewModel: ObservableObject {
     @Published var generationsUsed: Int = 0
-    @Published var generationsRemaining: Int = 15
+    @Published var generationsRemaining: Int = 30
     
     private let usageTracking = UsageTrackingService.shared
     private let storeManager = StoreManager.shared
@@ -17,14 +17,14 @@ class UsageViewModel: ObservableObject {
     
     /// Check if user can generate recipes (considering subscription and usage limits)
     var canGenerateRecipes: Bool {
-        // In free version mode, always check usage limit
-        if Config.isFreeVersion {
-            return generationsRemaining > 0
-        }
-        
-        // Premium and trial users have unlimited access
+        // Premium and trial users (including developer access) have unlimited access
         if storeManager.hasActiveSubscription {
             return true
+        }
+        
+        // In free version mode, check usage limit
+        if Config.isFreeVersion {
+            return generationsRemaining > 0
         }
         
         // Free users must check usage limit
@@ -65,14 +65,14 @@ class UsageViewModel: ObservableObject {
     
     /// Check if user can generate a specific number of recipes
     func canGenerate(count: Int) -> Bool {
-        // In free version mode, always check usage limit
-        if Config.isFreeVersion {
-            return usageTracking.canGenerate(count: count)
-        }
-        
-        // Premium and trial users can always generate
+        // Premium and trial users (including developer access) can always generate
         if storeManager.hasActiveSubscription {
             return true
+        }
+        
+        // In free version mode, check usage limit
+        if Config.isFreeVersion {
+            return usageTracking.canGenerate(count: count)
         }
         
         // Free users must check usage limit
@@ -81,18 +81,19 @@ class UsageViewModel: ObservableObject {
     
     /// Record that recipes were generated
     func recordGenerations(count: Int) {
-        // In free version mode, always track usage
+        // Don't track for premium/trial users (including developer access)
+        guard !storeManager.hasActiveSubscription else {
+            return
+        }
+        
+        // In free version mode, track usage for non-subscribed users
         if Config.isFreeVersion {
             usageTracking.recordGenerations(count: count)
             updateUsageStats()
             return
         }
         
-        // Only track for free users
-        guard !storeManager.hasActiveSubscription else {
-            return
-        }
-        
+        // Track for free users
         usageTracking.recordGenerations(count: count)
         updateUsageStats()
     }
@@ -111,14 +112,16 @@ class UsageViewModel: ObservableObject {
     
     /// Get usage display string for UI
     func usageDisplayString() -> String {
+        // Premium/trial users (including developer access) have unlimited
+        if storeManager.hasActiveSubscription {
+            return String(localized: "usage.unlimited")
+        }
+        
+        // Show usage for free users
         if Config.isFreeVersion {
             return String(format: String(localized: "usage.remaining"), generationsUsed, Config.monthlyGenerationLimit)
         }
         
-        if storeManager.hasActiveSubscription {
-            return String(localized: "usage.unlimited")
-        } else {
-            return String(format: String(localized: "usage.remaining"), generationsUsed, Config.monthlyGenerationLimit)
-        }
+        return String(format: String(localized: "usage.remaining"), generationsUsed, Config.monthlyGenerationLimit)
     }
 }

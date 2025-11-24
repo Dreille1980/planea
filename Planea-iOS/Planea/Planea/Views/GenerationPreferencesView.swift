@@ -119,6 +119,22 @@ struct GenerationPreferencesView: View {
                     Text("prefs.kidfriendly.footer".localized)
                 }
                 
+                // Calendar Section
+                Section {
+                    Picker("prefs.weekstart".localized, selection: Binding(
+                        get: { preferences.weekStartDay },
+                        set: { preferences.weekStartDay = $0; hasChanges = true }
+                    )) {
+                        ForEach(Weekday.allCases) { day in
+                            Text(day.displayName).tag(day)
+                        }
+                    }
+                } header: {
+                    Label("prefs.calendar".localized, systemImage: "calendar")
+                } footer: {
+                    Text("prefs.weekstart.footer".localized)
+                }
+                
                 // Weekly Flyers Section
                 Section {
                     Toggle("prefs.flyers.enabled".localized, isOn: Binding(

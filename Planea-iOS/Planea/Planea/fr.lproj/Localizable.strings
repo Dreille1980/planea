@@ -478,3 +478,106 @@
 "usage.limit.feedback.subject" = "Commentaires Planea";
 "usage.limit.feedback.body" = "Bonjour! J'aimerais partager des commentaires sur Planea :\n\n";
 "usage.limit.chat.disabled" = "Le chat est désactivé lorsque vous avez atteint votre limite mensuelle. Revenez le mois prochain!";
+
+// Prépa-repas / Meal Prep
+"recipes.segment.recipes" = "Recettes";
+"recipes.segment.mealPrep" = "Prépa-repas";
+"recipes.segment.adHoc" = "Ad hoc";
+
+"meal_prep_title" = "Prépa-repas";
+"meal_prep_subtitle" = "Planifiez et préparez vos repas à l'avance avec des recettes intelligentes";
+"meal_prep_create_button" = "Créer une prépa-repas";
+"meal_prep_recommended_kits" = "Kits recommandés";
+"meal_prep_history_title" = "Prépa-repas passées";
+"meal_prep_choose_kit" = "Choisir ce kit";
+"meal_prep_replay" = "Rejouer";
+"meal_prep_completed_date" = "Semaine du %@";
+
+"mealprep.title" = "Prépa-repas";
+"mealprep.subtitle" = "Planifiez vos repas de la semaine en avance.";
+"mealprep.cta" = "Créer ma prépa-repas";
+"mealprep.recommendedKits" = "Kits recommandés";
+"mealprep.history" = "Mes prépas-repas passées";
+"mealprep.replay" = "Rejouer";
+"mealprep.chooseKit" = "Choisir ce kit";
+"mealprep.viewDetails" = "Voir le détail";
+
+// Wizard
+"mealprep.wizard.step1" = "Paramètres";
+"mealprep.wizard.step2" = "Préférences";
+"mealprep.wizard.step3" = "Choix du kit";
+"mealprep.wizard.next" = "Suivant";
+"mealprep.wizard.back" = "Retour";
+"mealprep.wizard.generate" = "Générer les kits";
+"mealprep.wizard.confirm" = "Confirmer";
+
+// Paramètres
+"mealprep.wizard.days" = "Jours couverts";
+"mealprep.wizard.meals" = "Repas à couvrir";
+"mealprep.wizard.servings" = "Portions par repas";
+"mealprep.wizard.servingsCount" = "portions";
+
+"mealprep.days.monToFri" = "Lundi à vendredi";
+"mealprep.days.monToSun" = "Lundi à dimanche";
+"mealprep.days.custom" = "Personnalisé";
+
+// Préférences
+"mealprep.prepTime" = "Temps total de prépa";
+"mealprep.time.1h" = "1h";
+"mealprep.time.1h30" = "1h30";
+"mealprep.time.2h+" = "2h+";
+
+"mealprep.skillLevel" = "Niveau";
+"mealprep.skill.beginner" = "Débutant";
+"mealprep.skill.intermediate" = "Intermédiaire";
+"mealprep.skill.quick" = "Rapide et efficace";
+
+"mealprep.options.rareIngredients" = "Limiter les ingrédients rares";
+"mealprep.options.longShelfLife" = "Recettes qui se conservent 3-4 jours";
+
+// Kit details
+"mealprep.kit.meals" = "repas";
+"mealprep.kit.portions" = "portions";
+"mealprep.kit.prepTime" = "Temps de prépa";
+"mealprep.kit.recipes" = "Recettes incluses";
+
+// Storage notes
+"mealprep.storage.days" = "Se conserve %d jours au frigo";
+"mealprep.storage.freezable" = "Se congèle";
+"mealprep.storage.notFreezable" = "Ne se congèle pas";
+"mealprep.storage.freezeAfterPrep" = "À congeler après la préparation";
+
+// History
+"mealprep.history.number" = "Prépa-repas #%d";
+"mealprep.history.portions" = "%d portions";
+"mealprep.history.completedOn" = "Fait le %@";
+"mealprep.history.empty" = "Aucune prépa-repas dans l'historique";
+
+// Meal Prep Wizard
+"meal_prep_wizard_title" = "Assistant Prépa-repas";
+"meal_prep_step1_title" = "Configurer votre semaine";
+"meal_prep_step1_subtitle" = "Choisissez les jours et repas à préparer";
+"meal_prep_days_covered" = "Jours couverts";
+"meal_prep_meals_to_cover" = "Repas à couvrir";
+"meal_prep_servings_per_meal" = "Portions par repas";
+"portions" = "portions";
+"meal_prep_family_size_hint" = "Votre famille compte %d membres";
+"next" = "Suivant";
+"back" = "Retour";
+"meal_prep_generate_kits" = "Générer les kits";
+"confirm" = "Confirmer";
+
+"meal_prep_step2_title" = "Vos préférences";
+"meal_prep_step2_subtitle" = "Aidez-nous à adapter les recettes à vos besoins";
+"meal_prep_total_prep_time" = "Temps total de prépa";
+"meal_prep_skill_level" = "Niveau de compétence";
+"meal_prep_options" = "Options additionnelles";
+"meal_prep_avoid_rare" = "Éviter les ingrédients rares";
+"meal_prep_avoid_rare_hint" = "Se concentrer sur des ingrédients courants et faciles à trouver";
+"meal_prep_prefer_long_shelf" = "Préférer une longue conservation";
+"meal_prep_prefer_long_shelf_hint" = "Prioriser les recettes qui se conservent bien 3-4 jours";
+
+"meal_prep_step3_title" = "Choisissez votre kit";
+"meal_prep_generating" = "Génération de vos kits de prépa-repas...";
+"meal_prep_step3_subtitle" = "Sélectionnez le kit qui convient le mieux à vos besoins";
+"meal_prep_please_wait" = "Cela peut prendre un moment...";

@@ -77,7 +77,9 @@ struct AddToPlanSheet: View {
     @State private var selectedWeekday: Weekday = .monday
     @State private var selectedMealType: MealType = .dinner
     
-    let weekdays: [Weekday] = [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
+    var weekdays: [Weekday] {
+        PreferencesService.shared.loadPreferences().sortedWeekdays()
+    }
     let mealTypes: [MealType] = [.breakfast, .lunch, .dinner]
     
     var body: some View {
@@ -113,10 +115,10 @@ struct AddToPlanSheet: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .frame(maxWidth: .infinity)
-                    .disabled(planVM.draftPlan == nil)
+                    .disabled(planVM.currentPlan == nil)
                 }
                 
-                if planVM.draftPlan == nil {
+                if planVM.currentPlan == nil {
                     Section {
                         Text("Veuillez créer un plan de semaine avant d'ajouter des repas")
                             .font(.caption)
@@ -165,7 +167,7 @@ struct AddToPlanSheet: View {
         )
         
         // Remove existing meal in that slot if any
-        if let existingPlan = planVM.draftPlan,
+        if let existingPlan = planVM.currentPlan,
            let existingMeal = existingPlan.items.first(where: { 
                $0.weekday == selectedWeekday && $0.mealType == selectedMealType 
            }) {

@@ -7,15 +7,15 @@ struct PlanHistoryView: View {
     var body: some View {
         NavigationView {
             Group {
-                if planVM.confirmedPlans.isEmpty {
+                if planVM.archivedPlans.isEmpty {
                     ContentUnavailableView(
                         "plan.history.empty".localized,
                         systemImage: "tray.fill",
-                        description: Text("Confirmez vos plans pour créer un historique")
+                        description: Text("Activez vos plans pour créer un historique")
                     )
                 } else {
                     List {
-                        ForEach(planVM.confirmedPlans) { plan in
+                        ForEach(planVM.archivedPlans) { plan in
                             PlanHistoryRow(plan: plan)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                     Button(role: .destructive) {
@@ -25,15 +25,6 @@ struct PlanHistoryView: View {
                                     } label: {
                                         Label("action.delete".localized, systemImage: "trash")
                                     }
-                                }
-                                .swipeActions(edge: .leading) {
-                                    Button {
-                                        planVM.restorePlan(plan: plan)
-                                        dismiss()
-                                    } label: {
-                                        Label("plan.history.restore".localized, systemImage: "arrow.uturn.backward")
-                                    }
-                                    .tint(.blue)
                                 }
                         }
                     }
@@ -117,7 +108,9 @@ struct PlanHistoryDetailView: View {
     @EnvironmentObject var planVM: PlanViewModel
     @Environment(\.dismiss) var dismiss
     
-    let weekdays: [Weekday] = [.monday,.tuesday,.wednesday,.thursday,.friday,.saturday,.sunday]
+    var weekdays: [Weekday] {
+        PreferencesService.shared.loadPreferences().sortedWeekdays()
+    }
     
     var body: some View {
         ScrollView {
@@ -132,16 +125,6 @@ struct PlanHistoryDetailView: View {
         }
         .navigationTitle(dateFormatter.string(from: plan.weekStart))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    planVM.restorePlan(plan: plan)
-                    dismiss()
-                } label: {
-                    Label("plan.history.restore".localized, systemImage: "arrow.uturn.backward")
-                }
-            }
-        }
     }
     
     func mealsForDay(_ day: Weekday) -> [(MealItem, String)]? {

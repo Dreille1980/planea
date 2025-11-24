@@ -142,7 +142,7 @@ struct AdHocRecipeView: View {
                     
                     Section {
                         Button(action: {
-                            if !usageVM.canGenerateRecipes {
+                            if !usageVM.canGenerate(count: 1) {
                                 showPaywall = true
                             } else {
                                 if mode == .text {
@@ -182,13 +182,8 @@ struct AdHocRecipeView: View {
                 }
             }
             .sheet(isPresented: $showPaywall) {
-                if Config.isFreeVersion {
-                    UsageLimitReachedView(canDismiss: true, onDismiss: {
-                        showPaywall = false
-                    })
-                } else {
-                    SubscriptionPaywallView(limitReached: false)
-                }
+                UsageLimitReachedView()
+                    .environmentObject(usageVM)
             }
             .sheet(isPresented: $showCamera) {
                 ImagePicker(image: $selectedImage, sourceType: .camera)

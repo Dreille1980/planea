@@ -1,24 +1,26 @@
 import SwiftUI
 import PhotosUI
 
-enum RecipeTab: String, CaseIterable {
-    case weekPlan = "recipes.weekPlan"
-    case adhoc = "recipes.adhoc"
+enum RecipesSegment: String, CaseIterable {
+    case recipes = "recipes.segment.recipes"
+    case mealPrep = "recipes.segment.mealPrep"
+    case adHoc = "recipes.segment.adHoc"
 }
 
 struct RecipesView: View {
     @EnvironmentObject var recipeHistoryVM: RecipeHistoryViewModel
-    @State private var selectedTab: RecipeTab = .weekPlan
+    @EnvironmentObject var usageVM: UsageViewModel
+    @State private var selectedSegment: RecipesSegment = .recipes
     @State private var showRecentRecipes = false
     
     var body: some View {
         ZStack {
             NavigationStack {
             VStack(spacing: 0) {
-                // Tab selector
-                Picker("", selection: $selectedTab) {
-                    ForEach(RecipeTab.allCases, id: \.self) { tab in
-                        Text(tab.rawValue.localized).tag(tab)
+                // Segment selector
+                Picker("", selection: $selectedSegment) {
+                    ForEach(RecipesSegment.allCases, id: \.self) { segment in
+                        Text(segment.rawValue.localized).tag(segment)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -26,20 +28,23 @@ struct RecipesView: View {
                 .padding(.vertical, 8)
                 .background(Color(.systemGroupedBackground))
                 
-                // Tab content
-                TabView(selection: $selectedTab) {
+                // Segment content
+                TabView(selection: $selectedSegment) {
                     PlanWeekView()
-                        .tag(RecipeTab.weekPlan)
+                        .tag(RecipesSegment.recipes)
+                    
+                    MealPrepView(baseURL: URL(string: Config.baseURL)!)
+                        .tag(RecipesSegment.mealPrep)
                     
                     AdHocRecipeContentView()
-                        .tag(RecipeTab.adhoc)
+                        .tag(RecipesSegment.adHoc)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
             }
             .navigationTitle("tab.recipes".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if selectedTab == .adhoc && !recipeHistoryVM.recentRecipes.isEmpty {
+                if selectedSegment == .adHoc && !recipeHistoryVM.recentRecipes.isEmpty {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button {
                             showRecentRecipes = true
@@ -56,6 +61,57 @@ struct RecipesView: View {
             }
             
             FloatingChatButton()
+                .environmentObject(usageVM)
+        }
+    }
+}
+
+// MARK: - Meal Prep Content View (Placeholder)
+struct MealPrepContentView: View {
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Header
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("mealprep.title".localized)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    Text("mealprep.subtitle".localized)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                
+                // CTA Button
+                Button {
+                    // TODO: Open wizard
+                } label: {
+                    Text("mealprep.cta".localized)
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.accentColor)
+                        .cornerRadius(12)
+                }
+                .padding(.horizontal)
+                
+                // Coming soon placeholder
+                VStack(spacing: 12) {
+                    Image(systemName: "calendar.badge.clock")
+                        .font(.system(size: 48))
+                        .foregroundColor(.gray)
+                    Text("Coming Soon")
+                        .font(.title3)
+                        .fontWeight(.medium)
+                    Text("Meal prep feature is being developed")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 40)
+            }
         }
     }
 }
@@ -170,7 +226,7 @@ struct AdHocRecipeContentView: View {
                 
                 Section {
                     Button(action: {
-                        if usageVM.hasFreePlanRestrictions {
+                        if !usageVM.canGenerate(count: 1) {
                             showPaywall = true
                         } else {
                             if mode == .text {
@@ -180,13 +236,7 @@ struct AdHocRecipeContentView: View {
                             }
                         }
                     }) {
-                        HStack {
-                            Text("action.generateRecipe".localized)
-                            if usageVM.hasFreePlanRestrictions {
-                                Image(systemName: "lock.fill")
-                                    .font(.caption)
-                            }
-                        }
+                        Text("action.generateRecipe".localized)
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled((mode == .text && prompt.isEmpty) || (mode == .photo && selectedImage == nil) || isGenerating)
@@ -219,7 +269,8 @@ struct AdHocRecipeContentView: View {
             }
         }
         .sheet(isPresented: $showPaywall) {
-            SubscriptionPaywallView(limitReached: false)
+            UsageLimitReachedView()
+                .environmentObject(usageVM)
         }
         .sheet(isPresented: $showCamera) {
             ImagePicker(image: $selectedImage, sourceType: .camera)
@@ -267,6 +318,9 @@ struct AdHocRecipeContentView: View {
             
             // Auto-save to recent recipes
             recipeHistoryVM.saveRecipe(recipe, source: "adhoc-text")
+            
+            // Record generation
+            usageVM.recordGenerations(count: 1)
             
             showingRecipe = true
         } catch {
@@ -342,6 +396,14 @@ struct AdHocRecipeContentView: View {
             
             // Auto-save to recent recipes
             recipeHistoryVM.saveRecipe(recipe, source: "adhoc-photo")
+            
+            // Record generation
+            usageVM.recordGenerations(count: 1)
+            
+            // Reset image and instructions after successful generation
+            selectedImage = nil
+            photoInstructions = ""
+            photoPickerItem = nil
             
             showingRecipe = true
         } catch {

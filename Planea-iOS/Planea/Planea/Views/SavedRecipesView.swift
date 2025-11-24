@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SavedRecipesView: View {
     @StateObject private var favoritesVM = FavoritesViewModel()
+    @EnvironmentObject var usageVM: UsageViewModel
     
     var body: some View {
         ZStack {
@@ -51,6 +52,7 @@ struct SavedRecipesView: View {
             }
             
             FloatingChatButton()
+                .environmentObject(usageVM)
         }
     }
 }

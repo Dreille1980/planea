@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Literal, Optional
-from datetime import date
+from datetime import date, datetime
 import os
+import uuid
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 import json
@@ -2616,6 +2617,169 @@ IMPORTANT: Implémente EXACTEMENT la modification demandée"""
     except Exception as e:
         print(f"Error in chat endpoint: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to process chat message: {str(e)}")
+
+
+@app.post("/ai/meal-prep-kits")
+async def generate_meal_prep_kits(req: dict):
+    """Generate meal prep kits with storage metadata."""
+    
+    # Extract parameters
+    days = req.get("days", [])
+    meals = req.get("meals", [])
+    servings_per_meal = req.get("servings_per_meal", 4)
+    total_prep_time = req.get("total_prep_time_preference", "1h30")
+    skill_level = req.get("skill_level", "intermediate")
+    avoid_rare = req.get("avoid_rare_ingredients", False)
+    prefer_long_shelf = req.get("prefer_long_shelf_life", False)
+    constraints = req.get("constraints", {})
+    units = req.get("units", "METRIC")
+    language = req.get("language", "fr")
+    
+    # Calculate number of recipes needed
+    num_recipes = len(days) * len(meals)
+    
+    print(f"\n🍽️ Generating {num_recipes} meal prep recipes")
+    print(f"  Days: {days}")
+    print(f"  Meals: {meals}")
+    print(f"  Servings: {servings_per_meal}")
+    print(f"  Prep time: {total_prep_time}")
+    print(f"  Skill: {skill_level}")
+    
+    # Map time preference to minutes
+    time_mapping = {"1h": 60, "1h30": 90, "2h+": 120}
+    max_total_time = time_mapping.get(total_prep_time, 90)
+    
+    # Generate 2-3 different kits
+    num_kits = 3
+    all_kits = []
+    
+    for kit_idx in range(num_kits):
+        kit_recipes = []
+        
+        # Generate recipes for this kit
+        for recipe_idx in range(num_recipes):
+            # Determine meal type (cycle through meals)
+            meal_type = meals[recipe_idx % len(meals)]
+            
+            try:
+                # Generate recipe with storage metadata
+                recipe = await generate_recipe_with_openai(
+                    meal_type=meal_type,
+                    constraints=constraints,
+                    units=units,
+                    servings=servings_per_meal,
+                    previous_recipes=None,
+                    diversity_seed=kit_idx * 100 + recipe_idx,
+                    language=language,
+                    preferences={
+                        "maxMinutes": max_total_time // num_recipes,  # Distribute time across recipes
+                        "skillLevel": skill_level,
+                        "avoidRareIngredients": avoid_rare
+                    }
+                )
+                
+                # Add storage metadata
+                # Determine shelf life based on ingredients and recipe type
+                shelf_life_days = 3  # Default
+                is_freezable = True  # Default
+                
+                # Analyze recipe to determine storage
+                recipe_title_lower = recipe.title.lower()
+                
+                # Short shelf life (1-2 days)
+                if any(word in recipe_title_lower for word in ['salade', 'salad', 'poisson frais', 'fresh fish', 'crevettes', 'shrimp']):
+                    shelf_life_days = 2
+                    is_freezable = False
+                
+                # Medium shelf life (3-4 days)
+                elif any(word in recipe_title_lower for word in ['poulet', 'chicken', 'porc', 'pork', 'boeuf', 'beef', 'pâtes', 'pasta']):
+                    shelf_life_days = 4 if prefer_long_shelf else 3
+                    is_freezable = True
+                
+                # Long shelf life (4-5 days)
+                elif any(word in recipe_title_lower for word in ['soupe', 'soup', 'ragoût', 'stew', 'chili', 'curry', 'casserole']):
+                    shelf_life_days = 5
+                    is_freezable = True
+                
+                # Build storage note
+                if language == "fr":
+                    storage_note = f"Se conserve {shelf_life_days} jours au frigo"
+                    if is_freezable:
+                        storage_note += ". Se congèle."
+                    else:
+                        storage_note += ". Ne se congèle pas."
+                else:
+                    storage_note = f"Keeps {shelf_life_days} days in the fridge"
+                    if is_freezable:
+                        storage_note += ". Freezable."
+                    else:
+                        storage_note += ". Not suitable for freezing."
+                
+                # Create recipe ref with storage metadata
+                recipe_ref = {
+                    "id": str(recipe.id) if hasattr(recipe, 'id') else str(uuid.uuid4()),
+                    "recipe_id": str(recipe.id) if hasattr(recipe, 'id') else str(uuid.uuid4()),
+                    "title": recipe.title,
+                    "image_url": None,
+                    "shelf_life_days": shelf_life_days,
+                    "is_freezable": is_freezable,
+                    "storage_note": storage_note,
+                    # Include full recipe for convenience
+                    "recipe": {
+                        "title": recipe.title,
+                        "servings": recipe.servings,
+                        "total_minutes": recipe.total_minutes,
+                        "ingredients": [
+                            {
+                                "name": ing.name,
+                                "quantity": ing.quantity,
+                                "unit": ing.unit,
+                                "category": ing.category
+                            }
+                            for ing in recipe.ingredients
+                        ],
+                        "steps": recipe.steps,
+                        "equipment": recipe.equipment,
+                        "tags": recipe.tags,
+                        "shelf_life_days": shelf_life_days,
+                        "is_freezable": is_freezable,
+                        "storage_note": storage_note
+                    }
+                }
+                
+                kit_recipes.append(recipe_ref)
+                print(f"  ✅ Recipe {recipe_idx + 1}: {recipe.title} ({shelf_life_days}d, {'freezable' if is_freezable else 'not freezable'})")
+                
+            except Exception as e:
+                print(f"  ❌ Error generating recipe {recipe_idx + 1}: {e}")
+                continue
+        
+        # Calculate total prep time and portions
+        total_prep_minutes = sum(r["recipe"]["total_minutes"] for r in kit_recipes)
+        total_portions = sum(r["recipe"]["servings"] for r in kit_recipes)
+        
+        # Create kit
+        if language == "fr":
+            kit_name = f"Kit Prépa-repas #{kit_idx + 1}"
+            kit_description = f"{len(kit_recipes)} recettes variées pour la semaine"
+        else:
+            kit_name = f"Meal Prep Kit #{kit_idx + 1}"
+            kit_description = f"{len(kit_recipes)} varied recipes for the week"
+        
+        kit = {
+            "id": str(uuid.uuid4()),
+            "name": kit_name,
+            "description": kit_description,
+            "total_portions": total_portions,
+            "estimated_prep_minutes": total_prep_minutes,
+            "recipes": kit_recipes,
+            "created_at": datetime.now().isoformat()
+        }
+        
+        all_kits.append(kit)
+        print(f"\n✅ Kit {kit_idx + 1} created: {len(kit_recipes)} recipes, {total_portions} portions, {total_prep_minutes} min")
+    
+    return {"kits": all_kits}
 
 
 @app.get("/")

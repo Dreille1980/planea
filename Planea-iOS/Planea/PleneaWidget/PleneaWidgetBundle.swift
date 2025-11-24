@@ -11,8 +11,6 @@ import SwiftUI
 @main
 struct PleneaWidgetBundle: WidgetBundle {
     var body: some Widget {
-        PleneaWidget()
-        PleneaWidgetControl()
-        PleneaWidgetLiveActivity()
+        PlaneaWidget()
     }
 }
