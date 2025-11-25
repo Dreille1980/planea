@@ -589,3 +589,10 @@
 "meal_prep.concept_selection.custom_placeholder" = "Ex: Cuisine asiatique avec beaucoup de légumes";
 "meal_prep.confirmation.title" = "Confirmez votre plan";
 "meal_prep.confirmation.subtitle" = "Voici comment vos recettes seront distribuées";
+
+// Meal Prep - Conservation
+"meal_prep.freezable" = "Congélable";
+"meal_prep.not_freezable" = "Non congélable";
+"meal_prep.recipes_included" = "Recettes incluses";
+"meal_prep.storage" = "Conservation";
+"meal_prep.total_time" = "temps total";

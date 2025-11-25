@@ -102,7 +102,7 @@ struct MealPrepService {
         // Add concept if provided
         if let concept = selectedConcept {
             payload["selected_concept"] = [
-                "id": concept.id,
+                "id": concept.id.uuidString,
                 "name": concept.name,
                 "description": concept.description,
                 "cuisine": concept.cuisine as Any,

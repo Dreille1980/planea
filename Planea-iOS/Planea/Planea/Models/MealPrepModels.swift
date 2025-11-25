@@ -101,8 +101,8 @@ struct MealPrepRecipeRef: Identifiable, Codable {
     let isFreezable: Bool
     let storageNote: String?
     
-    // Full recipe for convenience (not sent to backend)
-    var recipe: Recipe?
+    // Full recipe from backend
+    let recipe: Recipe?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -112,6 +112,7 @@ struct MealPrepRecipeRef: Identifiable, Codable {
         case shelfLifeDays = "shelf_life_days"
         case isFreezable = "is_freezable"
         case storageNote = "storage_note"
+        case recipe  // NOW INCLUDED!
     }
     
     init(id: UUID = UUID(), recipeId: String, title: String, imageUrl: String? = nil, shelfLifeDays: Int, isFreezable: Bool, storageNote: String? = nil, recipe: Recipe? = nil) {

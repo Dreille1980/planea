@@ -26,8 +26,7 @@ struct MealPrepWizardView: View {
     @State private var selectedConceptId: UUID?
     @State private var customConceptText: String = ""
     
-    // Step 3 (now 4): Generated kits
-    @State private var selectedKitId: UUID?
+    // Step 3 (now 4): Generated kit (single kit, no selection needed)
     
     var body: some View {
         NavigationView {
@@ -464,7 +463,7 @@ struct MealPrepWizardView: View {
         }
     }
     
-    // MARK: - Step 4: Select Kit
+    // MARK: - Step 4: Review Kit (Single kit display with detailed summary)
     
     private var step4SelectKit: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -495,11 +494,9 @@ struct MealPrepWizardView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
-            } else if !viewModel.generatedKits.isEmpty {
-                // Generated kits
-                ForEach(viewModel.generatedKits) { kit in
-                    kitSelectionCard(kit)
-                }
+            } else if let kit = viewModel.generatedKits.first {
+                // Display single kit with detailed summary
+                kitDetailView(kit)
             } else if let error = viewModel.errorMessage {
                 // Error state
                 VStack(spacing: 16) {
@@ -516,82 +513,115 @@ struct MealPrepWizardView: View {
         }
     }
     
-    private func kitSelectionCard(_ kit: MealPrepKit) -> some View {
-        Button(action: {
-            selectedKitId = kit.id
-        }) {
+    private func kitDetailView(_ kit: MealPrepKit) -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // Kit summary
             VStack(alignment: .leading, spacing: 12) {
-                HStack {
+                Text(kit.name)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                
+                if let description = kit.description {
+                    Text(description)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                // Statistics
+                HStack(spacing: 20) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(kit.name)
+                        Label("\(kit.recipes.count)", systemImage: "fork.knife")
                             .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        if let description = kit.description {
-                            Text(description)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
+                        Text("recettes")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
                     
-                    Spacer()
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label("\(kit.totalPortions)", systemImage: "person.2")
+                            .font(.headline)
+                        Text("portions")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                     
-                    Image(systemName: selectedKitId == kit.id ? "checkmark.circle.fill" : "circle")
-                        .font(.title3)
-                        .foregroundColor(selectedKitId == kit.id ? .accentColor : .gray)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label(viewModel.formatPrepTime(minutes: kit.estimatedPrepMinutes), systemImage: "clock")
+                            .font(.headline)
+                        Text(LocalizedStringKey("meal_prep.total_time"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(UIColor.secondarySystemBackground))
+                .cornerRadius(12)
+            }
+            
+            // Recipe list with storage info
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text(LocalizedStringKey("meal_prep.recipes_included"))
+                        .font(.headline)
+                    Spacer()
+                    Image(systemName: "refrigerator")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                    Text(LocalizedStringKey("meal_prep.storage"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 
-                HStack(spacing: 16) {
-                    Label("\(kit.recipes.count) recettes", systemImage: "fork.knife")
-                        .font(.caption)
-                    Label("\(kit.totalPortions) portions", systemImage: "person.2")
-                        .font(.caption)
-                    Label("~\(kit.estimatedPrepMinutes/60)h\(kit.estimatedPrepMinutes%60)", systemImage: "clock")
-                        .font(.caption)
-                }
-                .foregroundColor(.secondary)
-                
-                // Recipe previews with storage info
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(kit.recipes.prefix(4)) { recipeRef in
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill(Color.accentColor.opacity(0.2))
-                                .frame(width: 6, height: 6)
-                            
-                            Text(recipeRef.title)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Spacer()
-                            
-                            HStack(spacing: 4) {
-                                if let storageNote = recipeRef.storageNote, !storageNote.isEmpty {
-                                    Text(storageNote)
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(1)
-                                }
-                                
-                                if !recipeRef.isFreezable {
-                                    Image(systemName: "snowflake.slash")
-                                        .font(.caption2)
-                                        .foregroundColor(.orange)
-                                }
-                            }
-                        }
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(kit.recipes) { recipeRef in
+                        recipeRow(recipeRef)
                     }
                 }
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(selectedKitId == kit.id ? Color.accentColor.opacity(0.1) : Color(UIColor.secondarySystemBackground))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(selectedKitId == kit.id ? Color.accentColor : Color.clear, lineWidth: 2)
-            )
+        }
+    }
+    
+    private func recipeRow(_ recipeRef: MealPrepRecipeRef) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top) {
+                // Recipe icon
+                Circle()
+                    .fill(Color.accentColor.opacity(0.2))
+                    .frame(width: 8, height: 8)
+                    .padding(.top, 6)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(recipeRef.title)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    // Storage info
+                    HStack(spacing: 12) {
+                        // Shelf life
+                        HStack(spacing: 4) {
+                            Image(systemName: "calendar")
+                                .font(.caption2)
+                            Text("\(recipeRef.shelfLifeDays)j")
+                                .font(.caption)
+                        }
+                        .foregroundColor(.secondary)
+                        
+                        // Freezable indicator
+                        HStack(spacing: 4) {
+                            Image(systemName: recipeRef.isFreezable ? "snowflake" : "snowflake.slash")
+                                .font(.caption2)
+                            Text(LocalizedStringKey(recipeRef.isFreezable ? "meal_prep.freezable" : "meal_prep.not_freezable"))
+                                .font(.caption)
+                        }
+                        .foregroundColor(recipeRef.isFreezable ? .blue : .orange)
+                    }
+                }
+                
+                Spacer()
+            }
+            
+            Divider()
         }
     }
     
@@ -647,7 +677,7 @@ struct MealPrepWizardView: View {
         case 3:
             return selectedConceptId != nil || !customConceptText.isEmpty
         case 4:
-            return selectedKitId != nil && !viewModel.isGenerating
+            return !viewModel.generatedKits.isEmpty && !viewModel.isGenerating
         default:
             return false
         }
@@ -709,8 +739,7 @@ struct MealPrepWizardView: View {
     }
     
     private func confirmKit() {
-        guard let kitId = selectedKitId,
-              let selectedKit = viewModel.generatedKits.first(where: { $0.id == kitId }) else {
+        guard let selectedKit = viewModel.generatedKits.first else {
             return
         }
         
