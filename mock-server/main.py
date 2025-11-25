@@ -2891,9 +2891,10 @@ async def generate_meal_prep_kits(req: dict):
     all_kits = []
     
     for kit_idx in range(num_kits):
-        kit_recipes = []
+        # Build all recipe generation tasks for this kit
+        recipe_tasks = []
+        recipe_metadata = []
         
-        # Generate recipes for this kit
         for recipe_idx in range(num_recipes):
             # Determine meal type (cycle through meals)
             meal_type = meals[recipe_idx % len(meals)]
@@ -2906,25 +2907,40 @@ async def generate_meal_prep_kits(req: dict):
             # Calculate minimum shelf life required (assuming prep on day 0)
             min_shelf_life_required = target_day_index + 1
             
-            try:
-                # Generate recipe with storage metadata and shelf life requirements
-                recipe = await generate_recipe_with_openai(
-                    meal_type=meal_type,
-                    constraints=constraints,
-                    units=units,
-                    servings=servings_per_meal,
-                    previous_recipes=None,
-                    diversity_seed=kit_idx * 100 + recipe_idx,
-                    language=language,
-                    preferences={
-                        "maxMinutes": max_total_time // num_recipes,  # Distribute time across recipes
-                        "skillLevel": skill_level,
-                        "avoidRareIngredients": avoid_rare
-                    },
-                    min_shelf_life_required=min_shelf_life_required,
-                    selected_concept=selected_concept,
-                    weekday=target_day  # Pass weekday for context
-                )
+            # Store metadata for post-processing
+            recipe_metadata.append({
+                "meal_type": meal_type,
+                "target_day": target_day,
+                "min_shelf_life": min_shelf_life_required
+            })
+            
+            # Create task for parallel execution
+            task = generate_recipe_with_openai(
+                meal_type=meal_type,
+                constraints=constraints,
+                units=units,
+                servings=servings_per_meal,
+                previous_recipes=None,
+                diversity_seed=kit_idx * 100 + recipe_idx,
+                language=language,
+                preferences={
+                    "maxMinutes": max_total_time // num_recipes,  # Distribute time across recipes
+                    "skillLevel": skill_level,
+                    "avoidRareIngredients": avoid_rare
+                },
+                min_shelf_life_required=min_shelf_life_required,
+                selected_concept=selected_concept,
+                weekday=target_day  # Pass weekday for context
+            )
+            recipe_tasks.append(task)
+        
+        # Generate all recipes for this kit in parallel
+        try:
+            recipes = await asyncio.gather(*recipe_tasks)
+            
+            # Process each generated recipe
+            kit_recipes = []
+            for recipe_idx, recipe in enumerate(recipes):
                 
                 # Add storage metadata
                 # Determine shelf life based on ingredients and recipe type
@@ -2997,10 +3013,10 @@ async def generate_meal_prep_kits(req: dict):
                 
                 kit_recipes.append(recipe_ref)
                 print(f"  ✅ Recipe {recipe_idx + 1}: {recipe.title} ({shelf_life_days}d, {'freezable' if is_freezable else 'not freezable'})")
-                
-            except Exception as e:
-                print(f"  ❌ Error generating recipe {recipe_idx + 1}: {e}")
-                continue
+        
+        except Exception as e:
+            print(f"  ❌ Error generating recipes for kit {kit_idx + 1}: {e}")
+            continue
         
         # Calculate total prep time and portions
         total_prep_minutes = sum(r["recipe"]["total_minutes"] for r in kit_recipes)
