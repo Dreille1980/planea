@@ -22,7 +22,11 @@ struct MealPrepWizardView: View {
     @State private var avoidRareIngredients = false
     @State private var preferLongShelfLife = false
     
-    // Step 3: Generated kits
+    // Step 2.5: Concept Selection (now step 3)
+    @State private var selectedConceptId: UUID?
+    @State private var customConceptText: String = ""
+    
+    // Step 3 (now 4): Generated kits
     @State private var selectedKitId: UUID?
     
     var body: some View {
@@ -40,7 +44,9 @@ struct MealPrepWizardView: View {
                         case 2:
                             step2Preferences
                         case 3:
-                            step3SelectKit
+                            step3ConceptSelection
+                        case 4:
+                            step4SelectKit
                         default:
                             EmptyView()
                         }
@@ -67,7 +73,7 @@ struct MealPrepWizardView: View {
     
     private var progressIndicator: some View {
         HStack(spacing: 8) {
-            ForEach(1...3, id: \.self) { step in
+            ForEach(1...4, id: \.self) { step in
                 Rectangle()
                     .fill(step <= currentStep ? Color.accentColor : Color.gray.opacity(0.3))
                     .frame(height: 4)
@@ -321,9 +327,146 @@ struct MealPrepWizardView: View {
         }
     }
     
-    // MARK: - Step 3: Select Kit
+    // MARK: - Step 3: Concept Selection
     
-    private var step3SelectKit: some View {
+    private var step3ConceptSelection: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            // Title
+            VStack(alignment: .leading, spacing: 8) {
+                Text(LocalizedStringKey("meal_prep.concept_selection.title"))
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                Text(LocalizedStringKey("meal_prep.concept_selection.subtitle"))
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            if viewModel.isLoadingConcepts {
+                // Loading state
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                    Text(LocalizedStringKey("meal_prep_please_wait"))
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            } else if !viewModel.concepts.isEmpty {
+                // Concept cards
+                ForEach(viewModel.concepts) { concept in
+                    conceptCard(concept)
+                }
+                
+                // Custom concept input
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(LocalizedStringKey("meal_prep.concept_selection.custom"))
+                        .font(.headline)
+                    
+                    TextField(
+                        NSLocalizedString("meal_prep.concept_selection.custom_placeholder", comment: ""),
+                        text: $customConceptText
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .padding()
+                    .background(Color(UIColor.secondarySystemBackground))
+                    .cornerRadius(12)
+                    .onChange(of: customConceptText) { oldValue, newValue in
+                        if !newValue.isEmpty {
+                            selectedConceptId = nil
+                        }
+                    }
+                }
+            } else if let error = viewModel.conceptsError {
+                // Error state
+                VStack(spacing: 16) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.largeTitle)
+                        .foregroundColor(.orange)
+                    Text(error)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            }
+        }
+        .onAppear {
+            if viewModel.concepts.isEmpty && !viewModel.isLoadingConcepts {
+                Task {
+                    await loadConcepts()
+                }
+            }
+        }
+    }
+    
+    private func conceptCard(_ concept: MealPrepConcept) -> some View {
+        Button(action: {
+            selectedConceptId = concept.id
+            customConceptText = ""
+            viewModel.selectedConcept = concept
+        }) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(concept.name)
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        Text(concept.description)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: selectedConceptId == concept.id ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundColor(selectedConceptId == concept.id ? .accentColor : .gray)
+                }
+                
+                if let cuisine = concept.cuisine {
+                    HStack {
+                        Image(systemName: "fork.knife")
+                            .font(.caption)
+                        Text(cuisine)
+                            .font(.caption)
+                    }
+                    .foregroundColor(.secondary)
+                }
+                
+                if !concept.tags.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(concept.tags, id: \.self) { tag in
+                                Text(tag)
+                                    .font(.caption2)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.accentColor.opacity(0.1))
+                                    .foregroundColor(.accentColor)
+                                    .cornerRadius(8)
+                            }
+                        }
+                    }
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(selectedConceptId == concept.id ? Color.accentColor.opacity(0.1) : Color(UIColor.secondarySystemBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(selectedConceptId == concept.id ? Color.accentColor : Color.clear, lineWidth: 2)
+            )
+        }
+    }
+    
+    // MARK: - Step 4: Select Kit
+    
+    private var step4SelectKit: some View {
         VStack(alignment: .leading, spacing: 24) {
             // Title
             VStack(alignment: .leading, spacing: 8) {
@@ -410,27 +553,27 @@ struct MealPrepWizardView: View {
                 
                 // Recipe previews with storage info
                 VStack(alignment: .leading, spacing: 6) {
-                    ForEach(kit.recipes.prefix(4)) { recipe in
+                    ForEach(kit.recipes.prefix(4)) { recipeRef in
                         HStack(spacing: 8) {
                             Circle()
                                 .fill(Color.accentColor.opacity(0.2))
                                 .frame(width: 6, height: 6)
                             
-                            Text(recipe.title)
+                            Text(recipeRef.title)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             
                             Spacer()
                             
                             HStack(spacing: 4) {
-                                if let note = recipe.storageNote {
-                                    Text(note)
+                                if let storageNote = recipeRef.storageNote, !storageNote.isEmpty {
+                                    Text(storageNote)
                                         .font(.caption2)
                                         .foregroundColor(.secondary)
                                         .lineLimit(1)
                                 }
                                 
-                                if !recipe.isFreezable {
+                                if !recipeRef.isFreezable {
                                     Image(systemName: "snowflake.slash")
                                         .font(.caption2)
                                         .foregroundColor(.orange)
@@ -483,11 +626,11 @@ struct MealPrepWizardView: View {
     
     private var nextButtonTitle: LocalizedStringKey {
         switch currentStep {
-        case 1:
+        case 1, 2:
             return "next"
-        case 2:
-            return "meal_prep_generate_kits"
         case 3:
+            return "meal_prep_generate_kits"
+        case 4:
             return "confirm"
         default:
             return "next"
@@ -502,6 +645,8 @@ struct MealPrepWizardView: View {
         case 2:
             return true
         case 3:
+            return selectedConceptId != nil || !customConceptText.isEmpty
+        case 4:
             return selectedKitId != nil && !viewModel.isGenerating
         default:
             return false
@@ -515,9 +660,13 @@ struct MealPrepWizardView: View {
     }
     
     private func goNext() {
-        if currentStep < 3 {
-            if currentStep == 2 {
-                // Generate kits when moving to step 3
+        if currentStep < 4 {
+            if currentStep == 3 {
+                // Set concept and generate kits when moving to step 4
+                if !customConceptText.isEmpty {
+                    viewModel.customConceptText = customConceptText
+                    viewModel.selectedConcept = nil
+                }
                 Task {
                     await generateKits()
                 }
@@ -529,6 +678,13 @@ struct MealPrepWizardView: View {
             // Confirm and apply kit
             confirmKit()
         }
+    }
+    
+    private func loadConcepts() async {
+        await viewModel.loadConcepts(
+            constraints: [:],
+            language: LocalizationHelper.currentLanguageCode()
+        )
     }
     
     private func generateKits() async {
