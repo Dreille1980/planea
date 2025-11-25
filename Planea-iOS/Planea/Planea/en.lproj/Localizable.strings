@@ -582,3 +582,11 @@
 "meal_prep_generating" = "Generating your meal prep kits...";
 "meal_prep_step3_subtitle" = "Select the kit that best fits your needs";
 "meal_prep_please_wait" = "This may take a moment...";
+
+// Concept selection
+"meal_prep.concept_selection.title" = "Choose a Theme";
+"meal_prep.concept_selection.subtitle" = "Select a concept or describe your own theme";
+"meal_prep.concept_selection.custom" = "Or describe your own theme";
+"meal_prep.concept_selection.custom_placeholder" = "Ex: Asian cuisine with lots of vegetables";
+"meal_prep.confirmation.title" = "Confirm Your Plan";
+"meal_prep.confirmation.subtitle" = "Here's how your recipes will be distributed";

@@ -395,7 +395,9 @@ async def generate_recipe_with_openai(
     suggested_protein: str = None,
     other_plan_proteins: List[str] = None,
     flyer_deals: List[str] = None,
-    weekday: str = None
+    weekday: str = None,
+    min_shelf_life_required: int = 3,
+    selected_concept: dict = None
 ) -> Recipe:
     """Generate a single recipe using OpenAI with diversity awareness (async)."""
     
@@ -507,6 +509,62 @@ async def generate_recipe_with_openai(
     protein_portions_text += "- Ground meat (beef, pork, chicken): 150-180g per person\n"
     protein_portions_text += "These portions ensure adequate protein intake for a satisfying meal.\n"
     
+    # Build storage instructions for meal prep with adaptive shelf life
+    storage_instructions = ""
+    if min_shelf_life_required > 3:
+        if language == "fr":
+            storage_instructions = f"""
+
+🥡 CONSERVATION ADAPTATIVE (CRITIQUE):
+Cette recette sera consommée le jour {min_shelf_life_required} après préparation.
+Elle DOIT ABSOLUMENT:
+- Se conserver {min_shelf_life_required} jours au frigo, OU
+- Être congélable
+
+TYPES DE RECETTES PRIVILÉGIÉS pour longue conservation:
+- Soupes, ragoûts, chilis
+- Plats mijotés (curry, tajines)
+- Casseroles, lasagnes, gratins
+- Pâtes au four
+
+ÉVITER: salades, poisson frais, fruits de mer non congelés
+"""
+        else:
+            storage_instructions = f"""
+
+🥡 ADAPTIVE STORAGE (CRITICAL):
+This recipe will be consumed on day {min_shelf_life_required} after preparation.
+It MUST:
+- Keep {min_shelf_life_required} days in fridge, OR
+- Be freezable
+
+PRIORITIZE for long storage:
+- Soups, stews, chilis
+- Braised dishes (curries, tagines)
+- Casseroles, lasagnas, gratins
+- Baked pasta
+
+AVOID: salads, fresh fish, non-frozen seafood
+"""
+    
+    # Build concept instructions if provided
+    concept_instructions = ""
+    if selected_concept:
+        if language == "fr":
+            concept_instructions = f"""
+
+🎨 THÈME CULINAIRE:
+{selected_concept.get('name', 'Custom')}: {selected_concept.get('description', '')}
+Inspire-toi de ce thème pour créer la recette.
+"""
+        else:
+            concept_instructions = f"""
+
+🎨 CULINARY THEME:
+{selected_concept.get('name', 'Custom')}: {selected_concept.get('description', '')}
+Draw inspiration from this theme.
+"""
+    
     # Build diversity instructions with protein guidance
     # Build diversity instructions with recipe type variety
     diversity_text = "\n\n🎯 IMPÉRATIF - DIVERSITÉ DES TYPES DE PLATS:\n"
@@ -581,7 +639,7 @@ async def generate_recipe_with_openai(
         prompt = f"""Generate a {meal_type_name} recipe in English for {servings} people.
 
 {constraints_text_en}{complexity_instructions_en}
-{preferences_text}{protein_portions_text_en}{diversity_text_en}
+{preferences_text}{protein_portions_text_en}{storage_instructions}{concept_instructions}{diversity_text_en}
 
 CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
 - First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
@@ -617,7 +675,7 @@ IMPORTANT: Generate at least 6-8 detailed steps with EXPLICIT preparation steps 
         prompt = f"""Génère une recette de {meal_type_fr} en français pour {servings} personnes.
 
 {constraints_text}{complexity_instructions_fr}
-{preferences_text}{protein_portions_text}{diversity_text}
+{preferences_text}{protein_portions_text}{storage_instructions}{concept_instructions}{diversity_text}
 
 CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
 - Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
@@ -2619,9 +2677,184 @@ IMPORTANT: Implémente EXACTEMENT la modification demandée"""
         raise HTTPException(status_code=500, detail=f"Failed to process chat message: {str(e)}")
 
 
+@app.post("/ai/meal-prep-concepts")
+async def generate_meal_prep_concepts(req: dict):
+    """Generate meal prep concept options for user to choose from."""
+    
+    language = req.get("language", "fr")
+    constraints = req.get("constraints", {})
+    
+    print(f"\n🎨 Generating meal prep concepts")
+    
+    # Build prompt for concept generation
+    constraints_text = ""
+    if constraints.get("diet"):
+        diets = ", ".join(constraints["diet"])
+        constraints_text += f"Régimes: {diets}. " if language == "fr" else f"Diets: {diets}. "
+    if constraints.get("evict"):
+        allergies = ", ".join(constraints["evict"])
+        constraints_text += f"À éviter: {allergies}. " if language == "fr" else f"Avoid: {allergies}. "
+    
+    if language == "en":
+        prompt = f"""Generate 3 distinct meal prep concept themes for weekly meal planning.
+        
+{constraints_text}
+
+Each concept should represent a different culinary style or approach to meal prep.
+
+Return ONLY a valid JSON array with this exact structure:
+[
+    {{
+        "id": "uuid-string",
+        "name": "Concept Name",
+        "description": "Brief 1-sentence description highlighting what makes this concept unique",
+        "cuisine": "cuisine type (optional)",
+        "tags": ["tag1", "tag2", "tag3"]
+    }}
+]
+
+Examples of good concepts:
+- "Mediterranean Week": Fresh and vibrant dishes from the Mediterranean coast
+- "Comfort Food Classics": Hearty, satisfying meals that warm the soul
+- "Asian Fusion": Bold flavors combining techniques from across Asia
+- "Farm-to-Table": Seasonal vegetables and local ingredients
+- "Quick & Easy": Simple meals ready in under 30 minutes
+- "Batch Cooking Pro": Large-batch recipes perfect for meal prep
+
+Be creative and diverse. Each concept must be COMPLETELY DIFFERENT from the others.
+Make the descriptions appealing and specific."""
+    
+    else:  # French
+        prompt = f"""Génère 3 concepts distincts de meal prep pour la planification hebdomadaire.
+        
+{constraints_text}
+
+Chaque concept doit représenter un style culinaire ou une approche différente du meal prep.
+
+Retourne UNIQUEMENT un array JSON valide avec cette structure exacte:
+[
+    {{
+        "id": "uuid-string",
+        "name": "Nom du Concept",
+        "description": "Brève description en 1 phrase mettant en valeur ce qui rend ce concept unique",
+        "cuisine": "type de cuisine (optionnel)",
+        "tags": ["tag1", "tag2", "tag3"]
+    }}
+]
+
+Exemples de bons concepts:
+- "Semaine Méditerranéenne": Plats frais et vibrants de la côte méditerranéenne
+- "Classiques Réconfortants": Repas copieux et satisfaisants qui réchauffent l'âme
+- "Fusion Asiatique": Saveurs audacieuses combinant techniques d'Asie
+- "Fraîcheur du Marché": Légumes de saison et ingrédients locaux
+- "Rapide & Facile": Repas simples prêts en moins de 30 minutes
+- "Maître du Batch Cooking": Recettes en grandes quantités parfaites pour le meal prep
+
+Sois créatif et diversifié. Chaque concept doit être COMPLÈTEMENT DIFFÉRENT des autres.
+Rends les descriptions attrayantes et spécifiques."""
+    
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Tu es un expert en meal prep qui crée des concepts thématiques créatifs et diversifiés."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=1.0,
+            max_tokens=800
+        )
+        
+        content = response.choices[0].message.content.strip()
+        
+        # Remove markdown code blocks if present
+        if "```json" in content:
+            parts = content.split("```json")
+            if len(parts) > 1:
+                json_part = parts[1].split("```")[0]
+                content = json_part.strip()
+        elif content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        
+        # Extract JSON array
+        start_idx = content.find('[')
+        end_idx = content.rfind(']')
+        if start_idx != -1 and end_idx != -1:
+            content = content[start_idx:end_idx+1]
+        
+        concepts = json.loads(content)
+        
+        # Ensure UUIDs
+        for concept in concepts:
+            if not concept.get("id"):
+                concept["id"] = str(uuid.uuid4())
+        
+        print(f"✅ Generated {len(concepts)} concepts")
+        for c in concepts:
+            print(f"  - {c['name']}: {c['description']}")
+        
+        return {"concepts": concepts}
+        
+    except Exception as e:
+        print(f"❌ Error generating concepts: {e}")
+        # Fallback concepts
+        if language == "fr":
+            fallback = [
+                {
+                    "id": str(uuid.uuid4()),
+                    "name": "Semaine Méditerranéenne",
+                    "description": "Saveurs ensoleillées et ingrédients frais de la Méditerranée",
+                    "cuisine": "Méditerranéenne",
+                    "tags": ["frais", "santé", "coloré"]
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "name": "Classiques Réconfortants",
+                    "description": "Plats traditionnels chaleureux qui rappellent la maison",
+                    "cuisine": "Traditionnelle",
+                    "tags": ["réconfort", "familial", "copieux"]
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "name": "Rapide & Savoureux",
+                    "description": "Recettes simples et rapides sans compromis sur le goût",
+                    "cuisine": "Variée",
+                    "tags": ["rapide", "facile", "pratique"]
+                }
+            ]
+        else:
+            fallback = [
+                {
+                    "id": str(uuid.uuid4()),
+                    "name": "Mediterranean Week",
+                    "description": "Sunny flavors and fresh ingredients from the Mediterranean",
+                    "cuisine": "Mediterranean",
+                    "tags": ["fresh", "healthy", "colorful"]
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "name": "Comfort Classics",
+                    "description": "Traditional warm dishes that remind you of home",
+                    "cuisine": "Traditional",
+                    "tags": ["comfort", "family", "hearty"]
+                },
+                {
+                    "id": str(uuid.uuid4()),
+                    "name": "Quick & Tasty",
+                    "description": "Simple and fast recipes without compromising on taste",
+                    "cuisine": "Varied",
+                    "tags": ["quick", "easy", "practical"]
+                }
+            ]
+        
+        return {"concepts": fallback}
+
+
 @app.post("/ai/meal-prep-kits")
 async def generate_meal_prep_kits(req: dict):
-    """Generate meal prep kits with storage metadata."""
+    """Generate meal prep kits with storage metadata and adaptive shelf life."""
     
     # Extract parameters
     days = req.get("days", [])
@@ -2634,6 +2867,10 @@ async def generate_meal_prep_kits(req: dict):
     constraints = req.get("constraints", {})
     units = req.get("units", "METRIC")
     language = req.get("language", "fr")
+    selected_concept = req.get("selected_concept", None)  # Optional concept theme
+    
+    # Map days to indices for shelf life calculation
+    day_mapping = {"Mon": 0, "Tue": 1, "Wed": 2, "Thu": 3, "Fri": 4, "Sat": 5, "Sun": 6}
     
     # Calculate number of recipes needed
     num_recipes = len(days) * len(meals)
@@ -2661,8 +2898,16 @@ async def generate_meal_prep_kits(req: dict):
             # Determine meal type (cycle through meals)
             meal_type = meals[recipe_idx % len(meals)]
             
+            # Calculate target day for this recipe
+            day_idx = recipe_idx // len(meals)
+            target_day = days[day_idx] if day_idx < len(days) else days[0]
+            target_day_index = day_mapping.get(target_day, 0)
+            
+            # Calculate minimum shelf life required (assuming prep on day 0)
+            min_shelf_life_required = target_day_index + 1
+            
             try:
-                # Generate recipe with storage metadata
+                # Generate recipe with storage metadata and shelf life requirements
                 recipe = await generate_recipe_with_openai(
                     meal_type=meal_type,
                     constraints=constraints,
@@ -2675,7 +2920,10 @@ async def generate_meal_prep_kits(req: dict):
                         "maxMinutes": max_total_time // num_recipes,  # Distribute time across recipes
                         "skillLevel": skill_level,
                         "avoidRareIngredients": avoid_rare
-                    }
+                    },
+                    min_shelf_life_required=min_shelf_life_required,
+                    selected_concept=selected_concept,
+                    weekday=target_day  # Pass weekday for context
                 )
                 
                 # Add storage metadata

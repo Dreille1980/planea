@@ -62,40 +62,67 @@ class MealPrepStorageService {
     
     // MARK: - Kit Mapping Logic
     
-    /// Map meal prep kit recipes to week plan slots based on storage metadata
+    /// Map meal prep kit recipes to week plan slots based on storage metadata with adaptive shelf life validation
     func mapKitToWeekPlan(
         kit: MealPrepKit,
         params: MealPrepGenerationParams
     ) -> [(day: Weekday, mealType: MealType, recipe: MealPrepRecipeRef)] {
         var mappings: [(Weekday, MealType, MealPrepRecipeRef)] = []
         
-        // Group recipes by storage characteristics
-        let groupA = kit.recipes.filter { $0.shelfLifeDays <= 2 && !$0.isFreezable }
-        let groupB = kit.recipes.filter { $0.shelfLifeDays <= 2 && $0.isFreezable }
-        let groupC = kit.recipes.filter { $0.shelfLifeDays > 2 }
+        // Sort recipes by shelf life (shortest first for early consumption)
+        let sortedRecipes = kit.recipes.sorted { r1, r2 in
+            let shelf1 = r1.shelfLifeDays
+            let shelf2 = r2.shelfLifeDays
+            
+            // Prioritize non-freezable short shelf life recipes first
+            if !r1.isFreezable && r2.isFreezable {
+                return true
+            } else if r1.isFreezable && !r2.isFreezable {
+                return false
+            }
+            
+            return shelf1 < shelf2
+        }
         
-        print("📦 Mapping kit recipes:")
-        print("  Group A (short shelf, not freezable): \(groupA.count)")
-        print("  Group B (short shelf, freezable): \(groupB.count)")
-        print("  Group C (long shelf life): \(groupC.count)")
+        print("📦 Mapping kit recipes with adaptive storage:")
+        print("  Total recipes: \(sortedRecipes.count)")
+        for (idx, recipe) in sortedRecipes.enumerated() {
+            let freezable = recipe.isFreezable ? "❄️" : "🚫"
+            print("  \(idx + 1). \(recipe.recipe?.title ?? "Unknown") - \(recipe.shelfLifeDays) days \(freezable)")
+        }
         
-        // Create all possible slots
-        var slots: [(Weekday, MealType)] = []
-        for day in params.days {
+        // Create slots in chronological order (day index represents days from prep day)
+        var slots: [(dayIndex: Int, day: Weekday, mealType: MealType)] = []
+        for (dayIndex, day) in params.days.enumerated() {
             for meal in params.meals {
-                slots.append((day, meal))
+                slots.append((dayIndex, day, meal))
             }
         }
         
-        var recipeIndex = 0
-        let allRecipes = groupA + groupC + groupB // Prioritize order
+        // Map recipes to slots with storage validation
+        var availableRecipes = sortedRecipes
         
-        // Assign recipes to slots in order
-        for (_, slot) in slots.enumerated() {
-            if recipeIndex < allRecipes.count {
-                let recipe = allRecipes[recipeIndex]
-                mappings.append((slot.0, slot.1, recipe))
-                recipeIndex += 1
+        for slot in slots {
+            guard !availableRecipes.isEmpty else { break }
+            
+            let daysUntilConsumption = slot.dayIndex + 1 // +1 because prep day is day 0
+            
+            // Find suitable recipe for this slot
+            if let suitableIndex = availableRecipes.firstIndex(where: { recipe in
+                let canKeep = recipe.shelfLifeDays >= daysUntilConsumption
+                let canFreeze = recipe.isFreezable
+                return canKeep || canFreeze
+            }) {
+                let recipe = availableRecipes.remove(at: suitableIndex)
+                mappings.append((slot.day, slot.mealType, recipe))
+                
+                let method = recipe.shelfLifeDays >= daysUntilConsumption ? "fridge" : "freezer"
+                print("  ✅ Day \(daysUntilConsumption): \(recipe.recipe?.title ?? "Unknown") (\(method))")
+            } else {
+                // Fallback: use first available recipe (should not happen with proper generation)
+                let recipe = availableRecipes.removeFirst()
+                mappings.append((slot.day, slot.mealType, recipe))
+                print("  ⚠️ Day \(daysUntilConsumption): \(recipe.recipe?.title ?? "Unknown") (fallback)")
             }
         }
         

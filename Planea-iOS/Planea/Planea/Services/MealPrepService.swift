@@ -39,13 +39,46 @@ struct MealPrepService {
         throw lastError ?? URLError(.unknown)
     }
     
+    /// Generate meal prep concepts for user selection
+    @MainActor
+    func generateConcepts(
+        constraints: [String: Any],
+        language: String
+    ) async throws -> [MealPrepConcept] {
+        let url = baseURL.appendingPathComponent("/ai/meal-prep-concepts")
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let payload: [String: Any] = [
+            "language": language,
+            "constraints": constraints
+        ]
+        
+        req.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        
+        print("🎨 Generating meal prep concepts...")
+        let (data, _) = try await performRequest(request: req)
+        
+        // Decode response
+        struct ConceptsResponse: Codable {
+            let concepts: [MealPrepConcept]
+        }
+        
+        let response = try JSONDecoder().decode(ConceptsResponse.self, from: data)
+        print("✅ Received \(response.concepts.count) concepts")
+        return response.concepts
+    }
+    
     /// Generate meal prep kits based on parameters
     @MainActor
     func generateMealPrepKits(
         params: MealPrepGenerationParams,
         constraints: [String: Any],
         units: UnitSystem,
-        language: String
+        language: String,
+        selectedConcept: MealPrepConcept? = nil,
+        customConceptText: String? = nil
     ) async throws -> [MealPrepKit] {
         let url = baseURL.appendingPathComponent("/ai/meal-prep-kits")
         var req = URLRequest(url: url)
@@ -53,7 +86,7 @@ struct MealPrepService {
         req.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
         // Convert params to dictionary
-        let payload: [String: Any] = [
+        var payload: [String: Any] = [
             "days": params.days.map { $0.rawValue },
             "meals": params.meals.map { $0.rawValue },
             "servings_per_meal": params.servingsPerMeal,
@@ -65,6 +98,23 @@ struct MealPrepService {
             "units": units.rawValue,
             "language": language
         ]
+        
+        // Add concept if provided
+        if let concept = selectedConcept {
+            payload["selected_concept"] = [
+                "id": concept.id,
+                "name": concept.name,
+                "description": concept.description,
+                "cuisine": concept.cuisine as Any,
+                "tags": concept.tags
+            ]
+        } else if let customText = customConceptText, !customText.isEmpty {
+            payload["selected_concept"] = [
+                "id": UUID().uuidString,
+                "name": "Custom",
+                "description": customText
+            ]
+        }
         
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         

@@ -581,3 +581,11 @@
 "meal_prep_generating" = "Génération de vos kits de prépa-repas...";
 "meal_prep_step3_subtitle" = "Sélectionnez le kit qui convient le mieux à vos besoins";
 "meal_prep_please_wait" = "Cela peut prendre un moment...";
+
+// Concept selection
+"meal_prep.concept_selection.title" = "Choisissez un thème";
+"meal_prep.concept_selection.subtitle" = "Sélectionnez un concept ou décrivez votre propre thème";
+"meal_prep.concept_selection.custom" = "Ou décrivez votre propre thème";
+"meal_prep.concept_selection.custom_placeholder" = "Ex: Cuisine asiatique avec beaucoup de légumes";
+"meal_prep.confirmation.title" = "Confirmez votre plan";
+"meal_prep.confirmation.subtitle" = "Voici comment vos recettes seront distribuées";

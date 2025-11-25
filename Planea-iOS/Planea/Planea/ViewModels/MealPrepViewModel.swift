@@ -9,6 +9,13 @@ class MealPrepViewModel: ObservableObject {
     @Published var isGenerating = false
     @Published var errorMessage: String?
     
+    // Concept selection
+    @Published var concepts: [MealPrepConcept] = []
+    @Published var selectedConcept: MealPrepConcept?
+    @Published var customConceptText: String = ""
+    @Published var isLoadingConcepts: Bool = false
+    @Published var conceptsError: String?
+    
     private let service: MealPrepService
     private let storageService: MealPrepStorageService
     
@@ -34,6 +41,29 @@ class MealPrepViewModel: ObservableObject {
         loadHistory()
     }
     
+    // MARK: - Concept Selection
+    
+    func loadConcepts(
+        constraints: [String: Any],
+        language: String
+    ) async {
+        isLoadingConcepts = true
+        conceptsError = nil
+        
+        do {
+            concepts = try await service.generateConcepts(
+                constraints: constraints,
+                language: language
+            )
+            print("✅ Loaded \(concepts.count) concepts")
+        } catch {
+            conceptsError = error.localizedDescription
+            print("❌ Error loading concepts: \(error)")
+        }
+        
+        isLoadingConcepts = false
+    }
+    
     // MARK: - Kit Generation
     
     func generateKits(
@@ -51,7 +81,9 @@ class MealPrepViewModel: ObservableObject {
                 params: params,
                 constraints: constraints,
                 units: units,
-                language: language
+                language: language,
+                selectedConcept: selectedConcept,
+                customConceptText: customConceptText
             )
             
             generatedKits = kits
