@@ -2852,9 +2852,155 @@ Rends les descriptions attrayantes et spécifiques."""
         return {"concepts": fallback}
 
 
+def group_preparation_steps(kit_recipes: List[dict], language: str = "fr") -> List[dict]:
+    """
+    Analyze all recipes in the kit and group similar preparation steps together.
+    This allows efficient batch preparation of ingredients.
+    """
+    
+    # Action types to look for (in both languages)
+    action_keywords_fr = {
+        "Couper": ["couper", "découper", "trancher", "émincer", "hacher"],
+        "Râper": ["râper", "gratter"],
+        "Éplucher": ["éplucher", "peler"],
+        "Mélanger": ["mélanger", "mélange", "combiner", "battre"],
+        "Préchauffer": ["préchauffer", "chauffer le four"],
+        "Mariner": ["mariner", "faire mariner"],
+        "Mesurer": ["mesurer", "peser"]
+    }
+    
+    action_keywords_en = {
+        "Chop": ["chop", "dice", "cut", "slice", "mince"],
+        "Grate": ["grate", "shred"],
+        "Peel": ["peel", "skin"],
+        "Mix": ["mix", "combine", "whisk", "beat"],
+        "Preheat": ["preheat", "heat the oven"],
+        "Marinate": ["marinate"],
+        "Measure": ["measure", "weigh"]
+    }
+    
+    action_keywords = action_keywords_fr if language == "fr" else action_keywords_en
+    
+    # Collect all preparation steps from all recipes
+    grouped_steps_map = {}  # action_type -> list of ingredients and steps
+    
+    for recipe_ref in kit_recipes:
+        recipe = recipe_ref.get("recipe", {})
+        recipe_title = recipe.get("title", "Unknown")
+        recipe_id = recipe_ref.get("recipe_id", str(uuid.uuid4()))
+        
+        # Find preparation steps (typically the first few steps)
+        prep_steps = []
+        for step_idx, step in enumerate(recipe.get("steps", [])):
+            step_lower = step.lower()
+            
+            # Check if this is a preparation step
+            is_prep = False
+            matched_action = None
+            
+            for action_type, keywords in action_keywords.items():
+                if any(keyword in step_lower for keyword in keywords):
+                    is_prep = True
+                    matched_action = action_type
+                    break
+            
+            # Typically prep steps are at the beginning
+            # Once we hit cooking steps, stop looking for prep
+            cooking_indicators = ["cuire", "cook", "chauffer", "heat", "griller", "grill", "rôtir", "roast", "frire", "fry"]
+            if any(indicator in step_lower for indicator in cooking_indicators) and step_idx > 2:
+                break
+            
+            if is_prep and matched_action:
+                prep_steps.append({
+                    "action_type": matched_action,
+                    "step": step,
+                    "recipe_title": recipe_title,
+                    "recipe_id": recipe_id
+                })
+        
+        # Extract ingredients mentioned in prep steps
+        for prep_step in prep_steps:
+            action_type = prep_step["action_type"]
+            
+            if action_type not in grouped_steps_map:
+                grouped_steps_map[action_type] = {
+                    "ingredients": [],
+                    "detailed_steps": [],
+                    "recipes": set()
+                }
+            
+            # Try to match ingredients mentioned in the step
+            step_lower = prep_step["step"].lower()
+            for ingredient in recipe.get("ingredients", []):
+                ing_name = ingredient["name"].lower()
+                # Check if ingredient is mentioned in the step
+                if ing_name in step_lower or any(word in step_lower for word in ing_name.split()):
+                    grouped_steps_map[action_type]["ingredients"].append({
+                        "id": str(uuid.uuid4()),
+                        "name": ingredient["name"],
+                        "quantity": f"{ingredient['quantity']} {ingredient['unit']}",
+                        "recipe_title": recipe_title,
+                        "recipe_id": recipe_id,
+                        "usage": f"Pour {recipe_title}" if language == "fr" else f"For {recipe_title}"
+                    })
+            
+            # Add the detailed step
+            grouped_steps_map[action_type]["detailed_steps"].append(prep_step["step"])
+            grouped_steps_map[action_type]["recipes"].add(recipe_title)
+    
+    # Build the final grouped steps array
+    grouped_steps = []
+    
+    for action_type, data in grouped_steps_map.items():
+        if not data["ingredients"]:
+            continue  # Skip if no ingredients found
+        
+        # Create description
+        recipe_count = len(data["recipes"])
+        if language == "fr":
+            if recipe_count == 1:
+                description = f"{action_type} les ingrédients pour {list(data['recipes'])[0]}"
+            else:
+                description = f"{action_type} les ingrédients pour {recipe_count} recettes"
+        else:
+            if recipe_count == 1:
+                description = f"{action_type} ingredients for {list(data['recipes'])[0]}"
+            else:
+                description = f"{action_type} ingredients for {recipe_count} recipes"
+        
+        # Estimate time based on number of ingredients
+        estimated_minutes = max(5, min(20, len(data["ingredients"]) * 2))
+        
+        grouped_step = {
+            "id": str(uuid.uuid4()),
+            "action_type": action_type,
+            "description": description,
+            "ingredients": data["ingredients"],
+            "detailed_steps": data["detailed_steps"],
+            "estimated_minutes": estimated_minutes
+        }
+        
+        grouped_steps.append(grouped_step)
+    
+    # Sort by action type (cutting first, then others)
+    priority_order = {
+        "Couper": 1, "Chop": 1,
+        "Éplucher": 2, "Peel": 2,
+        "Râper": 3, "Grate": 3,
+        "Mélanger": 4, "Mix": 4,
+        "Mesurer": 5, "Measure": 5,
+        "Mariner": 6, "Marinate": 6,
+        "Préchauffer": 7, "Preheat": 7
+    }
+    
+    grouped_steps.sort(key=lambda x: priority_order.get(x["action_type"], 99))
+    
+    return grouped_steps
+
+
 @app.post("/ai/meal-prep-kits")
 async def generate_meal_prep_kits(req: dict):
-    """Generate a single meal prep kit with storage metadata and adaptive shelf life."""
+    """Generate a single meal prep kit with storage metadata, adaptive shelf life, and grouped prep steps."""
     
     # Extract parameters
     days = req.get("days", [])
@@ -3019,6 +3165,11 @@ async def generate_meal_prep_kits(req: dict):
     total_prep_minutes = sum(r["recipe"]["total_minutes"] for r in kit_recipes)
     total_portions = sum(r["recipe"]["servings"] for r in kit_recipes)
     
+    # Generate grouped preparation steps
+    print(f"\n🔀 Grouping preparation steps...")
+    grouped_prep_steps = group_preparation_steps(kit_recipes, language)
+    print(f"  ✅ Generated {len(grouped_prep_steps)} grouped prep steps")
+    
     # Create kit
     if language == "fr":
         kit_name = "Meal Prep de la Semaine"
@@ -3034,10 +3185,12 @@ async def generate_meal_prep_kits(req: dict):
         "total_portions": total_portions,
         "estimated_prep_minutes": total_prep_minutes,
         "recipes": kit_recipes,
+        "grouped_prep_steps": grouped_prep_steps,  # NEW: Add grouped prep steps
         "created_at": datetime.now().isoformat()
     }
     
     print(f"\n✅ Kit created: {len(kit_recipes)} recipes, {total_portions} portions, {total_prep_minutes} min")
+    print(f"   Grouped steps: {len(grouped_prep_steps)} action groups")
     
     # Return single kit in kits array for backward compatibility
     return {"kits": [kit]}

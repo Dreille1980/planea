@@ -135,8 +135,9 @@ class MealPrepViewModel: ObservableObject {
         _ kit: MealPrepKit,
         params: MealPrepGenerationParams,
         planViewModel: PlanViewModel,
-        usageViewModel: UsageViewModel
-    ) async {
+        usageViewModel: UsageViewModel,
+        shoppingViewModel: ShoppingViewModel
+    ) async -> Int {
         // Record usage - 1 generation per recipe in the kit
         usageViewModel.recordGenerations(count: kit.recipes.count)
         
@@ -154,6 +155,17 @@ class MealPrepViewModel: ObservableObject {
             params: params,
             planViewModel: planViewModel
         )
+        
+        // Add all ingredients to shopping list
+        var totalIngredientsAdded = 0
+        for recipeRef in kit.recipes {
+            if let recipe = recipeRef.recipe {
+                shoppingViewModel.addRecipeToList(recipe: recipe)
+                totalIngredientsAdded += recipe.ingredients.count
+            }
+        }
+        
+        return totalIngredientsAdded
     }
     
     /// Replay a meal prep from history

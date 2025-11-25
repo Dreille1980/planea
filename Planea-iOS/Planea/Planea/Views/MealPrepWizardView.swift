@@ -5,10 +5,12 @@ struct MealPrepWizardView: View {
     @ObservedObject var familyViewModel: FamilyViewModel
     @ObservedObject var planViewModel: PlanViewModel
     @ObservedObject var usageViewModel: UsageViewModel
+    @ObservedObject var shoppingViewModel: ShoppingViewModel
     
     @Environment(\.dismiss) var dismiss
     
     @State private var currentStep = 1
+    @State private var showIngredientsAddedToast = false
     
     // Step 1: Parameters
     @State private var selectedDaysPreset: DaysPreset = .mondayToFriday
@@ -65,6 +67,26 @@ struct MealPrepWizardView: View {
                     }
                 }
             }
+            .overlay(
+                Group {
+                    if showIngredientsAddedToast {
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.white)
+                                Text(LocalizedStringKey("meal_prep.ingredients_added_toast"))
+                                    .foregroundColor(.white)
+                            }
+                            .padding()
+                            .background(Color.green)
+                            .cornerRadius(10)
+                            .padding(.bottom, 50)
+                        }
+                        .transition(.move(edge: .bottom))
+                    }
+                }
+            )
         }
     }
     
@@ -511,6 +533,14 @@ struct MealPrepWizardView: View {
                 .padding(.vertical, 40)
             }
         }
+        .onAppear {
+            // Generate kits when arriving at step 4 (only if not already generated or generating)
+            if viewModel.generatedKits.isEmpty && !viewModel.isGenerating {
+                Task {
+                    await generateKits()
+                }
+            }
+        }
     }
     
     private func kitDetailView(_ kit: MealPrepKit) -> some View {
@@ -692,13 +722,10 @@ struct MealPrepWizardView: View {
     private func goNext() {
         if currentStep < 4 {
             if currentStep == 3 {
-                // Set concept and generate kits when moving to step 4
+                // Set selected concept when leaving step 3
                 if !customConceptText.isEmpty {
                     viewModel.customConceptText = customConceptText
                     viewModel.selectedConcept = nil
-                }
-                Task {
-                    await generateKits()
                 }
             }
             withAnimation {
@@ -756,8 +783,33 @@ struct MealPrepWizardView: View {
         )
         
         Task {
-            await viewModel.confirmKit(selectedKit, params: params, planViewModel: planViewModel, usageViewModel: usageViewModel)
-            dismiss()
+            let ingredientsCount = await viewModel.confirmKit(
+                selectedKit,
+                params: params,
+                planViewModel: planViewModel,
+                usageViewModel: usageViewModel,
+                shoppingViewModel: shoppingViewModel
+            )
+            
+            // Show toast
+            if ingredientsCount > 0 {
+                withAnimation {
+                    showIngredientsAddedToast = true
+                }
+                
+                // Hide toast after 2 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    withAnimation {
+                        showIngredientsAddedToast = false
+                    }
+                    // Dismiss after toast disappears
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        dismiss()
+                    }
+                }
+            } else {
+                dismiss()
+            }
         }
     }
 }

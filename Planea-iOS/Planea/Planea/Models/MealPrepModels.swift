@@ -35,6 +35,7 @@ struct MealPrepKit: Identifiable, Codable {
     let totalPortions: Int
     let estimatedPrepMinutes: Int
     let recipes: [MealPrepRecipeRef]
+    let groupedPrepSteps: [GroupedPrepStep]?
     let createdAt: Date
     
     enum CodingKeys: String, CodingKey {
@@ -44,16 +45,18 @@ struct MealPrepKit: Identifiable, Codable {
         case totalPortions = "total_portions"
         case estimatedPrepMinutes = "estimated_prep_minutes"
         case recipes
+        case groupedPrepSteps = "grouped_prep_steps"
         case createdAt = "created_at"
     }
     
-    init(id: UUID = UUID(), name: String, description: String? = nil, totalPortions: Int, estimatedPrepMinutes: Int, recipes: [MealPrepRecipeRef], createdAt: Date = Date()) {
+    init(id: UUID = UUID(), name: String, description: String? = nil, totalPortions: Int, estimatedPrepMinutes: Int, recipes: [MealPrepRecipeRef], groupedPrepSteps: [GroupedPrepStep]? = nil, createdAt: Date = Date()) {
         self.id = id
         self.name = name
         self.description = description
         self.totalPortions = totalPortions
         self.estimatedPrepMinutes = estimatedPrepMinutes
         self.recipes = recipes
+        self.groupedPrepSteps = groupedPrepSteps
         self.createdAt = createdAt
     }
     
@@ -67,6 +70,7 @@ struct MealPrepKit: Identifiable, Codable {
         totalPortions = try container.decode(Int.self, forKey: .totalPortions)
         estimatedPrepMinutes = try container.decode(Int.self, forKey: .estimatedPrepMinutes)
         recipes = try container.decode([MealPrepRecipeRef].self, forKey: .recipes)
+        groupedPrepSteps = try container.decodeIfPresent([GroupedPrepStep].self, forKey: .groupedPrepSteps)
         
         // Try to decode created_at as ISO string first, then fall back to Date
         if let dateString = try? container.decode(String.self, forKey: .createdAt) {
@@ -124,6 +128,62 @@ struct MealPrepRecipeRef: Identifiable, Codable {
         self.isFreezable = isFreezable
         self.storageNote = storageNote
         self.recipe = recipe
+    }
+}
+
+// MARK: - Grouped Prep Steps
+
+struct GroupedPrepStep: Identifiable, Codable {
+    let id: UUID
+    let actionType: String
+    let description: String
+    let ingredients: [PrepIngredient]
+    let detailedSteps: [String]
+    let estimatedMinutes: Int?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case actionType = "action_type"
+        case description
+        case ingredients
+        case detailedSteps = "detailed_steps"
+        case estimatedMinutes = "estimated_minutes"
+    }
+    
+    init(id: UUID = UUID(), actionType: String, description: String, ingredients: [PrepIngredient], detailedSteps: [String], estimatedMinutes: Int? = nil) {
+        self.id = id
+        self.actionType = actionType
+        self.description = description
+        self.ingredients = ingredients
+        self.detailedSteps = detailedSteps
+        self.estimatedMinutes = estimatedMinutes
+    }
+}
+
+struct PrepIngredient: Identifiable, Codable {
+    let id: UUID
+    let name: String
+    let quantity: String
+    let recipeTitle: String
+    let recipeId: String
+    let usage: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case quantity
+        case recipeTitle = "recipe_title"
+        case recipeId = "recipe_id"
+        case usage
+    }
+    
+    init(id: UUID = UUID(), name: String, quantity: String, recipeTitle: String, recipeId: String, usage: String) {
+        self.id = id
+        self.name = name
+        self.quantity = quantity
+        self.recipeTitle = recipeTitle
+        self.recipeId = recipeId
+        self.usage = usage
     }
 }
 

@@ -596,3 +596,20 @@
 "meal_prep.recipes_included" = "Recettes incluses";
 "meal_prep.storage" = "Conservation";
 "meal_prep.total_time" = "temps total";
+
+// Meal Prep Detail View
+"meal_prep.detail.recipes_tab" = "Recettes";
+"meal_prep.detail.preparation_tab" = "Préparation";
+"meal_prep.detail.recipes_section" = "Recettes incluses";
+"meal_prep.detail.recipes_count" = "recettes";
+"meal_prep.detail.portions_count" = "portions";
+
+// Meal Prep Grouped Preparation
+"meal_prep.detail.grouped_prep_title" = "Étapes de préparation groupées";
+"meal_prep.detail.no_grouped_steps" = "Aucune étape de préparation groupée disponible";
+"meal_prep.detail.no_grouped_steps_hint" = "Les étapes de préparation groupées seront disponibles lorsqu'elles seront générées par le backend";
+"meal_prep.detail.ingredients" = "Ingrédients";
+"meal_prep.detail.instructions" = "Instructions";
+
+// Meal Prep Toast
+"meal_prep.ingredients_added_toast" = "Ingrédients ajoutés à la liste d'épicerie";

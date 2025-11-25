@@ -5,6 +5,7 @@ struct MealPrepView: View {
     @EnvironmentObject var familyViewModel: FamilyViewModel
     @EnvironmentObject var planViewModel: PlanViewModel
     @EnvironmentObject var usageViewModel: UsageViewModel
+    @EnvironmentObject var shoppingViewModel: ShoppingViewModel
     @State private var showingWizard = false
     
     init(baseURL: URL) {
@@ -40,7 +41,8 @@ struct MealPrepView: View {
                 viewModel: viewModel,
                 familyViewModel: familyViewModel,
                 planViewModel: planViewModel,
-                usageViewModel: usageViewModel
+                usageViewModel: usageViewModel,
+                shoppingViewModel: shoppingViewModel
             )
         }
         .task {
@@ -99,13 +101,16 @@ struct MealPrepView: View {
                 .fontWeight(.bold)
             
             ForEach(viewModel.recommendedKits) { kit in
-                MealPrepKitCard(
-                    kit: kit,
-                    onChoose: {
-                        // TODO: Navigate to kit details or directly confirm
-                        print("Chose kit: \(kit.name)")
-                    }
-                )
+                NavigationLink(destination: MealPrepDetailView(kit: kit)) {
+                    MealPrepKitCard(
+                        kit: kit,
+                        onChoose: {
+                            // TODO: Navigate to kit details or directly confirm
+                            print("Chose kit: \(kit.name)")
+                        }
+                    )
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -121,6 +126,9 @@ struct MealPrepView: View {
             ForEach(viewModel.history) { instance in
                 MealPrepHistoryRow(
                     instance: instance,
+                    onViewDetails: {
+                        // Navigation handled by NavigationLink wrapper
+                    },
                     onReplay: {
                         Task {
                             // Extract params from instance (use defaults for replay)
@@ -238,47 +246,57 @@ struct MealPrepKitCard: View {
 
 struct MealPrepHistoryRow: View {
     let instance: MealPrepInstance
+    let onViewDetails: () -> Void
     let onReplay: () -> Void
     let onDelete: () -> Void
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(instance.kit.name)
-                    .font(.headline)
-                
-                Text("\(instance.kit.totalPortions) portions")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                Text(formatDate(instance.appliedWeekStart))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Spacer()
-            
-            HStack(spacing: 12) {
-                Button(action: onReplay) {
-                    Label(LocalizedStringKey("meal_prep_replay"), systemImage: "arrow.clockwise")
+        NavigationLink(destination: MealPrepDetailView(kit: instance.kit)) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(instance.kit.name)
+                        .font(.headline)
+                    
+                    Text("\(instance.kit.totalPortions) portions")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Text(formatDate(instance.appliedWeekStart))
                         .font(.caption)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.accentColor.opacity(0.1))
-                        .foregroundColor(.accentColor)
-                        .cornerRadius(6)
+                        .foregroundColor(.secondary)
                 }
                 
-                Button(action: onDelete) {
-                    Image(systemName: "trash")
+                Spacer()
+                
+                HStack(spacing: 12) {
+                    Button(action: onReplay) {
+                        Label(LocalizedStringKey("meal_prep_replay"), systemImage: "arrow.clockwise")
+                            .font(.caption)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.accentColor.opacity(0.1))
+                            .foregroundColor(.accentColor)
+                            .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Image(systemName: "chevron.right")
                         .font(.caption)
-                        .foregroundColor(.red)
+                        .foregroundColor(.secondary)
                 }
             }
+            .padding()
+            .background(Color(UIColor.secondarySystemBackground))
+            .cornerRadius(12)
         }
-        .padding()
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
+        .buttonStyle(.plain)
     }
     
     private func formatDate(_ date: Date) -> String {
