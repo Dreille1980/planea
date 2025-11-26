@@ -26,6 +26,38 @@ struct MealPrepConcept: Identifiable, Codable {
     }
 }
 
+// MARK: - Optimized Recipe Step
+
+struct OptimizedRecipeStep: Identifiable, Codable {
+    let id: UUID
+    let recipeId: String
+    let recipeTitle: String
+    let stepNumber: Int
+    let stepDescription: String
+    let estimatedMinutes: Int?
+    let isParallel: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case recipeId = "recipe_id"
+        case recipeTitle = "recipe_title"
+        case stepNumber = "step_number"
+        case stepDescription = "step_description"
+        case estimatedMinutes = "estimated_minutes"
+        case isParallel = "is_parallel"
+    }
+    
+    init(id: UUID = UUID(), recipeId: String, recipeTitle: String, stepNumber: Int, stepDescription: String, estimatedMinutes: Int? = nil, isParallel: Bool = false) {
+        self.id = id
+        self.recipeId = recipeId
+        self.recipeTitle = recipeTitle
+        self.stepNumber = stepNumber
+        self.stepDescription = stepDescription
+        self.estimatedMinutes = estimatedMinutes
+        self.isParallel = isParallel
+    }
+}
+
 // MARK: - Meal Prep Kit
 
 struct MealPrepKit: Identifiable, Codable {
@@ -36,6 +68,7 @@ struct MealPrepKit: Identifiable, Codable {
     let estimatedPrepMinutes: Int
     let recipes: [MealPrepRecipeRef]
     let groupedPrepSteps: [GroupedPrepStep]?
+    let optimizedRecipeSteps: [OptimizedRecipeStep]?
     let createdAt: Date
     
     enum CodingKeys: String, CodingKey {
@@ -46,10 +79,11 @@ struct MealPrepKit: Identifiable, Codable {
         case estimatedPrepMinutes = "estimated_prep_minutes"
         case recipes
         case groupedPrepSteps = "grouped_prep_steps"
+        case optimizedRecipeSteps = "optimized_recipe_steps"
         case createdAt = "created_at"
     }
     
-    init(id: UUID = UUID(), name: String, description: String? = nil, totalPortions: Int, estimatedPrepMinutes: Int, recipes: [MealPrepRecipeRef], groupedPrepSteps: [GroupedPrepStep]? = nil, createdAt: Date = Date()) {
+    init(id: UUID = UUID(), name: String, description: String? = nil, totalPortions: Int, estimatedPrepMinutes: Int, recipes: [MealPrepRecipeRef], groupedPrepSteps: [GroupedPrepStep]? = nil, optimizedRecipeSteps: [OptimizedRecipeStep]? = nil, createdAt: Date = Date()) {
         self.id = id
         self.name = name
         self.description = description
@@ -57,6 +91,7 @@ struct MealPrepKit: Identifiable, Codable {
         self.estimatedPrepMinutes = estimatedPrepMinutes
         self.recipes = recipes
         self.groupedPrepSteps = groupedPrepSteps
+        self.optimizedRecipeSteps = optimizedRecipeSteps
         self.createdAt = createdAt
     }
     
@@ -71,6 +106,7 @@ struct MealPrepKit: Identifiable, Codable {
         estimatedPrepMinutes = try container.decode(Int.self, forKey: .estimatedPrepMinutes)
         recipes = try container.decode([MealPrepRecipeRef].self, forKey: .recipes)
         groupedPrepSteps = try container.decodeIfPresent([GroupedPrepStep].self, forKey: .groupedPrepSteps)
+        optimizedRecipeSteps = try container.decodeIfPresent([OptimizedRecipeStep].self, forKey: .optimizedRecipeSteps)
         
         // Try to decode created_at as ISO string first, then fall back to Date
         if let dateString = try? container.decode(String.self, forKey: .createdAt) {

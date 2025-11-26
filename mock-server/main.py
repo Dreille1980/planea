@@ -2953,6 +2953,106 @@ Rends les descriptions attrayantes et spécifiques."""
         return {"concepts": fallback}
 
 
+def optimize_recipe_steps(kit_recipes: List[dict], language: str = "fr") -> List[dict]:
+    """
+    Create an optimized sequence of cooking steps from all recipes.
+    Steps are ordered by:
+    1. Longest cooking time recipes first
+    2. Parallel tasks identified (passive cooking vs active prep)
+    3. Clear indication of which recipe each step belongs to
+    """
+    
+    # Step 1: Sort recipes by total time (longest first)
+    sorted_recipes = sorted(
+        kit_recipes,
+        key=lambda r: r.get("recipe", {}).get("total_minutes", 0),
+        reverse=True
+    )
+    
+    print(f"\n⚡ Optimizing cooking steps for {len(sorted_recipes)} recipes")
+    
+    # Step 2: Extract all steps from all recipes
+    all_optimized_steps = []
+    step_counter = 1
+    
+    # Keywords indicating passive cooking (can be done in parallel)
+    passive_keywords = [
+        # French
+        "four", "cuire au four", "rôtir", "mijote", "mijoter", "repos", "refroidir",
+        "mariner", "réfrigérer", "congeler", "laisser", "attendre",
+        # English  
+        "oven", "bake", "roast", "simmer", "rest", "cool", "chill",
+        "marinate", "refrigerate", "freeze", "let", "wait", "allow"
+    ]
+    
+    for recipe_ref in sorted_recipes:
+        recipe = recipe_ref.get("recipe", {})
+        recipe_id = recipe_ref.get("recipe_id", str(uuid.uuid4()))
+        recipe_title = recipe.get("title", "Unknown Recipe")
+        
+        print(f"  Processing: {recipe_title} ({recipe.get('total_minutes', 0)} min)")
+        
+        # Process each step of this recipe
+        for step_idx, step_text in enumerate(recipe.get("steps", [])):
+            step_lower = step_text.lower()
+            
+            # Determine if this step can be done in parallel
+            is_parallel = any(keyword in step_lower for keyword in passive_keywords)
+            
+            # Extract estimated time if mentioned in step
+            estimated_minutes = None
+            
+            # Look for time mentions: "5 min", "10 minutes", "pendant 20 min", etc.
+            import re
+            time_patterns = [
+                r'(\d+)\s*min',
+                r'(\d+)\s*minute',
+                r'pendant\s+(\d+)',
+                r'for\s+(\d+)',
+                r'(\d+)\s*h'  # hours
+            ]
+            
+            for pattern in time_patterns:
+                match = re.search(pattern, step_lower)
+                if match:
+                    time_value = int(match.group(1))
+                    # If it's hours, convert to minutes
+                    if 'h' in pattern:
+                        time_value *= 60
+                    estimated_minutes = time_value
+                    break
+            
+            # If no time found but it's a cooking step, estimate
+            if not estimated_minutes:
+                if any(word in step_lower for word in ["cuire", "cook", "griller", "grill", "rôtir", "roast"]):
+                    estimated_minutes = 10  # Default cooking time
+                elif any(word in step_lower for word in ["préparer", "prepare", "couper", "chop"]):
+                    estimated_minutes = 5  # Default prep time
+            
+            # Create optimized step
+            optimized_step = {
+                "id": str(uuid.uuid4()),
+                "recipe_id": recipe_id,
+                "recipe_title": recipe_title,
+                "step_number": step_idx + 1,
+                "step_description": step_text,
+                "estimated_minutes": estimated_minutes,
+                "is_parallel": is_parallel
+            }
+            
+            all_optimized_steps.append(optimized_step)
+            
+            if is_parallel:
+                print(f"    Step {step_idx + 1}: {step_text[:50]}... [PARALLEL]")
+            else:
+                print(f"    Step {step_idx + 1}: {step_text[:50]}...")
+    
+    print(f"  ✅ Total: {len(all_optimized_steps)} steps optimized")
+    print(f"  ⚡ Parallel steps: {sum(1 for s in all_optimized_steps if s['is_parallel'])}")
+    
+    return all_optimized_steps
+
+
 def group_preparation_steps(kit_recipes: List[dict], language: str = "fr") -> List[dict]:
     """
     Analyze all recipes in the kit and group similar preparation steps together.
@@ -3281,6 +3381,11 @@ async def generate_meal_prep_kits(req: dict):
     grouped_prep_steps = group_preparation_steps(kit_recipes, language)
     print(f"  ✅ Generated {len(grouped_prep_steps)} grouped prep steps")
     
+    # Generate optimized recipe steps
+    print(f"\n⚡ Optimizing recipe steps...")
+    optimized_recipe_steps = optimize_recipe_steps(kit_recipes, language)
+    print(f"  ✅ Generated {len(optimized_recipe_steps)} optimized recipe steps")
+    
     # Create kit
     if language == "fr":
         kit_name = "Meal Prep de la Semaine"
@@ -3296,12 +3401,14 @@ async def generate_meal_prep_kits(req: dict):
         "total_portions": total_portions,
         "estimated_prep_minutes": total_prep_minutes,
         "recipes": kit_recipes,
-        "grouped_prep_steps": grouped_prep_steps,  # NEW: Add grouped prep steps
+        "grouped_prep_steps": grouped_prep_steps,
+        "optimized_recipe_steps": optimized_recipe_steps,  # NEW: Add optimized recipe steps
         "created_at": datetime.now().isoformat()
     }
     
     print(f"\n✅ Kit created: {len(kit_recipes)} recipes, {total_portions} portions, {total_prep_minutes} min")
     print(f"   Grouped steps: {len(grouped_prep_steps)} action groups")
+    print(f"   Optimized steps: {len(optimized_recipe_steps)} cooking steps")
     
     # Return single kit in kits array for backward compatibility
     return {"kits": [kit]}

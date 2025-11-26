@@ -613,3 +613,9 @@
 
 // Meal Prep Toast
 "meal_prep.ingredients_added_toast" = "Ingrédients ajoutés à la liste d'épicerie";
+
+// Meal Prep - Optimized Recipe Steps
+"meal_prep.detail.cooking_steps_title" = "Étapes de cuisson optimisées";
+"meal_prep.detail.reset" = "Réinitialiser";
+"meal_prep.detail.steps_completed" = "étapes complétées";
+"meal_prep.detail.parallel" = "En parallèle";
