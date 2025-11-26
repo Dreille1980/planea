@@ -185,7 +185,7 @@ struct MealPrepDetailView: View {
         .padding()
         .background(Color(UIColor.secondarySystemBackground))
         .cornerRadius(12)
-        .padding(.horizontal)
+        .padding(.horizontal, 16)
     }
     
     // MARK: - Preparation Tab
@@ -208,31 +208,35 @@ struct MealPrepDetailView: View {
                 
                 // Section 2: Optimized Recipe Steps (new)
                 if let optimizedSteps = kit.optimizedRecipeSteps, !optimizedSteps.isEmpty {
-                    Divider()
-                        .padding(.vertical, 8)
+                    let cookingSteps = optimizedSteps.filter { !isPreparationStep($0) }
                     
-                    VStack(alignment: .leading, spacing: 16) {
-                        // Header with reset button
-                        HStack {
-                            Text(LocalizedStringKey("meal_prep.detail.cooking_steps_title"))
-                                .font(.headline)
-                            
-                            Spacer()
-                            
-                            Button(action: resetCompletedSteps) {
-                                Label("meal_prep.detail.reset", systemImage: "arrow.counterclockwise")
-                                    .font(.caption)
-                                    .foregroundColor(.accentColor)
+                    if !cookingSteps.isEmpty {
+                        Divider()
+                            .padding(.vertical, 8)
+                        
+                        VStack(alignment: .leading, spacing: 16) {
+                            // Header with reset button
+                            HStack {
+                                Text(LocalizedStringKey("meal_prep.detail.cooking_steps_title"))
+                                    .font(.headline)
+                                
+                                Spacer()
+                                
+                                Button(action: resetCompletedSteps) {
+                                    Label("meal_prep.detail.reset", systemImage: "arrow.counterclockwise")
+                                        .font(.caption)
+                                        .foregroundColor(.accentColor)
+                                }
                             }
-                        }
-                        .padding(.horizontal)
-                        
-                        // Progress bar
-                        progressBar(for: optimizedSteps)
-                        
-                        // Recipe steps
-                        ForEach(Array(optimizedSteps.enumerated()), id: \.element.id) { index, step in
-                            optimizedStepCard(step, overallIndex: index + 1)
+                            .padding(.horizontal)
+                            
+                            // Progress bar
+                            progressBar(for: cookingSteps)
+                            
+                            // Recipe steps
+                            ForEach(Array(cookingSteps.enumerated()), id: \.element.id) { index, step in
+                                optimizedStepCard(step, overallIndex: index + 1)
+                            }
                         }
                     }
                 }
@@ -344,7 +348,7 @@ struct MealPrepDetailView: View {
         .padding()
         .background(Color(UIColor.secondarySystemBackground))
         .cornerRadius(12)
-        .padding(.horizontal)
+        .padding(.horizontal, 16)
     }
     
     // MARK: - Optimized Recipe Steps
@@ -451,7 +455,7 @@ struct MealPrepDetailView: View {
                 .fill(Color(UIColor.secondarySystemBackground))
                 .opacity(isCompleted ? 0.6 : 1.0)
         )
-        .padding(.horizontal)
+        .padding(.horizontal, 16)
         .animation(.easeInOut(duration: 0.2), value: isCompleted)
     }
     
@@ -490,6 +494,21 @@ struct MealPrepDetailView: View {
     }
     
     // MARK: - Helpers
+    
+    private func isPreparationStep(_ step: OptimizedRecipeStep) -> Bool {
+        let prepKeywords = [
+            "chop", "dice", "slice", "cut", "peel", "mince", "grate", 
+            "wash", "rinse", "prepare", "prep", "measure", "mix together",
+            "combine", "whisk together", "set aside"
+        ]
+        
+        let description = step.stepDescription.lowercased()
+        
+        // Check if the step description contains any preparation keywords
+        return prepKeywords.contains { keyword in
+            description.contains(keyword)
+        }
+    }
     
     private func formatPrepTime(minutes: Int) -> String {
         if minutes < 60 {
