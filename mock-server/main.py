@@ -471,9 +471,15 @@ async def generate_recipe_with_openai(
         allergies = ", ".join(constraints["evict"])
         constraints_text += f"Allergies/Éviter: {allergies}. "
     
-    # Build preferences text from preferences dict
+    # Build preferences text - check constraints first, then preferences dict
     preferences_text = ""
-    if preferences:
+    
+    # Priority 1: Use preferences_string from constraints if available (from iOS GenerationPreferences)
+    if constraints.get("preferences_string"):
+        preferences_text = constraints["preferences_string"]
+    
+    # Priority 2: Fall back to building from preferences dict if no preferences_string
+    elif preferences:
         # Note: Complexity is now determined by weekday/time and added separately
         
         # Spice level

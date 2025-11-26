@@ -48,13 +48,31 @@ struct MealPrepView: View {
         .task {
             // Load recommended kits on appear
             let familySize = familyViewModel.members.count
+            let constraints = buildConstraints()
             await viewModel.generateRecommendedKits(
                 familySize: familySize,
-                constraints: [:],
+                constraints: constraints,
                 units: .metric,
                 language: LocalizationHelper.currentLanguageCode()
             )
         }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func buildConstraints() -> [String: Any] {
+        let familyConstraints = familyViewModel.aggregatedConstraints()
+        let generationPrefs = PreferencesService.shared.loadPreferences()
+        
+        var constraintsDict: [String: Any] = [
+            "diet": familyConstraints.diet,
+            "evict": familyConstraints.evict
+        ]
+        
+        // Add generation preferences as a string that the backend can use to enrich the prompt
+        constraintsDict["preferences_string"] = generationPrefs.toPromptString()
+        
+        return constraintsDict
     }
     
     // MARK: - Header Section

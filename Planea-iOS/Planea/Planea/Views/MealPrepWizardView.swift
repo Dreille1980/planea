@@ -364,11 +364,21 @@ struct MealPrepWizardView: View {
             }
             
             if viewModel.isLoadingConcepts {
-                // Loading state
+                // Loading state for concepts
                 VStack(spacing: 16) {
                     ProgressView()
                         .scaleEffect(1.5)
                     Text(LocalizedStringKey("meal_prep_please_wait"))
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            } else if viewModel.isGenerating {
+                // Loading state for meal generation
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                    Text(LocalizedStringKey("meal_prep_generating"))
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity)
@@ -495,28 +505,12 @@ struct MealPrepWizardView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                 
-                if viewModel.isGenerating {
-                    Text(LocalizedStringKey("meal_prep_generating"))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                } else {
-                    Text(LocalizedStringKey("meal_prep_step3_subtitle"))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
+                Text(LocalizedStringKey("meal_prep_step3_subtitle"))
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
             
-            if viewModel.isGenerating {
-                // Loading state
-                VStack(spacing: 16) {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                    Text(LocalizedStringKey("meal_prep_please_wait"))
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 40)
-            } else if let kit = viewModel.generatedKits.first {
+            if let kit = viewModel.generatedKits.first {
                 // Display single kit with detailed summary
                 kitDetailView(kit)
             } else if let error = viewModel.errorMessage {
@@ -531,14 +525,6 @@ struct MealPrepWizardView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
-            }
-        }
-        .onAppear {
-            // Generate kits when arriving at step 4 (only if not already generated or generating)
-            if viewModel.generatedKits.isEmpty && !viewModel.isGenerating {
-                Task {
-                    await generateKits()
-                }
             }
         }
     }
@@ -705,7 +691,8 @@ struct MealPrepWizardView: View {
         case 2:
             return true
         case 3:
-            return selectedConceptId != nil || !customConceptText.isEmpty
+            // Can proceed if concept selected and not currently loading
+            return (selectedConceptId != nil || !customConceptText.isEmpty) && !viewModel.isLoadingConcepts && !viewModel.isGenerating
         case 4:
             return !viewModel.generatedKits.isEmpty && !viewModel.isGenerating
         default:
@@ -722,14 +709,27 @@ struct MealPrepWizardView: View {
     private func goNext() {
         if currentStep < 4 {
             if currentStep == 3 {
-                // Set selected concept when leaving step 3
+                // Set selected concept and generate kits at step 3
                 if !customConceptText.isEmpty {
                     viewModel.customConceptText = customConceptText
                     viewModel.selectedConcept = nil
                 }
-            }
-            withAnimation {
-                currentStep += 1
+                
+                // Generate kits
+                Task {
+                    await generateKits()
+                    
+                    // Once generation is complete, move to step 4
+                    if !viewModel.generatedKits.isEmpty {
+                        withAnimation {
+                            currentStep = 4
+                        }
+                    }
+                }
+            } else {
+                withAnimation {
+                    currentStep += 1
+                }
             }
         } else {
             // Confirm and apply kit
@@ -737,9 +737,24 @@ struct MealPrepWizardView: View {
         }
     }
     
+    private func buildConstraints() -> [String: Any] {
+        let familyConstraints = familyViewModel.aggregatedConstraints()
+        let generationPrefs = PreferencesService.shared.loadPreferences()
+        
+        var constraintsDict: [String: Any] = [
+            "diet": familyConstraints.diet,
+            "evict": familyConstraints.evict
+        ]
+        
+        // Add generation preferences as a string that the backend can use to enrich the prompt
+        constraintsDict["preferences_string"] = generationPrefs.toPromptString()
+        
+        return constraintsDict
+    }
+    
     private func loadConcepts() async {
         await viewModel.loadConcepts(
-            constraints: [:],
+            constraints: buildConstraints(),
             language: LocalizationHelper.currentLanguageCode()
         )
     }
@@ -759,7 +774,7 @@ struct MealPrepWizardView: View {
         
         await viewModel.generateKits(
             params: params,
-            constraints: [:],
+            constraints: buildConstraints(),
             units: .metric,
             language: LocalizationHelper.currentLanguageCode()
         )

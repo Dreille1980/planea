@@ -59,7 +59,10 @@ final class ShoppingViewModel: ObservableObject {
     }
     
     func addRecipeToList(recipe: Recipe) {
-        guard currentList != nil else { return }
+        // Initialize empty list if it doesn't exist
+        if currentList == nil {
+            currentList = ShoppingList(mealPlanId: UUID(), units: .metric, items: [])
+        }
         
         // Add each ingredient to the existing list
         for ing in recipe.ingredients {
