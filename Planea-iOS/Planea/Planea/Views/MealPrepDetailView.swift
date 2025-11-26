@@ -99,12 +99,26 @@ struct MealPrepDetailView: View {
     }
     
     private func recipeCard(_ recipeRef: MealPrepRecipeRef) -> some View {
+        Group {
+            if let recipe = recipeRef.recipe {
+                NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
+                    recipeCardContent(recipeRef, recipe: recipe)
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else {
+                recipeCardContent(recipeRef, recipe: nil)
+            }
+        }
+    }
+    
+    private func recipeCardContent(_ recipeRef: MealPrepRecipeRef, recipe: Recipe?) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             // Recipe Title & Storage Info
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(recipeRef.title)
                         .font(.headline)
+                        .foregroundColor(.primary)
                     
                     // Storage information
                     HStack(spacing: 16) {
@@ -134,10 +148,17 @@ struct MealPrepDetailView: View {
                 }
                 
                 Spacer()
+                
+                // Add chevron if recipe is available
+                if recipe != nil {
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
             
             // Recipe Details (if available)
-            if let recipe = recipeRef.recipe {
+            if let recipe = recipe {
                 Divider()
                 
                 VStack(alignment: .leading, spacing: 8) {

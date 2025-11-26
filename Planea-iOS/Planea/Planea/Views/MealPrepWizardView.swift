@@ -749,6 +749,10 @@ struct MealPrepWizardView: View {
         // Add generation preferences as a string that the backend can use to enrich the prompt
         constraintsDict["preferences_string"] = generationPrefs.toPromptString()
         
+        // CRITICAL: Add preferred proteins so backend knows which proteins to use
+        let preferredProteinStrings = generationPrefs.preferredProteins.map { $0.rawValue }
+        constraintsDict["preferredProteins"] = preferredProteinStrings
+        
         return constraintsDict
     }
     
