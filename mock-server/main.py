@@ -383,6 +383,101 @@ def distribute_proteins_for_plan(slots: List[Slot], preferences: dict) -> List[s
     return suggested_proteins
 
 
+def distribute_proteins_for_meal_prep(num_recipes: int, preferences: dict) -> List[str]:
+    """
+    Distribute proteins for meal prep to ensure diversity.
+    Rules:
+    - Minimum unique proteins = max(2, num_recipes - 1)
+    - Maximum 2 repetitions per protein
+    - No breakfast proteins (meal prep = lunch/dinner only)
+    
+    Returns a list of suggested proteins, one for each recipe.
+    """
+    # Default protein list suitable for meal prep (no breakfast proteins)
+    default_proteins = ["chicken", "beef", "pork", "fish", "salmon", "shrimp", "tofu", "turkey", "lamb", "tuna"]
+    
+    # Get user's preferred proteins if available
+    preferred_proteins = preferences.get("preferredProteins", [])
+    
+    # Filter out breakfast-specific proteins
+    breakfast_only = ["eggs", "yogurt", "bacon"]
+    if preferred_proteins:
+        protein_pool = [p for p in preferred_proteins if p not in breakfast_only]
+    else:
+        protein_pool = default_proteins
+    
+    # Ensure we have enough variety
+    if len(protein_pool) < 3:
+        # Add defaults if user selection is too limited
+        protein_pool = list(set(protein_pool + default_proteins[:7]))
+    
+    # Calculate minimum unique proteins required
+    min_unique = max(2, num_recipes - 1)
+    
+    # Ensure we have enough proteins in the pool
+    if len(protein_pool) < min_unique:
+        protein_pool.extend(default_proteins[:min_unique - len(protein_pool)])
+    
+    print(f"\n🎯 MEAL PREP Protein Distribution:")
+    print(f"  Total recipes: {num_recipes}")
+    print(f"  Min unique proteins: {min_unique}")
+    print(f"  Protein pool: {protein_pool[:8]}")
+    
+    # Build distribution ensuring max 2 repetitions per protein
+    suggested_proteins = []
+    protein_count = {}  # Track how many times each protein is used
+    
+    # Shuffle for randomness
+    shuffled_pool = protein_pool.copy()
+    random.shuffle(shuffled_pool)
+    
+    # Use a rotating index through the shuffled pool
+    pool_index = 0
+    
+    for i in range(num_recipes):
+        # Find next available protein (used less than 2 times)
+        attempts = 0
+        max_attempts = len(shuffled_pool) * 2
+        
+        while attempts < max_attempts:
+            candidate = shuffled_pool[pool_index % len(shuffled_pool)]
+            pool_index += 1
+            attempts += 1
+            
+            # Check if this protein can be used
+            current_count = protein_count.get(candidate, 0)
+            
+            # Can use if: count < 2 AND not the same as last protein
+            if current_count < 2:
+                # Avoid immediate repeats if possible
+                if not suggested_proteins or suggested_proteins[-1] != candidate:
+                    suggested_proteins.append(candidate)
+                    protein_count[candidate] = current_count + 1
+                    break
+                elif current_count < 2 and i == num_recipes - 1:
+                    # Last recipe, accept even if same as previous if needed
+                    suggested_proteins.append(candidate)
+                    protein_count[candidate] = current_count + 1
+                    break
+        
+        # Safety: if we couldn't find a protein, use the first available
+        if len(suggested_proteins) <= i:
+            fallback = shuffled_pool[i % len(shuffled_pool)]
+            suggested_proteins.append(fallback)
+            protein_count[fallback] = protein_count.get(fallback, 0) + 1
+    
+    # Verify distribution meets requirements
+    unique_count = len(set(suggested_proteins))
+    max_repetitions = max(protein_count.values()) if protein_count else 0
+    
+    print(f"  ✅ Distribution: {suggested_proteins}")
+    print(f"  ✅ Unique proteins: {unique_count} (min: {min_unique})")
+    print(f"  ✅ Max repetitions: {max_repetitions} (max: 2)")
+    print(f"  ✅ Counts: {protein_count}")
+    
+    return suggested_proteins
+
+
 async def generate_recipe_with_openai(
     meal_type: str, 
     constraints: dict, 
@@ -3038,6 +3133,10 @@ async def generate_meal_prep_kits(req: dict):
     time_mapping = {"1h": 60, "1h30": 90, "2h+": 120}
     max_total_time = time_mapping.get(total_prep_time, 90)
     
+    # STEP 1: Distribute proteins for meal prep to ensure diversity
+    preferences_with_user_data = req.get("preferences", {})
+    suggested_proteins = distribute_proteins_for_meal_prep(num_recipes, preferences_with_user_data)
+    
     # Generate only ONE kit
     kit_idx = 0
     # Build all recipe generation tasks for this kit
@@ -3063,7 +3162,11 @@ async def generate_meal_prep_kits(req: dict):
             "min_shelf_life": min_shelf_life_required
         })
         
-        # Create task for parallel execution
+        # STEP 2: Get protein for this recipe and build list of other proteins to avoid
+        suggested_protein = suggested_proteins[recipe_idx]
+        other_proteins = [p for i, p in enumerate(suggested_proteins) if i != recipe_idx]
+        
+        # Create task for parallel execution WITH protein guidance
         task = generate_recipe_with_openai(
             meal_type=meal_type,
             constraints=constraints,
@@ -3077,6 +3180,8 @@ async def generate_meal_prep_kits(req: dict):
                 "skillLevel": skill_level,
                 "avoidRareIngredients": avoid_rare
             },
+            suggested_protein=suggested_protein,  # NEW: Pass suggested protein
+            other_plan_proteins=other_proteins,  # NEW: Pass other proteins to avoid
             min_shelf_life_required=min_shelf_life_required,
             selected_concept=selected_concept,
             weekday=target_day  # Pass weekday for context
