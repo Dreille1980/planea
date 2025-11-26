@@ -4,7 +4,6 @@ import SwiftUI
 @MainActor
 class MealPrepViewModel: ObservableObject {
     @Published var history: [MealPrepInstance] = []
-    @Published var recommendedKits: [MealPrepKit] = []
     @Published var generatedKits: [MealPrepKit] = []
     @Published var isGenerating = false
     @Published var errorMessage: String?
@@ -94,39 +93,6 @@ class MealPrepViewModel: ObservableObject {
         }
         
         isGenerating = false
-    }
-    
-    /// Generate recommended kits based on family size
-    func generateRecommendedKits(
-        familySize: Int,
-        constraints: [String: Any],
-        units: UnitSystem,
-        language: String
-    ) async {
-        // Default params for recommended kits
-        let params = MealPrepGenerationParams(
-            days: [.monday, .tuesday, .wednesday, .thursday, .friday],
-            meals: [.lunch, .dinner],
-            servingsPerMeal: familySize,
-            totalPrepTimePreference: .oneHourThirty,
-            skillLevel: .intermediate,
-            avoidRareIngredients: true,
-            preferLongShelfLife: true
-        )
-        
-        do {
-            let kits = try await service.generateMealPrepKits(
-                params: params,
-                constraints: constraints,
-                units: units,
-                language: language
-            )
-            
-            recommendedKits = kits
-            print("✅ Generated \(kits.count) recommended kits")
-        } catch {
-            print("⚠️ Error generating recommended kits: \(error)")
-        }
     }
     
     // MARK: - Kit Application

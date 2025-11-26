@@ -21,11 +21,6 @@ struct MealPrepView: View {
                 // CTA Button
                 createButton
                 
-                // Recommended Kits Section
-                if !viewModel.recommendedKits.isEmpty {
-                    recommendedKitsSection
-                }
-                
                 // History Section
                 if !viewModel.history.isEmpty {
                     historySection
@@ -43,17 +38,6 @@ struct MealPrepView: View {
                 planViewModel: planViewModel,
                 usageViewModel: usageViewModel,
                 shoppingViewModel: shoppingViewModel
-            )
-        }
-        .task {
-            // Load recommended kits on appear
-            let familySize = familyViewModel.members.count
-            let constraints = buildConstraints()
-            await viewModel.generateRecommendedKits(
-                familySize: familySize,
-                constraints: constraints,
-                units: .metric,
-                language: LocalizationHelper.currentLanguageCode()
             )
         }
     }
@@ -107,29 +91,6 @@ struct MealPrepView: View {
             .background(Color.accentColor)
             .foregroundColor(.white)
             .cornerRadius(12)
-        }
-    }
-    
-    // MARK: - Recommended Kits Section
-    
-    private var recommendedKitsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(LocalizedStringKey("meal_prep_recommended_kits"))
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            ForEach(viewModel.recommendedKits) { kit in
-                NavigationLink(destination: MealPrepDetailView(kit: kit)) {
-                    MealPrepKitCard(
-                        kit: kit,
-                        onChoose: {
-                            // TODO: Navigate to kit details or directly confirm
-                            print("Chose kit: \(kit.name)")
-                        }
-                    )
-                }
-                .buttonStyle(.plain)
-            }
         }
     }
     
