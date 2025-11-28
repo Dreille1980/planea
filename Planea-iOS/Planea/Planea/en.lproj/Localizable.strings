@@ -618,3 +618,8 @@
 "meal_prep.detail.reset" = "Reset";
 "meal_prep.detail.steps_completed" = "steps completed";
 "meal_prep.detail.parallel" = "In parallel";
+
+// Meal Prep Detail - New Structure
+"meal_prep.detail.mise_en_place_title" = "Mise en place";
+"meal_prep.detail.mise_en_place_subtitle" = "Common preparation for all recipes";
+"meal_prep.detail.recipes_title" = "Individual Recipes";

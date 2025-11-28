@@ -619,3 +619,8 @@
 "meal_prep.detail.reset" = "Réinitialiser";
 "meal_prep.detail.steps_completed" = "étapes complétées";
 "meal_prep.detail.parallel" = "En parallèle";
+
+// Meal Prep Detail - Nouvelle structure
+"meal_prep.detail.mise_en_place_title" = "Mise en place";
+"meal_prep.detail.mise_en_place_subtitle" = "Préparation commune pour toutes les recettes";
+"meal_prep.detail.recipes_title" = "Recettes individuelles";
