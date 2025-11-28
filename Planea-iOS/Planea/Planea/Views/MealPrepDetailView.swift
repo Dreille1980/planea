@@ -190,35 +190,61 @@ struct MealPrepDetailView: View {
     
     // MARK: - Preparation Tab
     
+    @State private var scrollProxy: ScrollViewProxy? = nil
+    
     private var preparationTab: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Section 1: Grouped Prep Steps (existing)
-                if let groupedSteps = kit.groupedPrepSteps, !groupedSteps.isEmpty {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text(LocalizedStringKey("meal_prep.detail.grouped_prep_title"))
-                            .font(.headline)
-                            .padding(.horizontal)
-                        
-                        ForEach(Array(groupedSteps.enumerated()), id: \.element.id) { index, step in
-                            groupedStepCard(step, index: index + 1)
-                        }
-                    }
-                }
-                
-                // Section 2: Optimized Recipe Steps (new)
-                if let optimizedSteps = kit.optimizedRecipeSteps, !optimizedSteps.isEmpty {
-                    let cookingSteps = optimizedSteps.filter { !isPreparationStep($0) }
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    // Section 1: Grouped Ingredients
+                    ingredientsSection
+                        .id("ingredients")
                     
-                    if !cookingSteps.isEmpty {
+                    Divider()
+                        .padding(.vertical, 8)
+                    
+                    // Section 2: Mise en place (Grouped Prep Steps)
+                    if let groupedSteps = kit.groupedPrepSteps, !groupedSteps.isEmpty {
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(LocalizedStringKey("meal_prep.detail.mise_en_place_title"))
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                    
+                                    Text(LocalizedStringKey("meal_prep.detail.mise_en_place_subtitle"))
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                            }
+                            .padding(.horizontal)
+                            .id("mise_en_place")
+                            
+                            ForEach(Array(groupedSteps.enumerated()), id: \.element.id) { index, step in
+                                groupedStepCard(step, index: index + 1)
+                            }
+                        }
+                        
                         Divider()
                             .padding(.vertical, 8)
-                        
+                    }
+                    
+                    // Section 3: Individual Recipes (Cooking Steps)
+                    if let optimizedSteps = kit.optimizedRecipeSteps, !optimizedSteps.isEmpty {
                         VStack(alignment: .leading, spacing: 16) {
                             // Header with reset button
                             HStack {
-                                Text(LocalizedStringKey("meal_prep.detail.cooking_steps_title"))
-                                    .font(.headline)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(LocalizedStringKey("meal_prep.detail.recipes_title"))
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                    
+                                    Text("\(optimizedSteps.count) étapes de cuisson")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
                                 
                                 Spacer()
                                 
@@ -231,34 +257,191 @@ struct MealPrepDetailView: View {
                             .padding(.horizontal)
                             
                             // Progress bar
-                            progressBar(for: cookingSteps)
+                            progressBar(for: optimizedSteps)
                             
-                            // Recipe steps
-                            ForEach(Array(cookingSteps.enumerated()), id: \.element.id) { index, step in
-                                optimizedStepCard(step, overallIndex: index + 1)
+                            // Recipe steps (no more filtering - backend already removed prep steps)
+                            ForEach(Array(optimizedSteps.enumerated()), id: \.element.id) { index, step in
+                                optimizedStepCard(step, overallIndex: index + 1, scrollProxy: proxy)
                             }
                         }
                     }
+                    
+                    // Fallback if no steps at all
+                    if (kit.groupedPrepSteps?.isEmpty ?? true) && (kit.optimizedRecipeSteps?.isEmpty ?? true) {
+                        VStack(spacing: 16) {
+                            Image(systemName: "list.clipboard")
+                                .font(.system(size: 48))
+                                .foregroundColor(.gray)
+                            
+                            Text(LocalizedStringKey("meal_prep.detail.no_grouped_steps"))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 40)
+                    }
+                }
+                .padding(.vertical)
+            }
+            .onAppear {
+                scrollProxy = proxy
+            }
+        }
+    }
+    
+    // MARK: - Ingredients Section
+    
+    private var ingredientsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Ingrédients pour la prépa-repas")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    
+                    Text("Liste complète des ingrédients regroupés par catégorie")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
                 
-                // Fallback if no steps at all
-                if (kit.groupedPrepSteps?.isEmpty ?? true) && (kit.optimizedRecipeSteps?.isEmpty ?? true) {
-                    VStack(spacing: 16) {
-                        Image(systemName: "list.clipboard")
-                            .font(.system(size: 48))
-                            .foregroundColor(.gray)
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            // Group all ingredients by category
+            let groupedIngredients = groupIngredientsByCategory()
+            
+            ForEach(Array(groupedIngredients.keys.sorted()), id: \.self) { category in
+                if let ingredients = groupedIngredients[category] {
+                    VStack(alignment: .leading, spacing: 12) {
+                        // Category header
+                        HStack {
+                            Image(systemName: iconForCategory(category))
+                                .foregroundColor(.accentColor)
+                            Text(category)
+                                .font(.headline)
+                        }
+                        .padding(.horizontal)
                         
-                        Text(LocalizedStringKey("meal_prep.detail.no_grouped_steps"))
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
+                        // Ingredients in this category
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(ingredients, id: \.name) { ingredient in
+                                HStack(alignment: .top, spacing: 12) {
+                                    Circle()
+                                        .fill(Color.accentColor.opacity(0.3))
+                                        .frame(width: 6, height: 6)
+                                        .padding(.top, 6)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack {
+                                            Text(ingredient.name)
+                                                .font(.body)
+                                            Spacer()
+                                            Text("\(formatQuantity(ingredient.totalQuantity)) \(ingredient.unit)")
+                                                .font(.body)
+                                                .fontWeight(.semibold)
+                                        }
+                                        
+                                        // Show which recipes use this ingredient
+                                        if ingredient.recipes.count > 1 {
+                                            Text(ingredient.recipes.map { $0.title }.joined(separator: ", "))
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+                                                .italic()
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 40)
+                    .padding(.vertical, 8)
+                    .background(Color(UIColor.secondarySystemBackground))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
                 }
             }
-            .padding(.vertical)
         }
+    }
+    
+    private func groupIngredientsByCategory() -> [String: [AggregatedIngredient]] {
+        var grouped: [String: [String: AggregatedIngredient]] = [:]
+        
+        // Aggregate ingredients from all recipes
+        for recipeRef in kit.recipes {
+            guard let recipe = recipeRef.recipe else { continue }
+            
+            for ingredient in recipe.ingredients {
+                let category = ingredient.category.isEmpty ? "Autre" : ingredient.category.capitalized
+                
+                if grouped[category] == nil {
+                    grouped[category] = [:]
+                }
+                
+                let key = ingredient.name.lowercased()
+                
+                if var existing = grouped[category]?[key] {
+                    existing.totalQuantity += ingredient.quantity
+                    existing.recipes.append((title: recipeRef.title, quantity: ingredient.quantity, unit: ingredient.unit))
+                    grouped[category]?[key] = existing
+                } else {
+                    grouped[category]?[key] = AggregatedIngredient(
+                        name: ingredient.name,
+                        totalQuantity: ingredient.quantity,
+                        unit: ingredient.unit,
+                        category: category,
+                        recipes: [(title: recipeRef.title, quantity: ingredient.quantity, unit: ingredient.unit)]
+                    )
+                }
+            }
+        }
+        
+        // Convert to final format
+        return grouped.mapValues { dict in
+            Array(dict.values).sorted { $0.name < $1.name }
+        }
+    }
+    
+    private func iconForCategory(_ category: String) -> String {
+        let lowercased = category.lowercased()
+        switch lowercased {
+        case "légumes", "vegetables":
+            return "carrot.fill"
+        case "fruits":
+            return "leaf.fill"
+        case "viandes", "meats", "protéines", "proteins":
+            return "flame.fill"
+        case "poissons", "fish", "fruits de mer", "seafood":
+            return "fish.fill"
+        case "produits laitiers", "dairy":
+            return "cup.and.saucer.fill"
+        case "sec", "dry goods", "grains":
+            return "circle.grid.3x3.fill"
+        case "condiments", "épices", "spices":
+            return "sparkles"
+        case "conserves", "canned goods":
+            return "cabinet.fill"
+        default:
+            return "bag.fill"
+        }
+    }
+    
+    private func formatQuantity(_ quantity: Double) -> String {
+        if quantity.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.0f", quantity)
+        } else {
+            return String(format: "%.1f", quantity)
+        }
+    }
+    
+    // Helper struct for aggregated ingredients
+    struct AggregatedIngredient {
+        let name: String
+        var totalQuantity: Double
+        let unit: String
+        let category: String
+        var recipes: [(title: String, quantity: Double, unit: String)]
     }
     
     private func groupedStepCard(_ step: GroupedPrepStep, index: Int) -> some View {
@@ -388,7 +571,7 @@ struct MealPrepDetailView: View {
         .padding(.horizontal)
     }
     
-    private func optimizedStepCard(_ step: OptimizedRecipeStep, overallIndex: Int) -> some View {
+    private func optimizedStepCard(_ step: OptimizedRecipeStep, overallIndex: Int, scrollProxy: ScrollViewProxy?) -> some View {
         let isCompleted = completedSteps.contains(step.id)
         
         return VStack(alignment: .leading, spacing: 12) {
