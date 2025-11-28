@@ -2960,6 +2960,9 @@ def optimize_recipe_steps(kit_recipes: List[dict], language: str = "fr") -> List
     1. Longest cooking time recipes first
     2. Parallel tasks identified (passive cooking vs active prep)
     3. Clear indication of which recipe each step belongs to
+    
+    IMPORTANT: This function now EXCLUDES preparation steps (cutting, chopping, etc.)
+    as those are handled in the grouped_prep_steps section (mise en place).
     """
     
     # Step 1: Sort recipes by total time (longest first)
@@ -2974,6 +2977,18 @@ def optimize_recipe_steps(kit_recipes: List[dict], language: str = "fr") -> List
     # Step 2: Extract all steps from all recipes
     all_optimized_steps = []
     step_counter = 1
+    
+    # Keywords indicating PREPARATION steps to EXCLUDE
+    prep_keywords = [
+        # French
+        "préparation:", "couper", "découper", "trancher", "émincer", "hacher",
+        "râper", "éplucher", "peler", "mélanger", "battre", "fouetter",
+        "mesurer", "peser", "laver", "rincer", "nettoyer",
+        # English
+        "preparation:", "chop", "dice", "cut", "slice", "mince",
+        "grate", "shred", "peel", "skin", "mix", "whisk", "beat",
+        "measure", "weigh", "wash", "rinse", "clean"
+    ]
     
     # Keywords indicating passive cooking (can be done in parallel)
     passive_keywords = [
@@ -2995,6 +3010,13 @@ def optimize_recipe_steps(kit_recipes: List[dict], language: str = "fr") -> List
         # Process each step of this recipe
         for step_idx, step_text in enumerate(recipe.get("steps", [])):
             step_lower = step_text.lower()
+            
+            # FILTER OUT preparation steps - they're in mise en place section
+            is_prep_step = any(keyword in step_lower for keyword in prep_keywords)
+            
+            if is_prep_step:
+                print(f"    Step {step_idx + 1}: {step_text[:50]}... [SKIPPED - PREP]")
+                continue  # Skip this preparation step
             
             # Determine if this step can be done in parallel
             is_parallel = any(keyword in step_lower for keyword in passive_keywords)
@@ -3026,10 +3048,8 @@ def optimize_recipe_steps(kit_recipes: List[dict], language: str = "fr") -> List
             if not estimated_minutes:
                 if any(word in step_lower for word in ["cuire", "cook", "griller", "grill", "rôtir", "roast"]):
                     estimated_minutes = 10  # Default cooking time
-                elif any(word in step_lower for word in ["préparer", "prepare", "couper", "chop"]):
-                    estimated_minutes = 5  # Default prep time
             
-            # Create optimized step
+            # Create optimized step (cooking steps only)
             optimized_step = {
                 "id": str(uuid.uuid4()),
                 "recipe_id": recipe_id,
@@ -3043,11 +3063,11 @@ def optimize_recipe_steps(kit_recipes: List[dict], language: str = "fr") -> List
             all_optimized_steps.append(optimized_step)
             
             if is_parallel:
-                print(f"    Step {step_idx + 1}: {step_text[:50]}... [PARALLEL]")
+                print(f"    Step {step_idx + 1}: {step_text[:50]}... [COOKING - PARALLEL]")
             else:
-                print(f"    Step {step_idx + 1}: {step_text[:50]}...")
+                print(f"    Step {step_idx + 1}: {step_text[:50]}... [COOKING]")
     
-    print(f"  ✅ Total: {len(all_optimized_steps)} steps optimized")
+    print(f"  ✅ Total COOKING steps: {len(all_optimized_steps)} (prep steps excluded)")
     print(f"  ⚡ Parallel steps: {sum(1 for s in all_optimized_steps if s['is_parallel'])}")
     
     return all_optimized_steps
