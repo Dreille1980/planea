@@ -571,15 +571,80 @@ extension MealPrepKit {
             }
         }
         
-        // Step 2: Build sections from groups
-        var sections: [ActionBasedPrepSection] = []
+        // Step 2: Consolidate duplicate ingredients within each action group
+        var consolidatedGroups: [PrepActionType: [PrepItem]] = [:]
         
         for (actionType, items) in actionGroups {
-            // Calculate unique recipes
-            let uniqueRecipeIds = Set(items.map { $0.recipeId })
-            let uniqueRecipeTitles = Array(Set(items.map { $0.recipeTitle }))
+            // Group by ingredient name + action
+            var itemsByKey: [String: [PrepItem]] = [:]
             
-            // Estimate time (2 min per item, max 30 min)
+            for item in items {
+                let key = "\(item.ingredientName.lowercased())_\(item.action.lowercased())"
+                if itemsByKey[key] == nil {
+                    itemsByKey[key] = []
+                }
+                itemsByKey[key]?.append(item)
+            }
+            
+            // Consolidate items with same key
+            var consolidatedItems: [PrepItem] = []
+            
+            for (_, duplicates) in itemsByKey {
+                if duplicates.count == 1 {
+                    // No duplicates, keep as is
+                    consolidatedItems.append(duplicates[0])
+                } else {
+                    // Multiple occurrences - consolidate
+                    let firstItem = duplicates[0]
+                    
+                    // Collect all quantities
+                    let quantities = duplicates.map { $0.quantity }
+                    
+                    // Collect all recipe titles
+                    let allRecipeTitles = duplicates.map { $0.recipeTitle }
+                    let uniqueRecipeTitles = Array(Set(allRecipeTitles))
+                    
+                    // Create consolidated quantity string
+                    let consolidatedQuantity: String
+                    if Set(quantities).count == 1 {
+                        // All same quantity - show it once with count
+                        consolidatedQuantity = "\(quantities[0]) × \(duplicates.count)"
+                    } else {
+                        // Different quantities - show sum or list
+                        consolidatedQuantity = quantities.joined(separator: " + ")
+                    }
+                    
+                    // Create consolidated recipe title
+                    let consolidatedRecipeTitle = uniqueRecipeTitles.joined(separator: ", ")
+                    
+                    let consolidatedItem = PrepItem(
+                        id: firstItem.id,
+                        ingredientName: firstItem.ingredientName,
+                        quantity: consolidatedQuantity,
+                        action: firstItem.action,
+                        recipeTitle: consolidatedRecipeTitle,
+                        recipeId: duplicates.map { $0.recipeId }.joined(separator: ",")
+                    )
+                    
+                    consolidatedItems.append(consolidatedItem)
+                }
+            }
+            
+            consolidatedGroups[actionType] = consolidatedItems
+        }
+        
+        // Step 3: Build sections from consolidated groups
+        var sections: [ActionBasedPrepSection] = []
+        
+        for (actionType, items) in consolidatedGroups {
+            // Calculate unique recipes
+            let allRecipeIds = items.flatMap { $0.recipeId.split(separator: ",").map(String.init) }
+            let uniqueRecipeIds = Set(allRecipeIds)
+            
+            let allRecipeTitles = items.flatMap { $0.recipeTitle.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) } }
+            let uniqueRecipeTitles = Array(Set(allRecipeTitles))
+            
+            // Estimate time (2 min per unique item, max 30 min)
             let estimatedTime = min(30, max(5, items.count * 2))
             
             let section = ActionBasedPrepSection(
