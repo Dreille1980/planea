@@ -340,7 +340,7 @@ enum DaysPreset: String, CaseIterable, Identifiable {
 // MARK: - Action-Based Preparation (New UX)
 
 /// Type of preparation action
-enum PrepActionType: String, CaseIterable, Identifiable {
+enum PrepActionType: String, CaseIterable, Identifiable, Codable {
     case chop = "chop"
     case mix = "mix"
     case pressDrain = "press_drain"
