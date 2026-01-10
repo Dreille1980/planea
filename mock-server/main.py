@@ -1456,9 +1456,13 @@ async def ai_recipe_from_image(req: RecipeFromImageRequest):
         if req.preferences.get("kidFriendly"):
             preferences_text += "Kid-friendly meals preferred. "
         
-        # Extra user instructions
-        if req.preferences.get("extra"):
-            preferences_text += f"Additional instructions: {req.preferences['extra']}. "
+        # Extra user instructions - CHECK BOTH preferences AND constraints
+        extra_instructions = req.preferences.get("extra", "").strip()
+        if not extra_instructions and req.constraints:
+            extra_instructions = req.constraints.get("extra", "").strip()
+        
+        if extra_instructions:
+            preferences_text += f"Additional instructions: {extra_instructions}. "
     
     # Language-specific handling
     if req.language == "en":
@@ -1557,9 +1561,11 @@ RÈGLES NON NÉGOCIABLES:
 
 {user_instructions_text}
 
-ÉTAPE 1 - ANALYSE DE LA PHOTO:
-Examine la photo du frigo/garde-manger et identifie les ingrédients visibles:
-- Protéines, légumes, fruits
+ÉTAPE 1 - ANALYSE OBLIGATOIRE DE LA PHOTO (TOUJOURS FAIRE):
+Examine ATTENTIVEMENT la photo du frigo/garde-manger et liste les ingrédients visibles:
+- Protéines (viandes, poissons, œufs, tofu, etc.)
+- Légumes (tous types)
+- Fruits
 - Produits laitiers
 - Condiments et assaisonnements
 - Autres items
@@ -1574,19 +1580,33 @@ Tu peux utiliser sans restriction:
 ÉTAPE 3 - CRÉATION DE LA RECETTE pour {req.servings} personnes:
 {constraints_text}
 
-LOGIQUE DE PRIORITÉ:
-1. SI instructions utilisateur → Respecte-les OBLIGATOIREMENT
-2. PUIS utilise les ingrédients visibles dans la photo
-3. PUIS complète avec les ingrédients de base
+🚨 LOGIQUE DE PRIORITÉ (NOUVELLE APPROCHE BALANCÉE):
+
+SI instructions utilisateur présentes:
+1. UTILISER l'ingrédient mentionné comme INGRÉDIENT PRINCIPAL/PROTÉINE
+2. COMPLÉTER OBLIGATOIREMENT avec légumes/accompagnements VISIBLES dans la photo
+3. Ajouter ingrédients de base pour équilibrer
+
+SI AUCUNE instruction utilisateur:
+1. CRÉER une recette avec les ingrédients les PLUS VISIBLES/ABONDANTS dans la photo
+2. PRIORISER les protéines visibles
+3. Compléter avec ingrédients de base
 
 RÈGLES STRICTES:
-✅ RESPECTE ABSOLUMENT les instructions utilisateur
-✅ Utilise les ingrédients de la photo pour compléter
-✅ Ajoute des ingrédients de base si nécessaire
+✅ ANALYSER la photo dans TOUS les cas
+✅ SI user mentionne "crevettes" → Utiliser crevettes + légumes de la photo
+✅ SI user mentionne "style asiatique" → Appliquer le style + ingrédients de la photo
+✅ TOUJOURS inclure des ingrédients visibles dans la photo
 
-❌ N'INVENTE PAS d'ingrédients spécifiques non mentionnés/visibles
-❌ NE REMPLACE PAS les ingrédients demandés par l'utilisateur
-❌ N'IGNORE PAS les instructions utilisateur
+❌ N'INVENTE JAMAIS d'ingrédients spécifiques non mentionnés/visibles
+❌ Ne crée PAS de recette sans utiliser la photo
+❌ N'ignore PAS les ingrédients visibles dans la photo
+
+EXEMPLE CONCRET:
+- Photo montre: brocoli, carottes, poivrons, oignons
+- User dit: "j'ai des crevettes"
+- ✅ CORRECT: Crevettes sautées avec brocoli, carottes et poivrons (de la photo)
+- ❌ INCORRECT: Crevettes à l'ail et citron (invente citron, ignore la photo)
 
 Retourne UNIQUEMENT un objet JSON valide:
 {{
