@@ -124,13 +124,26 @@ struct IAService {
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
         print("🚀 Generating meal plan...")
-        let (data, _) = try await performRequest(request: req)
+        print("📍 URL: \(url.absoluteString)")
+        print("📦 Payload keys: \(payload.keys.joined(separator: ", "))")
+        
+        let (data, response) = try await performRequest(request: req)
+        
+        // Log response details
+        if let httpResponse = response as? HTTPURLResponse {
+            print("✅ Response status: \(httpResponse.statusCode)")
+        }
+        
+        // Log raw response preview
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("📥 Raw response preview: \(jsonString.prefix(500))")
+        }
         
         // Decode the API response
-        let response = try JSONDecoder().decode(PlanResponse.self, from: data)
+        let planResponse = try JSONDecoder().decode(PlanResponse.self, from: data)
         
         // Convert to MealPlan
-        let mealItems = response.items.map { item in
+        let mealItems = planResponse.items.map { item in
             MealItem(
                 id: UUID(),
                 weekday: item.weekday,
@@ -138,6 +151,8 @@ struct IAService {
                 recipe: item.recipe
             )
         }
+        
+        print("✅ Successfully generated plan with \(mealItems.count) items")
         
         return MealPlan(
             id: UUID(),
@@ -171,8 +186,18 @@ struct IAService {
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
         print("🔄 Regenerating meal...")
-        let (data, _) = try await performRequest(request: req)
+        print("📍 URL: \(url.absoluteString)")
+        print("📦 Meal: \(weekday.rawValue) - \(mealType.rawValue)")
+        
+        let (data, response) = try await performRequest(request: req)
+        
+        // Log response details
+        if let httpResponse = response as? HTTPURLResponse {
+            print("✅ Response status: \(httpResponse.statusCode)")
+        }
+        
         let decoded = try JSONDecoder().decode(Recipe.self, from: data)
+        print("✅ Successfully regenerated: \(decoded.title)")
         return decoded
     }
     
@@ -200,8 +225,18 @@ struct IAService {
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
         print("🍳 Generating recipe from prompt...")
-        let (data, _) = try await performRequest(request: req)
+        print("📍 URL: \(url.absoluteString)")
+        print("💡 Prompt: \(prompt)")
+        
+        let (data, response) = try await performRequest(request: req)
+        
+        // Log response details
+        if let httpResponse = response as? HTTPURLResponse {
+            print("✅ Response status: \(httpResponse.statusCode)")
+        }
+        
         let decoded = try JSONDecoder().decode(Recipe.self, from: data)
+        print("✅ Successfully generated: \(decoded.title)")
         return decoded
     }
     
@@ -232,8 +267,18 @@ struct IAService {
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
         print("📸 Generating recipe from fridge photo...")
-        let (data, _) = try await performRequest(request: req)
+        print("📍 URL: \(url.absoluteString)")
+        print("🖼️ Image size: \(imageData.count) bytes")
+        
+        let (data, response) = try await performRequest(request: req)
+        
+        // Log response details
+        if let httpResponse = response as? HTTPURLResponse {
+            print("✅ Response status: \(httpResponse.statusCode)")
+        }
+        
         let decoded = try JSONDecoder().decode(Recipe.self, from: data)
+        print("✅ Successfully generated from image: \(decoded.title)")
         return decoded
     }
     
@@ -261,8 +306,18 @@ struct IAService {
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
         print("📝 Generating recipe from title...")
-        let (data, _) = try await performRequest(request: req)
+        print("📍 URL: \(url.absoluteString)")
+        print("📄 Title: \(title)")
+        
+        let (data, response) = try await performRequest(request: req)
+        
+        // Log response details
+        if let httpResponse = response as? HTTPURLResponse {
+            print("✅ Response status: \(httpResponse.statusCode)")
+        }
+        
         let decoded = try JSONDecoder().decode(Recipe.self, from: data)
+        print("✅ Successfully generated from title: \(decoded.title)")
         return decoded
     }
 }

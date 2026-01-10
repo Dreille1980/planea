@@ -269,6 +269,10 @@ class StoreManager: ObservableObject {
         return subscriptionInfo?.status == .inTrial
     }
     
+    var hasMealPrepAccess: Bool {
+        return hasDeveloperAccess()
+    }
+    
     var monthlyProduct: Product? {
         return products.first { $0.id == SubscriptionProduct.monthly.rawValue }
     }

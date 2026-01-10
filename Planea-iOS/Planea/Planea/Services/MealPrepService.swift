@@ -58,16 +58,35 @@ struct MealPrepService {
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
         print("🎨 Generating meal prep concepts...")
-        let (data, _) = try await performRequest(request: req)
+        print("📍 URL: \(url.absoluteString)")
+        print("📦 Payload: \(payload)")
+        
+        let (data, response) = try await performRequest(request: req)
+        
+        // Log response details
+        if let httpResponse = response as? HTTPURLResponse {
+            print("✅ Response status: \(httpResponse.statusCode)")
+        }
+        
+        // Log raw response
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("📥 Raw response: \(jsonString.prefix(500))")
+        }
         
         // Decode response
         struct ConceptsResponse: Codable {
             let concepts: [MealPrepConcept]
         }
         
-        let response = try JSONDecoder().decode(ConceptsResponse.self, from: data)
-        print("✅ Received \(response.concepts.count) concepts")
-        return response.concepts
+        do {
+            let conceptsResponse = try JSONDecoder().decode(ConceptsResponse.self, from: data)
+            print("✅ Successfully decoded \(conceptsResponse.concepts.count) concepts")
+            return conceptsResponse.concepts
+        } catch {
+            print("❌ Decoding error: \(error)")
+            print("❌ Failed data: \(String(data: data, encoding: .utf8) ?? "Unable to decode data")")
+            throw error
+        }
     }
     
     /// Generate meal prep kits based on parameters
@@ -119,27 +138,38 @@ struct MealPrepService {
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
         print("🍽️ Generating meal prep kits...")
-        let (data, _) = try await performRequest(request: req)
+        print("📍 URL: \(url.absoluteString)")
+        print("📦 Payload keys: \(payload.keys.joined(separator: ", "))")
+        
+        let (data, response) = try await performRequest(request: req)
+        
+        // Log response details
+        if let httpResponse = response as? HTTPURLResponse {
+            print("✅ Response status: \(httpResponse.statusCode)")
+        }
         
         // Log raw response for debugging
         if let jsonString = String(data: data, encoding: .utf8) {
-            print("📦 Raw response: \(jsonString)")
+            print("📥 Raw response: \(jsonString.prefix(1000))")
         }
         
         // Try to decode the response
         do {
-            let response = try JSONDecoder().decode(MealPrepKitsResponse.self, from: data)
-            return response.kits
-        } catch {
-            print("❌ Decoding error: \(error)")
+            let kitsResponse = try JSONDecoder().decode(MealPrepKitsResponse.self, from: data)
+            print("✅ Successfully decoded \(kitsResponse.kits.count) kits")
+            return kitsResponse.kits
+        } catch let decodingError {
+            print("❌ Decoding error as MealPrepKitsResponse: \(decodingError)")
+            
             // Try to decode as direct array
             do {
                 let kits = try JSONDecoder().decode([MealPrepKit].self, from: data)
-                print("✅ Successfully decoded as direct array")
+                print("✅ Successfully decoded as direct array: \(kits.count) kits")
                 return kits
-            } catch {
-                print("❌ Also failed to decode as array: \(error)")
-                throw error
+            } catch let arrayError {
+                print("❌ Also failed to decode as array: \(arrayError)")
+                print("❌ Full response data: \(String(data: data, encoding: .utf8) ?? "Unable to decode")")
+                throw decodingError
             }
         }
     }

@@ -643,3 +643,7 @@
 // Meal Prep - Cooking Phases (NEW)
 "meal_prep.detail.cooking_phases_title" = "Cooking Phases";
 "meal_prep.detail.cooking_phases_subtitle" = "Cooking, assembly, cooling and storage";
+
+// Meal Prep - Coming Soon
+"mealprep.comingsoon.title" = "Coming Soon";
+"mealprep.comingsoon.subtitle" = "Meal Prep will allow you to plan and prepare multiple meals in advance, with optimized cooking instructions to save time in the kitchen.";

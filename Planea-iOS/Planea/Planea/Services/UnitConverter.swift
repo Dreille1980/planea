@@ -40,9 +40,9 @@ struct UnitConverter {
         // Fruits
         "apple": 180, "apples": 180, "pomme": 180, "pommes": 180,
         "banana": 120, "bananas": 120, "banane": 120, "bananes": 120,
-        "orange": 140, "oranges": 140, "orange": 140, "oranges": 140,
+        "orange": 140, "oranges": 140,
         "lemon": 100, "lemons": 100, "citron": 100, "citrons": 100,
-        "lime": 70, "limes": 70, "lime": 70, "limes": 70,
+        "lime": 70, "limes": 70,
         "pear": 180, "pears": 180, "poire": 180, "poires": 180,
         "peach": 150, "peaches": 150, "pêche": 150, "pêches": 150,
         "plum": 70, "plums": 70, "prune": 70, "prunes": 70,

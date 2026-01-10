@@ -10,6 +10,7 @@ enum RecipesSegment: String, CaseIterable {
 struct RecipesView: View {
     @EnvironmentObject var recipeHistoryVM: RecipeHistoryViewModel
     @EnvironmentObject var usageVM: UsageViewModel
+    @StateObject private var storeManager = StoreManager.shared
     @State private var selectedSegment: RecipesSegment = .recipes
     @State private var showRecentRecipes = false
     
@@ -33,8 +34,14 @@ struct RecipesView: View {
                     PlanWeekView()
                         .tag(RecipesSegment.recipes)
                     
-                    MealPrepView(baseURL: URL(string: Config.baseURL)!)
-                        .tag(RecipesSegment.mealPrep)
+                    // Feature flag: Show MealPrepView only for developer access
+                    if storeManager.hasMealPrepAccess {
+                        MealPrepView(baseURL: URL(string: Config.baseURL)!)
+                            .tag(RecipesSegment.mealPrep)
+                    } else {
+                        MealPrepComingSoonView()
+                            .tag(RecipesSegment.mealPrep)
+                    }
                     
                     AdHocRecipeContentView()
                         .tag(RecipesSegment.adHoc)

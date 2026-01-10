@@ -644,3 +644,7 @@
 // Meal Prep - Cooking Phases (NEW)
 "meal_prep.detail.cooking_phases_title" = "Phases de cuisson";
 "meal_prep.detail.cooking_phases_subtitle" = "Cuisson, assemblage, refroidissement et stockage";
+
+// Meal Prep - Coming Soon
+"mealprep.comingsoon.title" = "Bientôt disponible";
+"mealprep.comingsoon.subtitle" = "Le Meal Prep vous permettra de planifier et préparer plusieurs repas à l'avance, avec des instructions de cuisson optimisées pour gagner du temps en cuisine.";
