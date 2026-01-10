@@ -358,6 +358,9 @@ struct AdHocRecipeContentView: View {
             let service = IAService(baseURL: URL(string: Config.baseURL)!)
             let units = UnitSystem(rawValue: unitSystem) ?? .metric
             
+            // Load generation preferences
+            let prefs = PreferencesService.shared.loadPreferences()
+            
             // Build constraints based on toggle and instructions
             var constraintsDict: [String: Any]
             if useConstraints {
@@ -377,6 +380,14 @@ struct AdHocRecipeContentView: View {
                 } else {
                     constraintsDict = [:]
                 }
+            }
+            
+            // Add generation preferences to constraints
+            if !prefs.preferredProteins.isEmpty {
+                let proteins = prefs.preferredProteins.map { $0.rawValue }.joined(separator: ", ")
+                let currentExtra = (constraintsDict["extra"] as? String) ?? ""
+                let newExtra = currentExtra.isEmpty ? "Preferred proteins: \(proteins)" : "\(currentExtra). Preferred proteins: \(proteins)"
+                constraintsDict["extra"] = newExtra
             }
             
             let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
