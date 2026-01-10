@@ -53,6 +53,7 @@
 "adhoc.takePhoto" = "Take a Photo";
 "adhoc.choosePhoto" = "Choose a Photo";
 "adhoc.analyzingPhoto" = "Analyzing photo...";
+"adhoc.loadingImage" = "Loading image...";
 "adhoc.imageError" = "Error processing image";
 
 "settings.units" = "Units";

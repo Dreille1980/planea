@@ -144,6 +144,7 @@ struct AdHocRecipeContentView: View {
     @State private var photoInstructions: String = ""
     @State private var useConstraints: Bool = true
     @State private var complexity: RecipeComplexity = .simple
+    @State private var isLoadingImage = false
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
@@ -243,10 +244,18 @@ struct AdHocRecipeContentView: View {
                             }
                         }
                     }) {
-                        Text("action.generateRecipe".localized)
+                        if isLoadingImage {
+                            HStack {
+                                Text("adhoc.loadingImage".localized)
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
+                        } else {
+                            Text("action.generateRecipe".localized)
+                        }
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled((mode == .text && prompt.isEmpty) || (mode == .photo && selectedImage == nil) || isGenerating)
+                    .disabled((mode == .text && prompt.isEmpty) || (mode == .photo && selectedImage == nil && !isLoadingImage) || isGenerating)
                     .frame(maxWidth: .infinity)
                     
                     if isGenerating {
@@ -284,10 +293,12 @@ struct AdHocRecipeContentView: View {
         }
         .onChange(of: photoPickerItem) {
             Task { @MainActor in
+                isLoadingImage = true
                 if let data = try? await photoPickerItem?.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     selectedImage = uiImage
                 }
+                isLoadingImage = false
             }
         }
         .onAppear {
