@@ -397,7 +397,16 @@ def distribute_proteins_for_meal_prep(num_recipes: int, preferences: dict) -> Li
     default_proteins = ["chicken", "beef", "pork", "fish", "salmon", "shrimp", "tofu", "turkey", "lamb", "tuna"]
     
     # Get user's preferred proteins if available
+    # CRITICAL: Check constraints first (sent by meal prep wizard), then preferences
     preferred_proteins = preferences.get("preferredProteins", [])
+    if not preferred_proteins and isinstance(preferences, dict):
+        # If not in preferences, check if it's nested in constraints
+        constraints = preferences.get("constraints", {})
+        preferred_proteins = constraints.get("preferredProteins", [])
+    
+    print(f"\n🔍 MEAL PREP - Protein Preferences Detection:")
+    print(f"  preferences dict keys: {list(preferences.keys())}")
+    print(f"  preferred_proteins found: {preferred_proteins}")
     
     # Filter out breakfast-specific proteins
     breakfast_only = ["eggs", "yogurt", "bacon"]
@@ -557,14 +566,38 @@ async def generate_recipe_with_openai(
 - Minimum 8-10 varied ingredients including herbs, spices, special condiments
 - Create multi-layered flavor profiles: umami, acidity, sweetness, spices"""
     
-    # Build constraints text
+    # Build constraints text - CRITICAL: Make allergens/evictions VERY prominent
     constraints_text = ""
+    
+    # PRIORITY #1: Allergens and ingredients to avoid - ABSOLUTE requirement
+    if constraints.get("evict"):
+        evict_items = constraints["evict"]
+        if evict_items:
+            evict_list = ", ".join(evict_items)
+            if language == "fr":
+                constraints_text += f"\n\n🚨🚨🚨 RESTRICTIONS ALIMENTAIRES CRITIQUES - INTERDICTIONS ABSOLUES 🚨🚨🚨\n"
+                constraints_text += f"Tu es STRICTEMENT INTERDIT d'utiliser ces ingrédients:\n"
+                constraints_text += f"❌ INTERDITS: {evict_list}\n"
+                constraints_text += f"❌ N'utilise AUCUN de ces ingrédients sous quelque forme que ce soit\n"
+                constraints_text += f"❌ Pas de traces, pas de substituts similaires, AUCUNE exception\n"
+                constraints_text += f"Si un ingrédient est similaire (ex: si 'noix' est interdit, évite TOUTES les noix: amandes, noisettes, etc.)\n"
+                constraints_text += f"CETTE RÈGLE EST ABSOLUE ET NON NÉGOCIABLE.\n\n"
+            else:
+                constraints_text += f"\n\n🚨🚨🚨 CRITICAL DIETARY RESTRICTIONS - ABSOLUTE PROHIBITIONS 🚨🚨🚨\n"
+                constraints_text += f"You are STRICTLY FORBIDDEN from using these ingredients:\n"
+                constraints_text += f"❌ FORBIDDEN: {evict_list}\n"
+                constraints_text += f"❌ Do NOT use ANY of these ingredients in any form whatsoever\n"
+                constraints_text += f"❌ No traces, no similar substitutes, NO exceptions\n"
+                constraints_text += f"If an ingredient is similar (e.g., if 'nuts' is forbidden, avoid ALL nuts: almonds, hazelnuts, etc.)\n"
+                constraints_text += f"THIS RULE IS ABSOLUTE AND NON-NEGOTIABLE.\n\n"
+    
+    # PRIORITY #2: Diet requirements (vegetarian, vegan, etc.)
     if constraints.get("diet"):
         diets = ", ".join(constraints["diet"])
-        constraints_text += f"Régimes alimentaires: {diets}. "
-    if constraints.get("evict"):
-        allergies = ", ".join(constraints["evict"])
-        constraints_text += f"Allergies/Éviter: {allergies}. "
+        if language == "fr":
+            constraints_text += f"Régimes alimentaires à respecter: {diets}\n"
+        else:
+            constraints_text += f"Dietary requirements to follow: {diets}\n"
     
     # Build preferences text - check constraints first, then preferences dict
     preferences_text = ""
@@ -594,6 +627,16 @@ async def generate_recipe_with_openai(
         # Kid-friendly
         if preferences.get("kidFriendly"):
             preferences_text += "Kid-friendly meals preferred. "
+    
+    # CRITICAL ADDITION: Also check constraints for preferredProteins if not found in preferences
+    # This handles Meal Prep which sends preferredProteins in constraints, not preferences
+    if not preferences_text or "Preferred proteins" not in preferences_text:
+        if constraints.get("preferredProteins"):
+            proteins_list = constraints["preferredProteins"]
+            if proteins_list:
+                proteins = ", ".join(proteins_list)
+                preferences_text += f"CRITICAL - USER'S PREFERRED PROTEINS: {proteins}. YOU MUST ONLY USE THESE PROTEINS. "
+                print(f"  ✅ Added preferredProteins from constraints to prompt: {proteins}")
     
     # Build protein portions guide
     protein_portions_text = "\n\nCRITICAL - PROTEIN PORTIONS PER PERSON:\n"
@@ -3254,7 +3297,11 @@ async def generate_meal_prep_kits(req: dict):
     max_total_time = time_mapping.get(total_prep_time, 90)
     
     # STEP 1: Distribute proteins for meal prep to ensure diversity
-    preferences_with_user_data = req.get("preferences", {})
+    # CRITICAL: Merge constraints into preferences dict so distribute_proteins can find preferredProteins
+    preferences_with_user_data = {
+        "constraints": constraints,  # Include constraints which contains preferredProteins
+        **req.get("preferences", {})  # Merge with any other preferences
+    }
     suggested_proteins = distribute_proteins_for_meal_prep(num_recipes, preferences_with_user_data)
     
     # Generate only ONE kit
