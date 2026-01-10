@@ -338,7 +338,7 @@ struct MealPrepDetailView: View {
                                             Text(ingredient.name)
                                                 .font(.body)
                                             Spacer()
-                                            Text("\(formatQuantity(ingredient.totalQuantity)) \(ingredient.unit)")
+                                            Text(formatIngredientQuantity(ingredient))
                                                 .font(.body)
                                                 .fontWeight(.semibold)
                                         }
@@ -705,5 +705,44 @@ struct MealPrepDetailView: View {
                 return "\(hours)h\(mins)"
             }
         }
+    }
+    
+    private func formatIngredientQuantity(_ ingredient: AggregatedIngredient) -> String {
+        // Localize unit (translate "unité" to "unit" if in English)
+        let localizedUnit = UnitConverter.localizeUnit(ingredient.unit)
+        
+        // Check if this is produce with weight (g or kg)
+        if UnitConverter.isProduce(ingredient.name) {
+            let lowercasedUnit = ingredient.unit.lowercased()
+            
+            // If it's in grams or kilograms, show approximate unit count
+            if lowercasedUnit.contains("g") && !lowercasedUnit.contains("kg") {
+                // Weight in grams
+                if let unitCount = UnitConverter.weightToUnitCount(
+                    ingredientName: ingredient.name,
+                    weightInGrams: ingredient.totalQuantity
+                ) {
+                    // Format: 300.0 g ≈ 2 unités
+                    let unitLabel = Locale.current.language.languageCode?.identifier == "fr" ? "unités" : "units"
+                    return String(format: "%.1f %@ ≈ %.0f %@",
+                                 ingredient.totalQuantity, localizedUnit,
+                                 unitCount, unitLabel)
+                }
+            } else if lowercasedUnit.contains("kg") {
+                // Weight in kilograms - convert to grams for calculation
+                if let unitCount = UnitConverter.weightToUnitCount(
+                    ingredientName: ingredient.name,
+                    weightInGrams: ingredient.totalQuantity * 1000
+                ) {
+                    let unitLabel = Locale.current.language.languageCode?.identifier == "fr" ? "unités" : "units"
+                    return String(format: "%.1f %@ ≈ %.0f %@",
+                                 ingredient.totalQuantity, localizedUnit,
+                                 unitCount, unitLabel)
+                }
+            }
+        }
+        
+        // Default format: quantity unit
+        return "\(formatQuantity(ingredient.totalQuantity)) \(localizedUnit)"
     }
 }

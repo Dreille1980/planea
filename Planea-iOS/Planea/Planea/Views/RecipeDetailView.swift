@@ -171,9 +171,46 @@ struct RecipeDetailView: View {
             to: otherSystem
         )
         
+        // Localize unit (translate "unité" to "unit" if in English)
+        let localizedPrimaryUnit = UnitConverter.localizeUnit(primary.unit)
+        let localizedSecondaryUnit = UnitConverter.localizeUnit(secondary.unit)
+        
+        // Check if this is produce with weight (g or kg)
+        if UnitConverter.isProduce(ingredient.name) {
+            let lowercasedUnit = ingredient.unit.lowercased()
+            
+            // If it's in grams or kilograms, show approximate unit count
+            if lowercasedUnit.contains("g") && !lowercasedUnit.contains("kg") {
+                // Weight in grams
+                if let unitCount = UnitConverter.weightToUnitCount(
+                    ingredientName: ingredient.name,
+                    weightInGrams: ingredient.quantity
+                ) {
+                    // Format: 300.0 g (5.3 oz) ≈ 2 units
+                    let unitLabel = Locale.current.language.languageCode?.identifier == "fr" ? "unités" : "units"
+                    return String(format: "%.1f %@ (%.1f %@) ≈ %.0f %@",
+                                 primary.quantity, localizedPrimaryUnit,
+                                 secondary.quantity, localizedSecondaryUnit,
+                                 unitCount, unitLabel)
+                }
+            } else if lowercasedUnit.contains("kg") {
+                // Weight in kilograms - convert to grams for calculation
+                if let unitCount = UnitConverter.weightToUnitCount(
+                    ingredientName: ingredient.name,
+                    weightInGrams: ingredient.quantity * 1000
+                ) {
+                    let unitLabel = Locale.current.language.languageCode?.identifier == "fr" ? "unités" : "units"
+                    return String(format: "%.1f %@ (%.1f %@) ≈ %.0f %@",
+                                 primary.quantity, localizedPrimaryUnit,
+                                 secondary.quantity, localizedSecondaryUnit,
+                                 unitCount, unitLabel)
+                }
+            }
+        }
+        
         // Format: primary unit (secondary unit)
         return String(format: "%.1f %@ (%.1f %@)", 
-                     primary.quantity, primary.unit,
-                     secondary.quantity, secondary.unit)
+                     primary.quantity, localizedPrimaryUnit,
+                     secondary.quantity, localizedSecondaryUnit)
     }
 }
