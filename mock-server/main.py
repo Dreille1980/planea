@@ -2996,124 +2996,265 @@ Rends les descriptions attrayantes et spécifiques."""
         return {"concepts": fallback}
 
 
-def optimize_recipe_steps(kit_recipes: List[dict], language: str = "fr") -> List[dict]:
+async def generate_cooking_phases(kit_recipes: List[dict], language: str = "fr") -> dict:
     """
-    Create an optimized sequence of cooking steps from all recipes.
-    Steps are ordered by:
-    1. Longest cooking time recipes first
-    2. Parallel tasks identified (passive cooking vs active prep)
-    3. Clear indication of which recipe each step belongs to
+    Generate structured cooking phases using OpenAI for intelligent orchestration.
     
-    IMPORTANT: This function now EXCLUDES preparation steps (cutting, chopping, etc.)
-    as those are handled in the grouped_prep_steps section (mise en place).
+    Returns a dict with 4 phases:
+    - cook: Cooking steps with parallel execution markers
+    - assemble: Assembly steps for each recipe
+    - cool_down: Cooling and resting steps
+    - store: Storage and portioning instructions
     """
     
-    # Step 1: Sort recipes by total time (longest first)
-    sorted_recipes = sorted(
-        kit_recipes,
-        key=lambda r: r.get("recipe", {}).get("total_minutes", 0),
-        reverse=True
-    )
+    print(f"\n🎯 Generating cooking phases for {len(kit_recipes)} recipes using AI")
     
-    print(f"\n⚡ Optimizing cooking steps for {len(sorted_recipes)} recipes")
-    
-    # Step 2: Extract all steps from all recipes
-    all_optimized_steps = []
-    step_counter = 1
-    
-    # Keywords indicating PREPARATION steps to EXCLUDE
-    prep_keywords = [
-        # French
-        "préparation:", "couper", "découper", "trancher", "émincer", "hacher",
-        "râper", "éplucher", "peler", "mélanger", "battre", "fouetter",
-        "mesurer", "peser", "laver", "rincer", "nettoyer",
-        # English
-        "preparation:", "chop", "dice", "cut", "slice", "mince",
-        "grate", "shred", "peel", "skin", "mix", "whisk", "beat",
-        "measure", "weigh", "wash", "rinse", "clean"
-    ]
-    
-    # Keywords indicating passive cooking (can be done in parallel)
-    passive_keywords = [
-        # French
-        "four", "cuire au four", "rôtir", "mijote", "mijoter", "repos", "refroidir",
-        "mariner", "réfrigérer", "congeler", "laisser", "attendre",
-        # English  
-        "oven", "bake", "roast", "simmer", "rest", "cool", "chill",
-        "marinate", "refrigerate", "freeze", "let", "wait", "allow"
-    ]
-    
-    for recipe_ref in sorted_recipes:
+    # Build recipe summary for AI
+    recipe_summaries = []
+    for idx, recipe_ref in enumerate(kit_recipes):
         recipe = recipe_ref.get("recipe", {})
-        recipe_id = recipe_ref.get("recipe_id", str(uuid.uuid4()))
-        recipe_title = recipe.get("title", "Unknown Recipe")
+        recipe_summaries.append({
+            "index": idx + 1,
+            "title": recipe.get("title", "Unknown"),
+            "total_minutes": recipe.get("total_minutes", 30),
+            "servings": recipe.get("servings", 4),
+            "steps": recipe.get("steps", []),
+            "equipment": recipe.get("equipment", []),
+            "storage_note": recipe_ref.get("storage_note", "")
+        })
+    
+    # Create AI prompt for phase generation
+    if language == "fr":
+        prompt = f"""Tu es un expert en meal prep qui orchestre la cuisson de plusieurs recettes simultanément.
+
+RECETTES À COORDONNER:
+{json.dumps(recipe_summaries, indent=2, ensure_ascii=False)}
+
+🎯 TA MISSION: Créer un plan de cuisson optimisé en 4 PHASES.
+
+RÈGLES CRITIQUES:
+1. EXCLURE toute préparation (couper, hacher, etc.) - déjà fait en mise en place
+2. IDENTIFIER les étapes parallèles intelligemment (four vs stovetop)
+3. MINIMISER les temps morts
+4. FORMAT: checklist cochable, étapes courtes
+
+📋 STRUCTURE OBLIGATOIRE:
+
+{{
+  "cook": {{
+    "title": "🔥 Cuisson",
+    "total_minutes": XX,
+    "steps": [
+      {{
+        "id": "uuid",
+        "description": "Démarrer le couscous (5 min)",
+        "recipe_title": "Lamb Couscous",
+        "recipe_index": 1,
+        "estimated_minutes": 5,
+        "is_parallel": false,
+        "parallel_note": null
+      }},
+      {{
+        "id": "uuid",
+        "description": "Sauté lamb chops (10 min)",
+        "recipe_title": "Lamb Couscous",
+        "recipe_index": 1,
+        "estimated_minutes": 10,
+        "is_parallel": true,
+        "parallel_note": "En parallèle avec la prochaine étape"
+      }}
+    ]
+  }},
+  "assemble": {{
+    "title": "🧩 Assemblage",
+    "total_minutes": XX,
+    "steps": [
+      {{
+        "id": "uuid",
+        "description": "Combiner agneau + légumes",
+        "recipe_title": "Lamb Couscous",
+        "recipe_index": 1,
+        "estimated_minutes": 3,
+        "is_parallel": false,
+        "parallel_note": null
+      }}
+    ]
+  }},
+  "cool_down": {{
+    "title": "❄️ Refroidissement",
+    "total_minutes": XX,
+    "steps": [
+      {{
+        "id": "uuid",
+        "description": "Laisser refroidir les protéines cuites",
+        "recipe_title": "Multiple",
+        "recipe_index": null,
+        "estimated_minutes": 15,
+        "is_parallel": false,
+        "parallel_note": null
+      }}
+    ]
+  }},
+  "store": {{
+    "title": "📦 Conservation",
+    "total_minutes": XX,
+    "steps": [
+      {{
+        "id": "uuid",
+        "description": "Portionner agneau couscous (4 contenants)",
+        "recipe_title": "Lamb Couscous",
+        "recipe_index": 1,
+        "estimated_minutes": 3,
+        "is_parallel": false,
+        "parallel_note": "Utiliser notes de storage de chaque recette"
+      }}
+    ]
+  }}
+}}
+
+EXEMPLE DE PARALLÉLISME:
+- "Pendant que X cuit au four (30 min)" → is_parallel=true, parallel_note="Faire Y pendant ce temps"
+- Étapes actives → is_parallel=false
+
+Retourne UNIQUEMENT le JSON."""
+    
+    else:  # English
+        prompt = f"""You are a meal prep expert orchestrating multiple recipes simultaneously.
+
+RECIPES TO COORDINATE:
+{json.dumps(recipe_summaries, indent=2, ensure_ascii=False)}
+
+🎯 YOUR MISSION: Create an optimized cooking plan in 4 PHASES.
+
+CRITICAL RULES:
+1. EXCLUDE all prep (cutting, chopping, etc.) - already done in mise en place
+2. IDENTIFY parallel steps intelligently (oven vs stovetop)
+3. MINIMIZE idle time
+4. FORMAT: checkable checklist, short steps
+
+📋 REQUIRED STRUCTURE:
+
+{{
+  "cook": {{
+    "title": "🔥 Cook",
+    "total_minutes": XX,
+    "steps": [
+      {{
+        "id": "uuid",
+        "description": "Start couscous (5 min)",
+        "recipe_title": "Lamb Couscous",
+        "recipe_index": 1,
+        "estimated_minutes": 5,
+        "is_parallel": false,
+        "parallel_note": null
+      }},
+      {{
+        "id": "uuid",
+        "description": "Sauté lamb chops (10 min)",
+        "recipe_title": "Lamb Couscous",
+        "recipe_index": 1,
+        "estimated_minutes": 10,
+        "is_parallel": true,
+        "parallel_note": "In parallel with next step"
+      }}
+    ]
+  }},
+  "assemble": {{
+    "title": "🧩 Assemble",
+    "total_minutes": XX,
+    "steps": [...]
+  }},
+  "cool_down": {{
+    "title": "❄️ Cool Down",
+    "total_minutes": XX,
+    "steps": [...]
+  }},
+  "store": {{
+    "title": "📦 Store",
+    "total_minutes": XX,
+    "steps": [...]
+  }}
+}}
+
+PARALLELISM EXAMPLE:
+- "While X bakes in oven (30 min)" → is_parallel=true, parallel_note="Do Y during this time"
+- Active steps → is_parallel=false
+
+Return ONLY the JSON."""
+    
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Tu es un expert en meal prep qui crée des plans de cuisson optimisés et structurés."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=2500
+        )
         
-        print(f"  Processing: {recipe_title} ({recipe.get('total_minutes', 0)} min)")
+        content = response.choices[0].message.content.strip()
         
-        # Process each step of this recipe
-        for step_idx, step_text in enumerate(recipe.get("steps", [])):
-            step_lower = step_text.lower()
-            
-            # FILTER OUT preparation steps - they're in mise en place section
-            is_prep_step = any(keyword in step_lower for keyword in prep_keywords)
-            
-            if is_prep_step:
-                print(f"    Step {step_idx + 1}: {step_text[:50]}... [SKIPPED - PREP]")
-                continue  # Skip this preparation step
-            
-            # Determine if this step can be done in parallel
-            is_parallel = any(keyword in step_lower for keyword in passive_keywords)
-            
-            # Extract estimated time if mentioned in step
-            estimated_minutes = None
-            
-            # Look for time mentions: "5 min", "10 minutes", "pendant 20 min", etc.
-            import re
-            time_patterns = [
-                r'(\d+)\s*min',
-                r'(\d+)\s*minute',
-                r'pendant\s+(\d+)',
-                r'for\s+(\d+)',
-                r'(\d+)\s*h'  # hours
-            ]
-            
-            for pattern in time_patterns:
-                match = re.search(pattern, step_lower)
-                if match:
-                    time_value = int(match.group(1))
-                    # If it's hours, convert to minutes
-                    if 'h' in pattern:
-                        time_value *= 60
-                    estimated_minutes = time_value
-                    break
-            
-            # If no time found but it's a cooking step, estimate
-            if not estimated_minutes:
-                if any(word in step_lower for word in ["cuire", "cook", "griller", "grill", "rôtir", "roast"]):
-                    estimated_minutes = 10  # Default cooking time
-            
-            # Create optimized step (cooking steps only)
-            optimized_step = {
-                "id": str(uuid.uuid4()),
-                "recipe_id": recipe_id,
-                "recipe_title": recipe_title,
-                "step_number": step_idx + 1,
-                "step_description": step_text,
-                "estimated_minutes": estimated_minutes,
-                "is_parallel": is_parallel
+        # Extract JSON
+        if "```json" in content:
+            parts = content.split("```json")
+            if len(parts) > 1:
+                json_part = parts[1].split("```")[0]
+                content = json_part.strip()
+        elif content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        
+        # Find JSON object
+        start_idx = content.find('{')
+        end_idx = content.rfind('}')
+        if start_idx != -1 and end_idx != -1:
+            content = content[start_idx:end_idx+1]
+        
+        phases_data = json.loads(content)
+        
+        # Ensure UUIDs for all steps
+        for phase_key in ["cook", "assemble", "cool_down", "store"]:
+            if phase_key in phases_data:
+                for step in phases_data[phase_key].get("steps", []):
+                    if not step.get("id"):
+                        step["id"] = str(uuid.uuid4())
+        
+        print(f"  ✅ Generated phases:")
+        print(f"     Cook: {len(phases_data.get('cook', {}).get('steps', []))} steps ({phases_data.get('cook', {}).get('total_minutes', 0)} min)")
+        print(f"     Assemble: {len(phases_data.get('assemble', {}).get('steps', []))} steps ({phases_data.get('assemble', {}).get('total_minutes', 0)} min)")
+        print(f"     Cool down: {len(phases_data.get('cool_down', {}).get('steps', []))} steps ({phases_data.get('cool_down', {}).get('total_minutes', 0)} min)")
+        print(f"     Store: {len(phases_data.get('store', {}).get('steps', []))} steps ({phases_data.get('store', {}).get('total_minutes', 0)} min)")
+        
+        return phases_data
+        
+    except Exception as e:
+        print(f"  ❌ Error generating phases with AI: {e}")
+        # Fallback to basic structure
+        return {
+            "cook": {
+                "title": "🔥 Cuisson" if language == "fr" else "🔥 Cook",
+                "total_minutes": sum(r.get("recipe", {}).get("total_minutes", 30) for r in kit_recipes),
+                "steps": []
+            },
+            "assemble": {
+                "title": "🧩 Assemblage" if language == "fr" else "🧩 Assemble",
+                "total_minutes": 10,
+                "steps": []
+            },
+            "cool_down": {
+                "title": "❄️ Refroidissement" if language == "fr" else "❄️ Cool Down",
+                "total_minutes": 15,
+                "steps": []
+            },
+            "store": {
+                "title": "📦 Conservation" if language == "fr" else "📦 Store",
+                "total_minutes": 10,
+                "steps": []
             }
-            
-            all_optimized_steps.append(optimized_step)
-            
-            if is_parallel:
-                print(f"    Step {step_idx + 1}: {step_text[:50]}... [COOKING - PARALLEL]")
-            else:
-                print(f"    Step {step_idx + 1}: {step_text[:50]}... [COOKING]")
-    
-    print(f"  ✅ Total COOKING steps: {len(all_optimized_steps)} (prep steps excluded)")
-    print(f"  ⚡ Parallel steps: {sum(1 for s in all_optimized_steps if s['is_parallel'])}")
-    
-    return all_optimized_steps
+        }
 
 
 def group_preparation_steps(kit_recipes: List[dict], language: str = "fr") -> List[dict]:
@@ -3448,10 +3589,9 @@ async def generate_meal_prep_kits(req: dict):
     grouped_prep_steps = group_preparation_steps(kit_recipes, language)
     print(f"  ✅ Generated {len(grouped_prep_steps)} grouped prep steps")
     
-    # Generate optimized recipe steps
-    print(f"\n⚡ Optimizing recipe steps...")
-    optimized_recipe_steps = optimize_recipe_steps(kit_recipes, language)
-    print(f"  ✅ Generated {len(optimized_recipe_steps)} optimized recipe steps")
+    # Generate cooking phases with AI
+    print(f"\n⚡ Generating cooking phases with AI...")
+    cooking_phases = await generate_cooking_phases(kit_recipes, language)
     
     # Create kit
     if language == "fr":
@@ -3469,13 +3609,13 @@ async def generate_meal_prep_kits(req: dict):
         "estimated_prep_minutes": total_prep_minutes,
         "recipes": kit_recipes,
         "grouped_prep_steps": grouped_prep_steps,
-        "optimized_recipe_steps": optimized_recipe_steps,  # NEW: Add optimized recipe steps
+        "cooking_phases": cooking_phases,  # NEW: Add cooking phases with 4 structured phases
         "created_at": datetime.now().isoformat()
     }
     
     print(f"\n✅ Kit created: {len(kit_recipes)} recipes, {total_portions} portions, {total_prep_minutes} min")
     print(f"   Grouped steps: {len(grouped_prep_steps)} action groups")
-    print(f"   Optimized steps: {len(optimized_recipe_steps)} cooking steps")
+    print(f"   Cooking phases generated: 4 phases (Cook, Assemble, Cool down, Store)")
     
     # Return single kit in kits array for backward compatibility
     return {"kits": [kit]}
