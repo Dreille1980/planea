@@ -336,3 +336,266 @@ enum DaysPreset: String, CaseIterable, Identifiable {
         }
     }
 }
+
+// MARK: - Action-Based Preparation (New UX)
+
+/// Type of preparation action
+enum PrepActionType: String, CaseIterable, Identifiable {
+    case chop = "chop"
+    case mix = "mix"
+    case pressDrain = "press_drain"
+    case marinate = "marinate"
+    case prepSauces = "prep_sauces"
+    case measure = "measure"
+    case peel = "peel"
+    case grate = "grate"
+    case other = "other"
+    
+    var id: String { rawValue }
+    
+    var emoji: String {
+        switch self {
+        case .chop: return "🔪"
+        case .mix: return "🥣"
+        case .pressDrain: return "💧"
+        case .marinate: return "🧂"
+        case .prepSauces: return "🍯"
+        case .measure: return "⚖️"
+        case .peel: return "🥕"
+        case .grate: return "🧀"
+        case .other: return "👨‍🍳"
+        }
+    }
+    
+    var sfSymbol: String {
+        switch self {
+        case .chop: return "scissors"
+        case .mix: return "bowl.fill"
+        case .pressDrain: return "drop.fill"
+        case .marinate: return "sparkles"
+        case .prepSauces: return "drop.triangle.fill"
+        case .measure: return "scalemass.fill"
+        case .peel: return "carrot.fill"
+        case .grate: return "square.grid.3x3.fill"
+        case .other: return "hand.raised.fill"
+        }
+    }
+    
+    var localizedName: String {
+        switch self {
+        case .chop: return "mealprep.action.chop".localized
+        case .mix: return "mealprep.action.mix".localized
+        case .pressDrain: return "mealprep.action.press_drain".localized
+        case .marinate: return "mealprep.action.marinate".localized
+        case .prepSauces: return "mealprep.action.prep_sauces".localized
+        case .measure: return "mealprep.action.measure".localized
+        case .peel: return "mealprep.action.peel".localized
+        case .grate: return "mealprep.action.grate".localized
+        case .other: return "mealprep.action.other".localized
+        }
+    }
+    
+    /// Priority order for display (chop first, etc.)
+    var sortOrder: Int {
+        switch self {
+        case .chop: return 1
+        case .peel: return 2
+        case .grate: return 3
+        case .measure: return 4
+        case .mix: return 5
+        case .prepSauces: return 6
+        case .marinate: return 7
+        case .pressDrain: return 8
+        case .other: return 99
+        }
+    }
+    
+    /// Detect action type from text
+    static func detect(from text: String) -> PrepActionType {
+        let lowercased = text.lowercased()
+        
+        // Chop variations
+        if lowercased.contains("chop") || lowercased.contains("dice") || 
+           lowercased.contains("cut") || lowercased.contains("slice") ||
+           lowercased.contains("mince") || lowercased.contains("couper") ||
+           lowercased.contains("émincer") || lowercased.contains("hacher") ||
+           lowercased.contains("trancher") {
+            return .chop
+        }
+        
+        // Mix variations
+        if lowercased.contains("mix") || lowercased.contains("combine") ||
+           lowercased.contains("whisk") || lowercased.contains("beat") ||
+           lowercased.contains("mélanger") || lowercased.contains("battre") ||
+           lowercased.contains("fouetter") {
+            return .mix
+        }
+        
+        // Press/Drain
+        if lowercased.contains("press") || lowercased.contains("drain") ||
+           lowercased.contains("squeeze") || lowercased.contains("presser") ||
+           lowercased.contains("égoutter") {
+            return .pressDrain
+        }
+        
+        // Marinate
+        if lowercased.contains("marinate") || lowercased.contains("mariner") {
+            return .marinate
+        }
+        
+        // Sauces
+        if lowercased.contains("sauce") || lowercased.contains("dressing") ||
+           lowercased.contains("vinaigrette") {
+            return .prepSauces
+        }
+        
+        // Measure
+        if lowercased.contains("measure") || lowercased.contains("weigh") ||
+           lowercased.contains("mesurer") || lowercased.contains("peser") {
+            return .measure
+        }
+        
+        // Peel
+        if lowercased.contains("peel") || lowercased.contains("éplucher") {
+            return .peel
+        }
+        
+        // Grate
+        if lowercased.contains("grate") || lowercased.contains("shred") ||
+           lowercased.contains("râper") {
+            return .grate
+        }
+        
+        return .other
+    }
+}
+
+/// A single preparation item (ingredient + action)
+struct PrepItem: Identifiable, Codable {
+    let id: UUID
+    let ingredientName: String
+    let quantity: String
+    let action: String  // "sliced", "diced", "grated", etc.
+    let recipeTitle: String
+    let recipeId: String
+    
+    init(id: UUID = UUID(), ingredientName: String, quantity: String, action: String, recipeTitle: String, recipeId: String) {
+        self.id = id
+        self.ingredientName = ingredientName
+        self.quantity = quantity
+        self.action = action
+        self.recipeTitle = recipeTitle
+        self.recipeId = recipeId
+    }
+}
+
+/// A section grouping preparation items by action type
+struct ActionBasedPrepSection: Identifiable, Codable {
+    let id: UUID
+    let actionType: PrepActionType
+    let estimatedMinutes: Int
+    let items: [PrepItem]
+    let usedInRecipeCount: Int
+    let usedInRecipeTitles: [String]
+    
+    init(id: UUID = UUID(), actionType: PrepActionType, estimatedMinutes: Int, items: [PrepItem], usedInRecipeCount: Int, usedInRecipeTitles: [String]) {
+        self.id = id
+        self.actionType = actionType
+        self.estimatedMinutes = estimatedMinutes
+        self.items = items
+        self.usedInRecipeCount = usedInRecipeCount
+        self.usedInRecipeTitles = usedInRecipeTitles
+    }
+}
+
+// MARK: - MealPrepKit Extension for Action-Based Prep
+
+extension MealPrepKit {
+    /// Transform grouped prep steps into action-based sections for the new UX
+    func buildActionBasedPrep() -> [ActionBasedPrepSection] {
+        guard let groupedSteps = self.groupedPrepSteps, !groupedSteps.isEmpty else {
+            return []
+        }
+        
+        // Step 1: Group by detected action type
+        var actionGroups: [PrepActionType: [PrepItem]] = [:]
+        
+        for step in groupedSteps {
+            // Detect action type from the step's actionType field
+            let detectedAction = PrepActionType.detect(from: step.actionType)
+            
+            // Convert ingredients to PrepItems
+            for ingredient in step.ingredients {
+                // Try to extract specific action from detailed steps or usage
+                var specificAction = ""
+                
+                // Look in detailed steps for specific action words
+                for detailStep in step.detailedSteps {
+                    let lowercased = detailStep.lowercased()
+                    if lowercased.contains(ingredient.name.lowercased()) {
+                        // Extract action (sliced, diced, etc.)
+                        if lowercased.contains("slice") || lowercased.contains("tranch") {
+                            specificAction = "sliced"
+                        } else if lowercased.contains("dice") || lowercased.contains("dé") {
+                            specificAction = "diced"
+                        } else if lowercased.contains("chop") || lowercased.contains("hach") {
+                            specificAction = "chopped"
+                        } else if lowercased.contains("mince") || lowercased.contains("éminc") {
+                            specificAction = "minced"
+                        } else if lowercased.contains("grat") || lowercased.contains("râp") {
+                            specificAction = "grated"
+                        } else if lowercased.contains("peel") || lowercased.contains("épluch") {
+                            specificAction = "peeled"
+                        }
+                        break
+                    }
+                }
+                
+                // Fallback to generic action name
+                if specificAction.isEmpty {
+                    specificAction = step.actionType.lowercased()
+                }
+                
+                let prepItem = PrepItem(
+                    ingredientName: ingredient.name,
+                    quantity: ingredient.quantity,
+                    action: specificAction,
+                    recipeTitle: ingredient.recipeTitle,
+                    recipeId: ingredient.recipeId
+                )
+                
+                if actionGroups[detectedAction] == nil {
+                    actionGroups[detectedAction] = []
+                }
+                actionGroups[detectedAction]?.append(prepItem)
+            }
+        }
+        
+        // Step 2: Build sections from groups
+        var sections: [ActionBasedPrepSection] = []
+        
+        for (actionType, items) in actionGroups {
+            // Calculate unique recipes
+            let uniqueRecipeIds = Set(items.map { $0.recipeId })
+            let uniqueRecipeTitles = Array(Set(items.map { $0.recipeTitle }))
+            
+            // Estimate time (2 min per item, max 30 min)
+            let estimatedTime = min(30, max(5, items.count * 2))
+            
+            let section = ActionBasedPrepSection(
+                actionType: actionType,
+                estimatedMinutes: estimatedTime,
+                items: items,
+                usedInRecipeCount: uniqueRecipeIds.count,
+                usedInRecipeTitles: uniqueRecipeTitles
+            )
+            
+            sections.append(section)
+        }
+        
+        // Step 3: Sort by priority (chop first, then others)
+        sections.sort { $0.actionType.sortOrder < $1.actionType.sortOrder }
+        
+        return sections
+    }
+}

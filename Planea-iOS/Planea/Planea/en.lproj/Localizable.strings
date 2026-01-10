@@ -622,4 +622,20 @@
 // Meal Prep Detail - New Structure
 "meal_prep.detail.mise_en_place_title" = "Mise en place";
 "meal_prep.detail.mise_en_place_subtitle" = "Common preparation for all recipes";
+"meal_prep.detail.prep_checklist_subtitle" = "Preparation checklist for all meals";
 "meal_prep.detail.recipes_title" = "Individual Recipes";
+"meal_prep.detail.ingredients_title" = "Ingredients for Meal Prep";
+"meal_prep.detail.ingredients_subtitle" = "Complete list of ingredients grouped by category";
+"meal_prep.detail.cooking_steps_count" = "%d cooking steps";
+"meal_prep.detail.remaining" = "left";
+
+// Action types for preparation
+"mealprep.action.chop" = "Chop";
+"mealprep.action.mix" = "Mix";
+"mealprep.action.press_drain" = "Press/Drain";
+"mealprep.action.marinate" = "Marinate";
+"mealprep.action.prep_sauces" = "Prep Sauces";
+"mealprep.action.measure" = "Measure";
+"mealprep.action.peel" = "Peel";
+"mealprep.action.grate" = "Grate";
+"mealprep.action.other" = "Other";

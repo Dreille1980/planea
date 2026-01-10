@@ -191,6 +191,16 @@ struct MealPrepDetailView: View {
     // MARK: - Preparation Tab
     
     @State private var scrollProxy: ScrollViewProxy? = nil
+    @State private var completedPrepSections: Set<UUID> = []
+    @State private var completedPrepItems: Set<UUID> = []
+    
+    private var prepSectionsKey: String {
+        "mealprep_prep_sections_\(kit.id.uuidString)"
+    }
+    
+    private var prepItemsKey: String {
+        "mealprep_prep_items_\(kit.id.uuidString)"
+    }
     
     private var preparationTab: some View {
         ScrollViewReader { proxy in
@@ -203,33 +213,12 @@ struct MealPrepDetailView: View {
                     Divider()
                         .padding(.vertical, 8)
                     
-                    // Section 2: Mise en place (Grouped Prep Steps)
-                    if let groupedSteps = kit.groupedPrepSteps, !groupedSteps.isEmpty {
-                        VStack(alignment: .leading, spacing: 16) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(LocalizedStringKey("meal_prep.detail.mise_en_place_title"))
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                    
-                                    Text(LocalizedStringKey("meal_prep.detail.mise_en_place_subtitle"))
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Spacer()
-                            }
-                            .padding(.horizontal)
-                            .id("mise_en_place")
-                            
-                            ForEach(Array(groupedSteps.enumerated()), id: \.element.id) { index, step in
-                                groupedStepCard(step, index: index + 1)
-                            }
-                        }
-                        
-                        Divider()
-                            .padding(.vertical, 8)
-                    }
+                    // Section 2: NEW Action-Based Preparation
+                    actionBasedPreparationSection
+                        .id("preparation")
+                    
+                    Divider()
+                        .padding(.vertical, 8)
                     
                     // Section 3: Individual Recipes (Cooking Steps)
                     if let optimizedSteps = kit.optimizedRecipeSteps, !optimizedSteps.isEmpty {
@@ -241,7 +230,7 @@ struct MealPrepDetailView: View {
                                         .font(.title2)
                                         .fontWeight(.bold)
                                     
-                                    Text("\(optimizedSteps.count) étapes de cuisson")
+                                    Text(LocalizedStringKey("meal_prep.detail.cooking_steps_count"))
                                         .font(.subheadline)
                                         .foregroundColor(.secondary)
                                 }
@@ -296,11 +285,11 @@ struct MealPrepDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Ingrédients pour la prépa-repas")
+                    Text(LocalizedStringKey("meal_prep.detail.ingredients_title"))
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    Text("Liste complète des ingrédients regroupés par catégorie")
+                    Text(LocalizedStringKey("meal_prep.detail.ingredients_subtitle"))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -744,5 +733,286 @@ struct MealPrepDetailView: View {
         
         // Default format: quantity unit
         return "\(formatQuantity(ingredient.totalQuantity)) \(localizedUnit)"
+    }
+    
+    // MARK: - NEW Action-Based Preparation Section
+    
+    private var actionBasedPreparationSection: some View {
+        let sections = kit.buildActionBasedPrep()
+        
+        guard !sections.isEmpty else {
+            return AnyView(EmptyView())
+        }
+        
+        return AnyView(
+            VStack(alignment: .leading, spacing: 16) {
+                // Header
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(LocalizedStringKey("meal_prep.detail.mise_en_place_title"))
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        Text(LocalizedStringKey("meal_prep.detail.prep_checklist_subtitle"))
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.horizontal)
+                
+                // Progress Bar
+                preparationProgressBar(sections: sections)
+                
+                // Action Sections
+                ForEach(sections) { section in
+                    actionSectionCard(section)
+                }
+            }
+            .onAppear {
+                loadPrepProgress()
+            }
+        )
+    }
+    
+    // MARK: - Preparation Progress Bar
+    
+    private func preparationProgressBar(sections: [ActionBasedPrepSection]) -> some View {
+        let completedSectionsCount = sections.filter { completedPrepSections.contains($0.id) }.count
+        let totalSections = sections.count
+        let progress = totalSections > 0 ? Double(completedSectionsCount) / Double(totalSections) : 0
+        
+        // Calculate remaining time
+        let remainingMinutes = sections.filter { !completedPrepSections.contains($0.id) }
+            .reduce(0) { $0 + $1.estimatedMinutes }
+        
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("\(completedSectionsCount)/\(totalSections)")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                if remainingMinutes > 0 {
+                    Text("~\(remainingMinutes) min " + LocalizedStringKey("meal_prep.detail.remaining").stringValue)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                        .frame(height: 8)
+                        .cornerRadius(4)
+                    
+                    Rectangle()
+                        .fill(Color.accentColor)
+                        .frame(width: geometry.size.width * progress, height: 8)
+                        .cornerRadius(4)
+                        .animation(.easeInOut, value: progress)
+                }
+            }
+            .frame(height: 8)
+        }
+        .padding(.horizontal)
+    }
+    
+    // MARK: - Action Section Card
+    
+    private func actionSectionCard(_ section: ActionBasedPrepSection) -> some View {
+        let sectionCompleted = completedPrepSections.contains(section.id)
+        let allItemsCompleted = section.items.allSatisfy { completedPrepItems.contains($0.id) }
+        
+        return VStack(alignment: .leading, spacing: 12) {
+            // Header with section checkbox
+            HStack(alignment: .top, spacing: 12) {
+                // Section Checkbox
+                Button(action: {
+                    toggleSectionCompletion(section)
+                }) {
+                    Image(systemName: sectionCompleted ? "checkmark.square.fill" : "square")
+                        .font(.title2)
+                        .foregroundColor(sectionCompleted ? .accentColor : .secondary)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    // Action type with emoji and icon
+                    HStack(spacing: 8) {
+                        Text(section.actionType.emoji)
+                            .font(.title3)
+                        
+                        Image(systemName: section.actionType.sfSymbol)
+                            .foregroundColor(.accentColor)
+                        
+                        Text(section.actionType.localizedName)
+                            .font(.headline)
+                            .foregroundColor(sectionCompleted ? .secondary : .primary)
+                        
+                        Spacer()
+                        
+                        // Time estimate
+                        Label("\(section.estimatedMinutes) min", systemImage: "clock")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    // Items list
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(section.items) { item in
+                            prepItemRow(item, sectionCompleted: sectionCompleted)
+                        }
+                    }
+                    
+                    // Used in recipes footer
+                    if section.usedInRecipeCount > 0 {
+                        Divider()
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: "fork.knife")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            
+                            if section.usedInRecipeCount == 1 {
+                                Text("Used in: \(section.usedInRecipeTitles[0])")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("Used in: \(section.usedInRecipeCount) meals")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(UIColor.secondarySystemBackground))
+                .opacity(sectionCompleted ? 0.6 : 1.0)
+        )
+        .padding(.horizontal)
+        .animation(.easeInOut(duration: 0.2), value: sectionCompleted)
+    }
+    
+    // MARK: - Prep Item Row
+    
+    private func prepItemRow(_ item: PrepItem, sectionCompleted: Bool) -> some View {
+        let itemCompleted = completedPrepItems.contains(item.id) || sectionCompleted
+        
+        return HStack(alignment: .top, spacing: 12) {
+            // Item Checkbox
+            Button(action: {
+                if !sectionCompleted {
+                    toggleItemCompletion(item.id)
+                }
+            }) {
+                Image(systemName: itemCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.body)
+                    .foregroundColor(itemCompleted ? .accentColor : .secondary)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .disabled(sectionCompleted)
+            
+            // Item content
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
+                Text(item.ingredientName)
+                    .font(.subheadline)
+                    .foregroundColor(itemCompleted ? .secondary : .primary)
+                    .strikethrough(itemCompleted)
+                
+                Text(" — ")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                Text(item.quantity)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(itemCompleted ? .secondary : .primary)
+                
+                if !item.action.isEmpty {
+                    Text(", ")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    Text(item.action)
+                        .font(.subheadline)
+                        .italic()
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: itemCompleted)
+    }
+    
+    // MARK: - Checkbox State Management
+    
+    private func toggleSectionCompletion(_ section: ActionBasedPrepSection) {
+        if completedPrepSections.contains(section.id) {
+            // Uncheck section and all items
+            completedPrepSections.remove(section.id)
+            for item in section.items {
+                completedPrepItems.remove(item.id)
+            }
+        } else {
+            // Check section and all items
+            completedPrepSections.insert(section.id)
+            for item in section.items {
+                completedPrepItems.insert(item.id)
+            }
+        }
+        savePrepProgress()
+    }
+    
+    private func toggleItemCompletion(_ itemId: UUID) {
+        if completedPrepItems.contains(itemId) {
+            completedPrepItems.remove(itemId)
+        } else {
+            completedPrepItems.insert(itemId)
+        }
+        savePrepProgress()
+    }
+    
+    private func loadPrepProgress() {
+        // Load sections
+        if let data = UserDefaults.standard.data(forKey: prepSectionsKey),
+           let decoded = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
+            completedPrepSections = decoded
+        }
+        
+        // Load items
+        if let data = UserDefaults.standard.data(forKey: prepItemsKey),
+           let decoded = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
+            completedPrepItems = decoded
+        }
+    }
+    
+    private func savePrepProgress() {
+        // Save sections
+        if let encoded = try? JSONEncoder().encode(completedPrepSections) {
+            UserDefaults.standard.set(encoded, forKey: prepSectionsKey)
+        }
+        
+        // Save items
+        if let encoded = try? JSONEncoder().encode(completedPrepItems) {
+            UserDefaults.standard.set(encoded, forKey: prepItemsKey)
+        }
+    }
+}
+
+// MARK: - LocalizedStringKey Extension
+
+extension LocalizedStringKey {
+    var stringValue: String {
+        let mirror = Mirror(reflecting: self)
+        let key = mirror.children.first(where: { $0.label == "key" })?.value as? String
+        return NSLocalizedString(key ?? "", comment: "")
     }
 }
