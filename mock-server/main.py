@@ -3215,12 +3215,13 @@ Return ONLY the JSON."""
         
         phases_data = json.loads(content)
         
-        # Ensure UUIDs for all steps
+        # CRITICAL FIX: ALWAYS regenerate UUIDs for all steps (AI generates invalid IDs like "1", "2", "3")
         for phase_key in ["cook", "assemble", "cool_down", "store"]:
             if phase_key in phases_data:
                 for step in phases_data[phase_key].get("steps", []):
-                    if not step.get("id"):
-                        step["id"] = str(uuid.uuid4())
+                    # ALWAYS replace ID with valid UUID, regardless of what AI generated
+                    step["id"] = str(uuid.uuid4())
+                    print(f"      Generated UUID for step: {step.get('description', 'Unknown')[:50]}...")
         
         print(f"  ✅ Generated phases:")
         print(f"     Cook: {len(phases_data.get('cook', {}).get('steps', []))} steps ({phases_data.get('cook', {}).get('total_minutes', 0)} min)")
