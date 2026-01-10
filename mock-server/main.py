@@ -3020,6 +3020,7 @@ async def generate_cooking_phases(kit_recipes: List[dict], language: str = "fr")
             "servings": recipe.get("servings", 4),
             "steps": recipe.get("steps", []),
             "equipment": recipe.get("equipment", []),
+            "ingredients": recipe.get("ingredients", []),
             "storage_note": recipe_ref.get("storage_note", "")
         })
     
@@ -3032,11 +3033,29 @@ RECETTES À COORDONNER:
 
 🎯 TA MISSION: Créer un plan de cuisson optimisé en 4 PHASES.
 
+🚨🚨🚨 RÈGLE ABSOLUE - FORMAT DES ÉTAPES 🚨🚨🚨
+
+CHAQUE étape DOIT suivre ce pattern EXACT:
+[Verbe d'action] + [ingrédients spécifiques] + [méthode/localisation]
+
+✅ EXEMPLES ACCEPTABLES:
+- "Rôtir brocoli, carottes et poivrons sur plaque au four"
+- "Saisir filets de saumon à la poêle"
+- "Finir portions de porc au four à 200°C"
+- "Réchauffer glaçage érable dans petite casserole"
+
+❌ EXEMPLES INTERDITS:
+- "Cuire les légumes" (trop vague!)
+- "Préparer la protéine" (pas spécifique!)
+- "Finir le plat" (incomplet!)
+
 RÈGLES CRITIQUES:
 1. EXCLURE toute préparation (couper, hacher, etc.) - déjà fait en mise en place
-2. IDENTIFIER les étapes parallèles intelligemment (four vs stovetop)
-3. MINIMISER les temps morts
-4. FORMAT: checklist cochable, étapes courtes
+2. TOUJOURS nommer les ingrédients précis (brocoli, carottes, saumon, etc.)
+3. TOUJOURS indiquer la méthode (rôtir, saisir, mijoter, réduire)
+4. TOUJOURS indiquer l'équipement/location (four, poêle, casserole, plaque)
+5. IDENTIFIER les étapes parallèles intelligemment (four vs stovetop)
+6. MINIMISER les temps morts
 
 📋 STRUCTURE OBLIGATOIRE:
 
@@ -3047,21 +3066,30 @@ RÈGLES CRITIQUES:
     "steps": [
       {{
         "id": "uuid",
-        "description": "Démarrer le couscous (5 min)",
-        "recipe_title": "Lamb Couscous",
-        "recipe_index": 1,
+        "description": "Préchauffer four à 220°C",
+        "recipe_title": "Multiple",
+        "recipe_index": null,
         "estimated_minutes": 5,
         "is_parallel": false,
         "parallel_note": null
       }},
       {{
         "id": "uuid",
-        "description": "Sauté lamb chops (10 min)",
-        "recipe_title": "Lamb Couscous",
+        "description": "Rôtir brocoli, carottes et poivrons sur plaque au four (15 min)",
+        "recipe_title": "Salmon Bowl",
         "recipe_index": 1,
-        "estimated_minutes": 10,
+        "estimated_minutes": 15,
+        "is_parallel": false,
+        "parallel_note": null
+      }},
+      {{
+        "id": "uuid",
+        "description": "Saisir filets de saumon à la poêle (6 min)",
+        "recipe_title": "Salmon Bowl",
+        "recipe_index": 1,
+        "estimated_minutes": 6,
         "is_parallel": true,
-        "parallel_note": "En parallèle avec la prochaine étape"
+        "parallel_note": "Pendant que les légumes rôtissent"
       }}
     ]
   }},
@@ -3071,9 +3099,18 @@ RÈGLES CRITIQUES:
     "steps": [
       {{
         "id": "uuid",
-        "description": "Combiner agneau + légumes",
-        "recipe_title": "Lamb Couscous",
+        "description": "Glacer filets de saumon avec sauce teriyaki",
+        "recipe_title": "Salmon Bowl",
         "recipe_index": 1,
+        "estimated_minutes": 2,
+        "is_parallel": false,
+        "parallel_note": null
+      }},
+      {{
+        "id": "uuid",
+        "description": "Combiner porc avec brocoli, carottes et poivrons rôtis",
+        "recipe_title": "Pork Stir-Fry",
+        "recipe_index": 2,
         "estimated_minutes": 3,
         "is_parallel": false,
         "parallel_note": null
@@ -3086,10 +3123,10 @@ RÈGLES CRITIQUES:
     "steps": [
       {{
         "id": "uuid",
-        "description": "Laisser refroidir les protéines cuites",
+        "description": "Laisser reposer filets de saumon et portions de porc (5 min)",
         "recipe_title": "Multiple",
         "recipe_index": null,
-        "estimated_minutes": 15,
+        "estimated_minutes": 5,
         "is_parallel": false,
         "parallel_note": null
       }}
@@ -3101,20 +3138,31 @@ RÈGLES CRITIQUES:
     "steps": [
       {{
         "id": "uuid",
-        "description": "Portionner agneau couscous (4 contenants)",
-        "recipe_title": "Lamb Couscous",
+        "description": "Portionner saumon avec légumes dans 4 contenants",
+        "recipe_title": "Salmon Bowl",
         "recipe_index": 1,
         "estimated_minutes": 3,
         "is_parallel": false,
-        "parallel_note": "Utiliser notes de storage de chaque recette"
+        "parallel_note": null
+      }},
+      {{
+        "id": "uuid",
+        "description": "Réfrigérer et étiqueter tous les contenants",
+        "recipe_title": "Multiple",
+        "recipe_index": null,
+        "estimated_minutes": 2,
+        "is_parallel": false,
+        "parallel_note": null
       }}
     ]
   }}
 }}
 
 EXEMPLE DE PARALLÉLISME:
-- "Pendant que X cuit au four (30 min)" → is_parallel=true, parallel_note="Faire Y pendant ce temps"
+- "Pendant que brocoli rôtit au four (30 min)" → is_parallel=true, parallel_note="Saisir poulet pendant ce temps"
 - Étapes actives → is_parallel=false
+
+SI TU NE RESPECTES PAS LE FORMAT [Verbe + Ingrédients spécifiques + Méthode/Location], LA TIMELINE SERA RATÉE.
 
 Retourne UNIQUEMENT le JSON."""
     
@@ -3126,11 +3174,29 @@ RECIPES TO COORDINATE:
 
 🎯 YOUR MISSION: Create an optimized cooking plan in 4 PHASES.
 
+🚨🚨🚨 ABSOLUTE RULE - STEP FORMAT 🚨🚨🚨
+
+EVERY step MUST follow this EXACT pattern:
+[Action verb] + [specific ingredients] + [cooking method / location]
+
+✅ ACCEPTABLE EXAMPLES:
+- "Roast broccoli, carrots and bell peppers on sheet pan in oven"
+- "Sear salmon fillets in pan"
+- "Finish pork portions in oven at 200°C"
+- "Warm maple glaze in small saucepan"
+
+❌ FORBIDDEN EXAMPLES:
+- "Cook vegetables" (too vague!)
+- "Prepare protein" (not specific!)
+- "Finish dish" (incomplete!)
+
 CRITICAL RULES:
 1. EXCLUDE all prep (cutting, chopping, etc.) - already done in mise en place
-2. IDENTIFY parallel steps intelligently (oven vs stovetop)
-3. MINIMIZE idle time
-4. FORMAT: checkable checklist, short steps
+2. ALWAYS name specific ingredients (broccoli, carrots, salmon, etc.)
+3. ALWAYS indicate method (roast, sear, simmer, reduce)
+4. ALWAYS indicate equipment/location (oven, pan, pot, sheet pan)
+5. IDENTIFY parallel steps intelligently (oven vs stovetop)
+6. MINIMIZE idle time
 
 📋 REQUIRED STRUCTURE:
 
@@ -3141,44 +3207,103 @@ CRITICAL RULES:
     "steps": [
       {{
         "id": "uuid",
-        "description": "Start couscous (5 min)",
-        "recipe_title": "Lamb Couscous",
-        "recipe_index": 1,
+        "description": "Preheat oven to 220°C",
+        "recipe_title": "Multiple",
+        "recipe_index": null,
         "estimated_minutes": 5,
         "is_parallel": false,
         "parallel_note": null
       }},
       {{
         "id": "uuid",
-        "description": "Sauté lamb chops (10 min)",
-        "recipe_title": "Lamb Couscous",
+        "description": "Roast broccoli, carrots and bell peppers on sheet pan in oven (15 min)",
+        "recipe_title": "Salmon Bowl",
         "recipe_index": 1,
-        "estimated_minutes": 10,
+        "estimated_minutes": 15,
+        "is_parallel": false,
+        "parallel_note": null
+      }},
+      {{
+        "id": "uuid",
+        "description": "Sear salmon fillets in pan (6 min)",
+        "recipe_title": "Salmon Bowl",
+        "recipe_index": 1,
+        "estimated_minutes": 6,
         "is_parallel": true,
-        "parallel_note": "In parallel with next step"
+        "parallel_note": "While vegetables are roasting"
       }}
     ]
   }},
   "assemble": {{
     "title": "🧩 Assemble",
     "total_minutes": XX,
-    "steps": [...]
+    "steps": [
+      {{
+        "id": "uuid",
+        "description": "Glaze salmon fillets with teriyaki sauce",
+        "recipe_title": "Salmon Bowl",
+        "recipe_index": 1,
+        "estimated_minutes": 2,
+        "is_parallel": false,
+        "parallel_note": null
+      }},
+      {{
+        "id": "uuid",
+        "description": "Combine pork with roasted broccoli, carrots and bell peppers",
+        "recipe_title": "Pork Stir-Fry",
+        "recipe_index": 2,
+        "estimated_minutes": 3,
+        "is_parallel": false,
+        "parallel_note": null
+      }}
+    ]
   }},
   "cool_down": {{
     "title": "❄️ Cool Down",
     "total_minutes": XX,
-    "steps": [...]
+    "steps": [
+      {{
+        "id": "uuid",
+        "description": "Rest salmon fillets and pork portions (5 min)",
+        "recipe_title": "Multiple",
+        "recipe_index": null,
+        "estimated_minutes": 5,
+        "is_parallel": false,
+        "parallel_note": null
+      }}
+    ]
   }},
   "store": {{
     "title": "📦 Store",
     "total_minutes": XX,
-    "steps": [...]
+    "steps": [
+      {{
+        "id": "uuid",
+        "description": "Portion salmon with vegetables into 4 containers",
+        "recipe_title": "Salmon Bowl",
+        "recipe_index": 1,
+        "estimated_minutes": 3,
+        "is_parallel": false,
+        "parallel_note": null
+      }},
+      {{
+        "id": "uuid",
+        "description": "Refrigerate and label all containers",
+        "recipe_title": "Multiple",
+        "recipe_index": null,
+        "estimated_minutes": 2,
+        "is_parallel": false,
+        "parallel_note": null
+      }}
+    ]
   }}
 }}
 
 PARALLELISM EXAMPLE:
-- "While X bakes in oven (30 min)" → is_parallel=true, parallel_note="Do Y during this time"
+- "While broccoli roasts in oven (30 min)" → is_parallel=true, parallel_note="Sear chicken during this time"
 - Active steps → is_parallel=false
+
+IF YOU DON'T FOLLOW THE FORMAT [Verb + Specific Ingredients + Method/Location], THE TIMELINE WILL FAIL.
 
 Return ONLY the JSON."""
     
