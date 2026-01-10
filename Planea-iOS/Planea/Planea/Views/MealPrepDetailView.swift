@@ -193,6 +193,7 @@ struct MealPrepDetailView: View {
     @State private var scrollProxy: ScrollViewProxy? = nil
     @State private var completedPrepSections: Set<UUID> = []
     @State private var completedPrepItems: Set<UUID> = []
+    @State private var cachedActionSections: [ActionBasedPrepSection] = []
     
     private var prepSectionsKey: String {
         "mealprep_prep_sections_\(kit.id.uuidString)"
@@ -220,10 +221,12 @@ struct MealPrepDetailView: View {
                     Divider()
                         .padding(.vertical, 8)
                     
-                    // Section 3: Individual Recipes (Cooking Steps)
-                    if let optimizedSteps = kit.optimizedRecipeSteps, !optimizedSteps.isEmpty {
+                    // Section 3: NEW Cooking Phases (Cook, Assemble, Cool Down, Store)
+                    if let cookingPhases = kit.cookingPhases {
+                        cookingPhasesSection(cookingPhases)
+                    } else if let optimizedSteps = kit.optimizedRecipeSteps, !optimizedSteps.isEmpty {
+                        // Fallback to old format if new phases not available
                         VStack(alignment: .leading, spacing: 16) {
-                            // Header with reset button
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(LocalizedStringKey("meal_prep.detail.recipes_title"))
@@ -245,18 +248,14 @@ struct MealPrepDetailView: View {
                             }
                             .padding(.horizontal)
                             
-                            // Progress bar
                             progressBar(for: optimizedSteps)
                             
-                            // Recipe steps (no more filtering - backend already removed prep steps)
                             ForEach(Array(optimizedSteps.enumerated()), id: \.element.id) { index, step in
                                 optimizedStepCard(step, overallIndex: index + 1, scrollProxy: proxy)
                             }
                         }
-                    }
-                    
-                    // Fallback if no steps at all
-                    if (kit.groupedPrepSteps?.isEmpty ?? true) && (kit.optimizedRecipeSteps?.isEmpty ?? true) {
+                    } else {
+                        // Fallback if no steps at all
                         VStack(spacing: 16) {
                             Image(systemName: "list.clipboard")
                                 .font(.system(size: 48))
@@ -738,7 +737,8 @@ struct MealPrepDetailView: View {
     // MARK: - NEW Action-Based Preparation Section
     
     private var actionBasedPreparationSection: some View {
-        let sections = kit.buildActionBasedPrep()
+        // Use cached sections or build them once
+        let sections = cachedActionSections.isEmpty ? kit.buildActionBasedPrep() : cachedActionSections
         
         guard !sections.isEmpty else {
             return AnyView(EmptyView())
@@ -771,6 +771,9 @@ struct MealPrepDetailView: View {
                 }
             }
             .onAppear {
+                if cachedActionSections.isEmpty {
+                    cachedActionSections = sections
+                }
                 loadPrepProgress()
             }
         )
@@ -952,6 +955,221 @@ struct MealPrepDetailView: View {
         .animation(.easeInOut(duration: 0.2), value: itemCompleted)
     }
     
+    // MARK: - NEW Cooking Phases Section
+    
+    @State private var selectedPhase = 0  // 0=Cook, 1=Assemble, 2=Cool Down, 3=Store
+    @State private var completedPhaseSteps: Set<UUID> = []
+    
+    private var phaseStepsKey: String {
+        "mealprep_phase_steps_\(kit.id.uuidString)"
+    }
+    
+    private func cookingPhasesSection(_ phases: CookingPhasesSet) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(LocalizedStringKey("meal_prep.detail.cooking_phases_title"))
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    
+                    Text(LocalizedStringKey("meal_prep.detail.cooking_phases_subtitle"))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Button(action: resetPhaseSteps) {
+                    Label("meal_prep.detail.reset", systemImage: "arrow.counterclockwise")
+                        .font(.caption)
+                        .foregroundColor(.accentColor)
+                }
+            }
+            .padding(.horizontal)
+            
+            // Phase Selector
+            Picker("", selection: $selectedPhase) {
+                Text(phases.cook.title).tag(0)
+                Text(phases.assemble.title).tag(1)
+                Text(phases.coolDown.title).tag(2)
+                Text(phases.store.title).tag(3)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            
+            // Selected Phase Content
+            let currentPhase = [phases.cook, phases.assemble, phases.coolDown, phases.store][selectedPhase]
+            
+            // Phase Progress
+            phaseProgressBar(phase: currentPhase)
+            
+            // Phase Steps
+            ForEach(Array(currentPhase.steps.enumerated()), id: \.element.id) { index, step in
+                phaseStepCard(step, index: index + 1)
+            }
+        }
+        .onAppear {
+            loadPhaseProgress()
+        }
+    }
+    
+    private func phaseProgressBar(phase: CookingPhase) -> some View {
+        let completedCount = phase.steps.filter { completedPhaseSteps.contains($0.id) }.count
+        let totalCount = phase.steps.count
+        let progress = totalCount > 0 ? Double(completedCount) / Double(totalCount) : 0
+        
+        // Calculate remaining time
+        let remainingMinutes = phase.steps
+            .filter { !completedPhaseSteps.contains($0.id) }
+            .compactMap { $0.estimatedMinutes }
+            .reduce(0, +)
+        
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("\(completedCount)/\(totalCount)")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                if remainingMinutes > 0 {
+                    Text("~\(remainingMinutes) min " + LocalizedStringKey("meal_prep.detail.remaining").stringValue)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                } else if phase.totalMinutes > 0 {
+                    Text("~\(phase.totalMinutes) min")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                        .frame(height: 8)
+                        .cornerRadius(4)
+                    
+                    Rectangle()
+                        .fill(Color.accentColor)
+                        .frame(width: geometry.size.width * progress, height: 8)
+                        .cornerRadius(4)
+                        .animation(.easeInOut, value: progress)
+                }
+            }
+            .frame(height: 8)
+        }
+        .padding(.horizontal)
+    }
+    
+    private func phaseStepCard(_ step: PhaseStep, index: Int) -> some View {
+        let isCompleted = completedPhaseSteps.contains(step.id)
+        
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                // Checkbox
+                Button(action: {
+                    togglePhaseStepCompletion(step.id)
+                }) {
+                    Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundColor(isCompleted ? .accentColor : .secondary)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    // Step number and description
+                    HStack(alignment: .top, spacing: 8) {
+                        Text("\(index).")
+                            .font(.headline)
+                            .foregroundColor(isCompleted ? .secondary : .primary)
+                        
+                        Text(step.description)
+                            .font(.body)
+                            .foregroundColor(isCompleted ? .secondary : .primary)
+                            .strikethrough(isCompleted)
+                    }
+                    
+                    // Recipe badge and additional info
+                    HStack(spacing: 12) {
+                        // Recipe badge
+                        HStack(spacing: 4) {
+                            Image(systemName: "fork.knife")
+                                .font(.caption2)
+                            Text(step.recipeTitle)
+                                .font(.caption)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule()
+                                .fill(recipeColor(for: step.recipeTitle))
+                        )
+                        
+                        // Time estimate
+                        if let minutes = step.estimatedMinutes {
+                            Label("\(minutes)min", systemImage: "clock")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    // Parallel note
+                    if step.isParallel, let note = step.parallelNote {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.triangle.branch")
+                                .font(.caption2)
+                            Text(note)
+                                .font(.caption)
+                        }
+                        .foregroundColor(.orange)
+                        .padding(8)
+                        .background(Color.orange.opacity(0.1))
+                        .cornerRadius(8)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(UIColor.secondarySystemBackground))
+                .opacity(isCompleted ? 0.6 : 1.0)
+        )
+        .padding(.horizontal)
+        .animation(.easeInOut(duration: 0.2), value: isCompleted)
+    }
+    
+    private func togglePhaseStepCompletion(_ stepId: UUID) {
+        if completedPhaseSteps.contains(stepId) {
+            completedPhaseSteps.remove(stepId)
+        } else {
+            completedPhaseSteps.insert(stepId)
+        }
+        savePhaseProgress()
+    }
+    
+    private func resetPhaseSteps() {
+        completedPhaseSteps.removeAll()
+        savePhaseProgress()
+    }
+    
+    private func loadPhaseProgress() {
+        if let data = UserDefaults.standard.data(forKey: phaseStepsKey),
+           let decoded = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
+            completedPhaseSteps = decoded
+        }
+    }
+    
+    private func savePhaseProgress() {
+        if let encoded = try? JSONEncoder().encode(completedPhaseSteps) {
+            UserDefaults.standard.set(encoded, forKey: phaseStepsKey)
+        }
+    }
+    
     // MARK: - Checkbox State Management
     
     private func toggleSectionCompletion(_ section: ActionBasedPrepSection) {
@@ -1015,4 +1233,5 @@ extension LocalizedStringKey {
         let key = mirror.children.first(where: { $0.label == "key" })?.value as? String
         return NSLocalizedString(key ?? "", comment: "")
     }
+}
 }

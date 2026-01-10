@@ -640,3 +640,7 @@
 "mealprep.action.peel" = "Éplucher";
 "mealprep.action.grate" = "Râper";
 "mealprep.action.other" = "Autre";
+
+// Meal Prep - Cooking Phases (NEW)
+"meal_prep.detail.cooking_phases_title" = "Phases de cuisson";
+"meal_prep.detail.cooking_phases_subtitle" = "Cuisson, assemblage, refroidissement et stockage";
