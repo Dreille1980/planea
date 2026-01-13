@@ -5,6 +5,24 @@
 "tab.favorites" = "Favorites";
 "tab.settings" = "Settings";
 
+// Home View
+"home.welcome" = "Hello!";
+"home.subtitle" = "Based on your time and preferences";
+"home.plan_week" = "Plan my week";
+"home.find_recipe_now" = "Find a recipe now";
+"home.meal_of_day" = "For this %@";
+"home.morning" = "morning";
+"home.noon" = "afternoon";
+"home.evening" = "evening";
+"home.no_meal" = "Generate a meal for today";
+"home.view_recipe" = "View recipe";
+"home.this_week" = "This week";
+"home.no_upcoming_meals" = "No upcoming meals this week";
+"home.quick_shortcuts" = "Quick shortcuts";
+"home.shortcut.planning" = "Planning";
+"home.shortcut.groceries" = "Groceries";
+"home.shortcut.quick_meal" = "Quick meal";
+
 "onboarding.title" = "Setup Family";
 "onboarding.family" = "Family";
 "onboarding.familyName" = "Family name";
