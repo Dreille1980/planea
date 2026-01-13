@@ -51,6 +51,22 @@ final class PersistenceController: ObservableObject {
     func saveFamily(_ family: Family, members: [Member]) {
         let context = container.viewContext
         
+        // Delete all existing family and member entities first
+        let familyRequest: NSFetchRequest<NSFetchRequestResult> = FamilyEntity.fetchRequest()
+        let deleteFamilyRequest = NSBatchDeleteRequest(fetchRequest: familyRequest)
+        
+        let memberRequest: NSFetchRequest<NSFetchRequestResult> = MemberEntity.fetchRequest()
+        let deleteMemberRequest = NSBatchDeleteRequest(fetchRequest: memberRequest)
+        
+        do {
+            try context.execute(deleteFamilyRequest)
+            try context.execute(deleteMemberRequest)
+            // Reset context to reflect deletions
+            context.reset()
+        } catch {
+            print("Error deleting existing family/member entities: \(error)")
+        }
+        
         // Save family
         let familyEntity = FamilyEntity(context: context)
         familyEntity.id = family.id
