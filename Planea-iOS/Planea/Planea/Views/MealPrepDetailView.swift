@@ -1342,8 +1342,7 @@ struct MealPrepDetailView: View {
             UserDefaults.standard.set(encoded, forKey: prepItemsKey)
         }
     }
-}
-
+    
     // MARK: - Cuisson Tab - NEW Format Functions
     
     private func globalCookingProgressBar(recipeGroups: [RecipeCookingGroup]) -> some View {
@@ -1750,7 +1749,7 @@ struct MealPrepDetailView: View {
             UserDefaults.standard.set(encoded, forKey: assemblyStepsKey)
         }
     }
-}
+
 
 // MARK: - LocalizedStringKey Extension
 
