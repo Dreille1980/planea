@@ -5,24 +5,6 @@
 "tab.favorites" = "Favoris";
 "tab.settings" = "Réglages";
 
-// Home View
-"home.welcome" = "Bonjour!";
-"home.subtitle" = "Basé sur votre temps et vos préférences";
-"home.plan_week" = "Planifier ma semaine";
-"home.find_recipe_now" = "Trouver une recette maintenant";
-"home.meal_of_day" = "Pour ce %@";
-"home.morning" = "matin";
-"home.noon" = "midi";
-"home.evening" = "soir";
-"home.no_meal" = "Générer un repas pour aujourd'hui";
-"home.view_recipe" = "Voir la recette";
-"home.this_week" = "Cette semaine";
-"home.no_upcoming_meals" = "Aucun repas à venir cette semaine";
-"home.quick_shortcuts" = "Raccourcis rapides";
-"home.shortcut.planning" = "Planification";
-"home.shortcut.groceries" = "Liste d'épicerie";
-"home.shortcut.quick_meal" = "Repas rapide";
-
 "onboarding.title" = "Configurer la famille";
 "onboarding.family" = "Famille";
 "onboarding.familyName" = "Nom de la famille";
@@ -549,7 +531,7 @@
 "mealprep.skillLevel" = "Niveau";
 "mealprep.skill.beginner" = "Débutant";
 "mealprep.skill.intermediate" = "Intermédiaire";
-"mealprep.skill.quick" = "Rapide et efficace";
+"mealprep.skill.expert" = "Expert";
 
 "mealprep.options.rareIngredients" = "Limiter les ingrédients rares";
 "mealprep.options.longShelfLife" = "Recettes qui se conservent 3-4 jours";
@@ -667,3 +649,32 @@
 // Meal Prep - Coming Soon
 "mealprep.comingsoon.title" = "Bientôt disponible";
 "mealprep.comingsoon.subtitle" = "Le Meal Prep vous permettra de planifier et préparer plusieurs repas à l'avance, avec des instructions de cuisson optimisées pour gagner du temps en cuisine.";
+
+// Meal Prep - Concept Input (Step 3)
+"meal_prep.concept_input.label" = "Décrivez votre thème";
+"meal_prep.concept_input.placeholder" = "Ex: Cuisine méditerranéenne, repas réconfortants, plats asiatiques végétariens...";
+"meal_prep.theme_suggestions.title" = "Suggestions de thèmes :";
+
+// Meal Prep - Theme Examples
+"meal_prep.theme.asian_veggies" = "Cuisine asiatique avec beaucoup de légumes";
+"meal_prep.theme.healthy_protein" = "Repas santé riches en protéines";
+"meal_prep.theme.quick_weekday" = "Repas de semaine rapides et simples";
+"meal_prep.theme.mediterranean" = "Cuisine méditerranéenne";
+"meal_prep.theme.comfort_food" = "Repas réconfortants (comfort food)";
+"meal_prep.theme.vegetarian" = "Cuisine végétarienne équilibrée";
+"meal_prep.theme.family_classics" = "Repas familiaux classiques";
+"meal_prep.theme.mexican" = "Cuisine mexicaine savoureuse";
+"meal_prep.theme.chicken_based" = "Repas à base de poulet";
+"meal_prep.theme.italian_home" = "Cuisine italienne maison";
+"meal_prep.theme.light_nutritious" = "Repas légers et nutritifs";
+"meal_prep.theme.legumes" = "Cuisine avec des légumineuses";
+"meal_prep.theme.middle_eastern" = "Repas inspirés de la cuisine du Moyen-Orient";
+
+// Meal Prep Detail - Nouveaux onglets de préparation
+"meal_prep.detail.mise_en_place_tab" = "Mise en place";
+"meal_prep.detail.cuisson_tab" = "Cuisson";
+"meal_prep.detail.assemblage_tab" = "Assemblage";
+"meal_prep.detail.global_cooking_progress" = "Progression globale";
+"meal_prep.detail.recipe_progress" = "Progression de cette recette";
+"meal_prep.detail.cooking_instructions" = "Instructions de cuisson";
+"meal_prep.detail.assembly_instructions" = "Instructions d'assemblage et conservation";

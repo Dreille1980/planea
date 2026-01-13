@@ -25,10 +25,27 @@ struct MealPrepWizardView: View {
     @State private var preferLongShelfLife = false
     
     // Step 2.5: Concept Selection (now step 3)
-    @State private var selectedConceptId: UUID?
     @State private var customConceptText: String = ""
+    @State private var randomSuggestions: [String] = []
     
     // Step 3 (now 4): Generated kit (single kit, no selection needed)
+    
+    // Static theme suggestions pool
+    private let allThemeSuggestions = [
+        "meal_prep.theme.asian_veggies",
+        "meal_prep.theme.healthy_protein",
+        "meal_prep.theme.quick_weekday",
+        "meal_prep.theme.mediterranean",
+        "meal_prep.theme.comfort_food",
+        "meal_prep.theme.vegetarian",
+        "meal_prep.theme.family_classics",
+        "meal_prep.theme.mexican",
+        "meal_prep.theme.chicken_based",
+        "meal_prep.theme.italian_home",
+        "meal_prep.theme.light_nutritious",
+        "meal_prep.theme.legumes",
+        "meal_prep.theme.middle_eastern"
+    ]
     
     var body: some View {
         NavigationView {
@@ -65,6 +82,12 @@ struct MealPrepWizardView: View {
                     Button(LocalizedStringKey("cancel")) {
                         dismiss()
                     }
+                }
+            }
+            .onAppear {
+                // Initialize servings per meal to family size
+                if servingsPerMeal == 4 && !familyViewModel.members.isEmpty {
+                    servingsPerMeal = familyViewModel.members.count
                 }
             }
             .overlay(
@@ -274,7 +297,7 @@ struct MealPrepWizardView: View {
                 VStack(spacing: 8) {
                     skillLevelButton(.beginner)
                     skillLevelButton(.intermediate)
-                    skillLevelButton(.quickEfficient)
+                    skillLevelButton(.expert)
                 }
             }
             
@@ -348,7 +371,7 @@ struct MealPrepWizardView: View {
         }
     }
     
-    // MARK: - Step 3: Concept Selection
+    // MARK: - Step 3: Concept Selection (Free Text Input)
     
     private var step3ConceptSelection: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -363,17 +386,7 @@ struct MealPrepWizardView: View {
                     .foregroundColor(.secondary)
             }
             
-            if viewModel.isLoadingConcepts {
-                // Loading state for concepts
-                VStack(spacing: 16) {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                    Text(LocalizedStringKey("meal_prep_please_wait"))
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 40)
-            } else if viewModel.isGenerating {
+            if viewModel.isGenerating {
                 // Loading state for meal generation
                 VStack(spacing: 16) {
                     ProgressView()
@@ -383,115 +396,51 @@ struct MealPrepWizardView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
-            } else if !viewModel.concepts.isEmpty {
-                // Concept cards
-                ForEach(viewModel.concepts) { concept in
-                    conceptCard(concept)
-                }
-                
-                // Custom concept input
+            } else {
+                // Free text input
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(LocalizedStringKey("meal_prep.concept_selection.custom"))
+                    Text(LocalizedStringKey("meal_prep.concept_input.label"))
                         .font(.headline)
                     
                     TextField(
-                        NSLocalizedString("meal_prep.concept_selection.custom_placeholder", comment: ""),
-                        text: $customConceptText
+                        NSLocalizedString("meal_prep.concept_input.placeholder", comment: ""),
+                        text: $customConceptText,
+                        axis: .vertical
                     )
                     .textFieldStyle(.roundedBorder)
                     .padding()
                     .background(Color(UIColor.secondarySystemBackground))
                     .cornerRadius(12)
-                    .onChange(of: customConceptText) { oldValue, newValue in
-                        if !newValue.isEmpty {
-                            selectedConceptId = nil
+                    .lineLimit(3...6)
+                }
+                
+                // Random suggestions
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(LocalizedStringKey("meal_prep.theme_suggestions.title"))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(randomSuggestions, id: \.self) { suggestion in
+                            HStack(spacing: 8) {
+                                Image(systemName: "lightbulb.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.yellow)
+                                Text(LocalizedStringKey(suggestion))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.vertical, 4)
                         }
                     }
                 }
-            } else if let error = viewModel.conceptsError {
-                // Error state
-                VStack(spacing: 16) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.largeTitle)
-                        .foregroundColor(.orange)
-                    Text(error)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 40)
             }
         }
         .onAppear {
-            if viewModel.concepts.isEmpty && !viewModel.isLoadingConcepts {
-                Task {
-                    await loadConcepts()
-                }
+            // Generate random suggestions when appearing
+            if randomSuggestions.isEmpty {
+                randomSuggestions = allThemeSuggestions.shuffled().prefix(3).map { $0 }
             }
-        }
-    }
-    
-    private func conceptCard(_ concept: MealPrepConcept) -> some View {
-        Button(action: {
-            selectedConceptId = concept.id
-            customConceptText = ""
-            viewModel.selectedConcept = concept
-        }) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(concept.name)
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        Text(concept.description)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    
-                    Spacer()
-                    
-                    Image(systemName: selectedConceptId == concept.id ? "checkmark.circle.fill" : "circle")
-                        .font(.title3)
-                        .foregroundColor(selectedConceptId == concept.id ? .accentColor : .gray)
-                }
-                
-                if let cuisine = concept.cuisine {
-                    HStack {
-                        Image(systemName: "fork.knife")
-                            .font(.caption)
-                        Text(cuisine)
-                            .font(.caption)
-                    }
-                    .foregroundColor(.secondary)
-                }
-                
-                if !concept.tags.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(concept.tags, id: \.self) { tag in
-                                Text(tag)
-                                    .font(.caption2)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color.accentColor.opacity(0.1))
-                                    .foregroundColor(.accentColor)
-                                    .cornerRadius(8)
-                            }
-                        }
-                    }
-                }
-            }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(selectedConceptId == concept.id ? Color.accentColor.opacity(0.1) : Color(UIColor.secondarySystemBackground))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(selectedConceptId == concept.id ? Color.accentColor : Color.clear, lineWidth: 2)
-            )
         }
     }
     
@@ -691,8 +640,8 @@ struct MealPrepWizardView: View {
         case 2:
             return true
         case 3:
-            // Can proceed if concept selected and not currently loading
-            return (selectedConceptId != nil || !customConceptText.isEmpty) && !viewModel.isLoadingConcepts && !viewModel.isGenerating
+            // Can proceed if text entered and not currently loading
+            return !customConceptText.isEmpty && !viewModel.isGenerating
         case 4:
             return !viewModel.generatedKits.isEmpty && !viewModel.isGenerating
         default:
@@ -754,13 +703,6 @@ struct MealPrepWizardView: View {
         constraintsDict["preferredProteins"] = preferredProteinStrings
         
         return constraintsDict
-    }
-    
-    private func loadConcepts() async {
-        await viewModel.loadConcepts(
-            constraints: buildConstraints(),
-            language: LocalizationHelper.currentLanguageCode()
-        )
     }
     
     private func generateKits() async {

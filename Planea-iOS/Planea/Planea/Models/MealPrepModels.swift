@@ -58,24 +58,70 @@ struct PhaseStep: Identifiable, Codable {
     }
 }
 
+// MARK: - Recipe Cooking Group (NEW - for grouped cooking steps by recipe)
+
+struct RecipeCookingGroup: Identifiable, Codable {
+    let id: UUID
+    let recipeId: String
+    let recipeTitle: String
+    let estimatedMinutes: Int
+    let steps: [PhaseStep]
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case recipeId = "recipe_id"
+        case recipeTitle = "recipe_title"
+        case estimatedMinutes = "estimated_minutes"
+        case steps
+    }
+    
+    init(id: UUID = UUID(), recipeId: String, recipeTitle: String, estimatedMinutes: Int, steps: [PhaseStep]) {
+        self.id = id
+        self.recipeId = recipeId
+        self.recipeTitle = recipeTitle
+        self.estimatedMinutes = estimatedMinutes
+        self.steps = steps
+    }
+    
+    // Custom init for decoding when id might be missing
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        // ID might not be present in backend response
+        if let decodedId = try? container.decode(UUID.self, forKey: .id) {
+            id = decodedId
+        } else {
+            id = UUID()
+        }
+        
+        recipeId = try container.decode(String.self, forKey: .recipeId)
+        recipeTitle = try container.decode(String.self, forKey: .recipeTitle)
+        estimatedMinutes = try container.decode(Int.self, forKey: .estimatedMinutes)
+        steps = try container.decode([PhaseStep].self, forKey: .steps)
+    }
+}
+
 struct CookingPhase: Identifiable, Codable {
     let id: UUID
     let title: String
     let totalMinutes: Int
-    let steps: [PhaseStep]
+    let steps: [PhaseStep]  // DEPRECATED - kept for backward compatibility
+    let recipes: [RecipeCookingGroup]?  // NEW - grouping by recipe
     
     enum CodingKeys: String, CodingKey {
         case id
         case title
         case totalMinutes = "total_minutes"
         case steps
+        case recipes
     }
     
-    init(id: UUID = UUID(), title: String, totalMinutes: Int, steps: [PhaseStep]) {
+    init(id: UUID = UUID(), title: String, totalMinutes: Int, steps: [PhaseStep], recipes: [RecipeCookingGroup]? = nil) {
         self.id = id
         self.title = title
         self.totalMinutes = totalMinutes
         self.steps = steps
+        self.recipes = recipes
     }
     
     // Custom init for decoding when id might be missing
@@ -91,7 +137,16 @@ struct CookingPhase: Identifiable, Codable {
         
         title = try container.decode(String.self, forKey: .title)
         totalMinutes = try container.decode(Int.self, forKey: .totalMinutes)
-        steps = try container.decode([PhaseStep].self, forKey: .steps)
+        
+        // New format with recipes grouping
+        recipes = try container.decodeIfPresent([RecipeCookingGroup].self, forKey: .recipes)
+        
+        // Legacy format with flat steps list - fallback if recipes not present
+        if let decodedSteps = try? container.decode([PhaseStep].self, forKey: .steps) {
+            steps = decodedSteps
+        } else {
+            steps = []
+        }
     }
 }
 
@@ -389,7 +444,7 @@ enum PrepTimePreference: String, Codable, CaseIterable, Identifiable {
 enum SkillLevel: String, Codable, CaseIterable, Identifiable {
     case beginner
     case intermediate
-    case quickEfficient = "quick_efficient"
+    case expert
     
     var id: String { rawValue }
     
@@ -397,7 +452,7 @@ enum SkillLevel: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .beginner: return "mealprep.skill.beginner".localized
         case .intermediate: return "mealprep.skill.intermediate".localized
-        case .quickEfficient: return "mealprep.skill.quick".localized
+        case .expert: return "mealprep.skill.expert".localized
         }
     }
 }

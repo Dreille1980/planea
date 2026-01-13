@@ -5,24 +5,6 @@
 "tab.favorites" = "Favorites";
 "tab.settings" = "Settings";
 
-// Home View
-"home.welcome" = "Hello!";
-"home.subtitle" = "Based on your time and preferences";
-"home.plan_week" = "Plan my week";
-"home.find_recipe_now" = "Find a recipe now";
-"home.meal_of_day" = "For this %@";
-"home.morning" = "morning";
-"home.noon" = "afternoon";
-"home.evening" = "evening";
-"home.no_meal" = "Generate a meal for today";
-"home.view_recipe" = "View recipe";
-"home.this_week" = "This week";
-"home.no_upcoming_meals" = "No upcoming meals this week";
-"home.quick_shortcuts" = "Quick shortcuts";
-"home.shortcut.planning" = "Planning";
-"home.shortcut.groceries" = "Groceries";
-"home.shortcut.quick_meal" = "Quick meal";
-
 "onboarding.title" = "Setup Family";
 "onboarding.family" = "Family";
 "onboarding.familyName" = "Family name";
@@ -550,7 +532,7 @@
 "mealprep.skillLevel" = "Level";
 "mealprep.skill.beginner" = "Beginner";
 "mealprep.skill.intermediate" = "Intermediate";
-"mealprep.skill.quick" = "Quick & efficient";
+"mealprep.skill.expert" = "Expert";
 
 "mealprep.options.rareIngredients" = "Limit rare ingredients";
 "mealprep.options.longShelfLife" = "Prefer recipes that keep 3-4 days";
@@ -666,3 +648,32 @@
 // Meal Prep - Coming Soon
 "mealprep.comingsoon.title" = "Coming Soon";
 "mealprep.comingsoon.subtitle" = "Meal Prep will allow you to plan and prepare multiple meals in advance, with optimized cooking instructions to save time in the kitchen.";
+
+// Meal Prep - Concept Input (Step 3)
+"meal_prep.concept_input.label" = "Describe Your Theme";
+"meal_prep.concept_input.placeholder" = "Ex: Mediterranean cuisine, comfort meals, vegetarian Asian dishes...";
+"meal_prep.theme_suggestions.title" = "Theme suggestions:";
+
+// Meal Prep - Theme Examples
+"meal_prep.theme.asian_veggies" = "Asian cuisine with lots of vegetables";
+"meal_prep.theme.healthy_protein" = "Healthy meals rich in protein";
+"meal_prep.theme.quick_weekday" = "Quick and simple weekday meals";
+"meal_prep.theme.mediterranean" = "Mediterranean cuisine";
+"meal_prep.theme.comfort_food" = "Comfort food meals";
+"meal_prep.theme.vegetarian" = "Balanced vegetarian cuisine";
+"meal_prep.theme.family_classics" = "Classic family meals";
+"meal_prep.theme.mexican" = "Tasty Mexican cuisine";
+"meal_prep.theme.chicken_based" = "Chicken-based meals";
+"meal_prep.theme.italian_home" = "Italian home cooking";
+"meal_prep.theme.light_nutritious" = "Light and nutritious meals";
+"meal_prep.theme.legumes" = "Cuisine with legumes";
+"meal_prep.theme.middle_eastern" = "Middle Eastern inspired meals";
+
+// Meal Prep Detail - New preparation tabs
+"meal_prep.detail.mise_en_place_tab" = "Mise en place";
+"meal_prep.detail.cuisson_tab" = "Cooking";
+"meal_prep.detail.assemblage_tab" = "Assembly";
+"meal_prep.detail.global_cooking_progress" = "Overall progress";
+"meal_prep.detail.recipe_progress" = "Recipe progress";
+"meal_prep.detail.cooking_instructions" = "Cooking instructions";
+"meal_prep.detail.assembly_instructions" = "Assembly and storage instructions";

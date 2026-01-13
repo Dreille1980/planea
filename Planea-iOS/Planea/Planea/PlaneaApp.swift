@@ -48,48 +48,34 @@ struct RootView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     @State private var showOnboarding = false
     @State private var showFreeTrialExpiration = false
-    @State private var showHome = true
-    @State private var selectedTab = 0
     
     private var hasActiveSubscription: Bool {
         storeManager.hasActiveSubscription
     }
     
     var body: some View {
-        Group {
-            if showHome {
-                HomeView(showHome: $showHome, selectedTab: $selectedTab)
-                    .environmentObject(planVM)
-                    .environmentObject(familyVM)
-            } else {
-                VStack(spacing: 0) {
-                    // Free trial banner at the top
-                    if !Config.isFreeVersion {
-                        FreeTrialBanner()
-                    }
-                    
-                    TabView(selection: $selectedTab) {
-                        // Recipes tab - combines Plan and Ad hoc generation
-                        RecipesView()
-                            .tabItem { Label("tab.recipes".localized, systemImage: "fork.knife") }
-                            .tag(0)
-                        
-                        // Shopping tab - freemium access with export restrictions
-                        ShoppingListView()
-                            .tabItem { Label("tab.shopping".localized, systemImage: "cart") }
-                            .tag(1)
-                        
-                        // Favorites tab - freemium access with save restrictions
-                        SavedRecipesView()
-                            .tabItem { Label("tab.favorites".localized, systemImage: "heart.fill") }
-                            .tag(2)
-                        
-                        // Settings tab - always accessible
-                        SettingsView()
-                            .tabItem { Label("tab.settings".localized, systemImage: "gearshape") }
-                            .tag(3)
-                    }
-                }
+        VStack(spacing: 0) {
+            // Free trial banner at the top
+            if !Config.isFreeVersion {
+                FreeTrialBanner()
+            }
+            
+            TabView {
+                // Recipes tab - combines Plan and Ad hoc generation
+                RecipesView()
+                    .tabItem { Label("tab.recipes".localized, systemImage: "fork.knife") }
+                
+                // Shopping tab - freemium access with export restrictions
+                ShoppingListView()
+                    .tabItem { Label("tab.shopping".localized, systemImage: "cart") }
+                
+                // Favorites tab - freemium access with save restrictions
+                SavedRecipesView()
+                    .tabItem { Label("tab.favorites".localized, systemImage: "heart.fill") }
+                
+                // Settings tab - always accessible
+                SettingsView()
+                    .tabItem { Label("tab.settings".localized, systemImage: "gearshape") }
             }
         }
         .sheet(isPresented: $showOnboarding) {

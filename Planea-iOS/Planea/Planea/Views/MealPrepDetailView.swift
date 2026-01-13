@@ -194,6 +194,9 @@ struct MealPrepDetailView: View {
     @State private var completedPrepSections: Set<UUID> = []
     @State private var completedPrepItems: Set<UUID> = []
     @State private var cachedActionSections: [ActionBasedPrepSection] = []
+    @State private var prepSubTab = 0  // 0 = Mise en place, 1 = Cuisson, 2 = Assemblage
+    @State private var completedCookingSteps: Set<UUID> = []
+    @State private var completedAssemblySteps: Set<UUID> = []
     
     private var prepSectionsKey: String {
         "mealprep_prep_sections_\(kit.id.uuidString)"
@@ -207,75 +210,191 @@ struct MealPrepDetailView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    // Section 1: Grouped Ingredients
+                    // Section 1: Grouped Ingredients (always visible)
                     ingredientsSection
                         .id("ingredients")
                     
                     Divider()
                         .padding(.vertical, 8)
                     
-                    // Section 2: NEW Action-Based Preparation
-                    actionBasedPreparationSection
-                        .id("preparation")
-                    
-                    Divider()
-                        .padding(.vertical, 8)
-                    
-                    // Section 3: NEW Cooking Phases (Cook, Assemble, Cool Down, Store)
-                    if let cookingPhases = kit.cookingPhases {
-                        cookingPhasesSection(cookingPhases)
-                    } else if let optimizedSteps = kit.optimizedRecipeSteps, !optimizedSteps.isEmpty {
-                        // Fallback to old format if new phases not available
-                        VStack(alignment: .leading, spacing: 16) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(LocalizedStringKey("meal_prep.detail.recipes_title"))
-                                        .font(.title2)
-                                        .fontWeight(.bold)
-                                    
-                                    Text(LocalizedStringKey("meal_prep.detail.cooking_steps_count"))
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                Button(action: resetCompletedSteps) {
-                                    Label("meal_prep.detail.reset", systemImage: "arrow.counterclockwise")
-                                        .font(.caption)
-                                        .foregroundColor(.accentColor)
-                                }
-                            }
-                            .padding(.horizontal)
-                            
-                            progressBar(for: optimizedSteps)
-                            
-                            ForEach(Array(optimizedSteps.enumerated()), id: \.element.id) { index, step in
-                                optimizedStepCard(step, overallIndex: index + 1, scrollProxy: proxy)
+                    // Section 2: NEW 3-Tab Picker
+                    VStack(spacing: 0) {
+                        // Sub-tab picker
+                        Picker("", selection: $prepSubTab) {
+                            Text(LocalizedStringKey("meal_prep.detail.mise_en_place_tab"))
+                                .tag(0)
+                            Text(LocalizedStringKey("meal_prep.detail.cuisson_tab"))
+                                .tag(1)
+                            Text(LocalizedStringKey("meal_prep.detail.assemblage_tab"))
+                                .tag(2)
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.horizontal)
+                        
+                        // Content based on selected sub-tab
+                        Group {
+                            if prepSubTab == 0 {
+                                // Mise en place tab
+                                miseEnPlaceTab
+                            } else if prepSubTab == 1 {
+                                // Cuisson tab
+                                cuissonTab
+                            } else {
+                                // Assemblage tab
+                                assemblageTab
                             }
                         }
-                    } else {
-                        // Fallback if no steps at all
-                        VStack(spacing: 16) {
-                            Image(systemName: "list.clipboard")
-                                .font(.system(size: 48))
-                                .foregroundColor(.gray)
-                            
-                            Text(LocalizedStringKey("meal_prep.detail.no_grouped_steps"))
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 40)
                     }
                 }
                 .padding(.vertical)
             }
             .onAppear {
                 scrollProxy = proxy
+                loadPrepProgress()
+                loadCookingProgress()
+                loadAssemblyProgress()
             }
         }
+    }
+    
+    // MARK: - Mise en place Tab
+    
+    private var miseEnPlaceTab: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Reuse existing action-based preparation section
+            let sections = cachedActionSections.isEmpty ? kit.buildActionBasedPrep() : cachedActionSections
+            
+            if !sections.isEmpty {
+                // Progress Bar
+                preparationProgressBar(sections: sections)
+                
+                // Action Sections
+                ForEach(sections) { section in
+                    actionSectionCard(section)
+                }
+            } else {
+                // Empty state
+                VStack(spacing: 16) {
+                    Image(systemName: "list.clipboard")
+                        .font(.system(size: 48))
+                        .foregroundColor(.gray)
+                    
+                    Text(LocalizedStringKey("meal_prep.detail.no_grouped_steps"))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            }
+        }
+        .padding(.top)
+        .onAppear {
+            if cachedActionSections.isEmpty {
+                cachedActionSections = kit.buildActionBasedPrep()
+            }
+        }
+    }
+    
+    // MARK: - Cuisson Tab
+    
+    private var cuissonTab: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if let cookingPhases = kit.cookingPhases,
+               let recipeGroups = cookingPhases.cook.recipes, !recipeGroups.isEmpty {
+                // NEW FORMAT: Grouped by recipe
+                
+                // Global progress bar
+                globalCookingProgressBar(recipeGroups: recipeGroups)
+                
+                // For each recipe group
+                ForEach(recipeGroups) { recipeGroup in
+                    recipeGroupCookingCard(recipeGroup)
+                }
+            } else if let cookingPhases = kit.cookingPhases, !cookingPhases.cook.steps.isEmpty {
+                // FALLBACK: Legacy flat format (group manually by recipeTitle)
+                let groupedByRecipe = Dictionary(grouping: cookingPhases.cook.steps) { $0.recipeTitle }
+                let sortedRecipes = groupedByRecipe.keys.sorted()
+                
+                // Global progress bar
+                let allSteps = cookingPhases.cook.steps
+                globalCookingProgressBarLegacy(steps: allSteps)
+                
+                // For each recipe
+                ForEach(sortedRecipes, id: \.self) { recipeTitle in
+                    if let steps = groupedByRecipe[recipeTitle] {
+                        recipeGroupCookingCardLegacy(recipeTitle: recipeTitle, steps: steps)
+                    }
+                }
+            } else {
+                // Empty state
+                VStack(spacing: 16) {
+                    Image(systemName: "flame")
+                        .font(.system(size: 48))
+                        .foregroundColor(.gray)
+                    
+                    Text(LocalizedStringKey("meal_prep.detail.cooking_instructions"))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            }
+        }
+        .padding(.top)
+    }
+    
+    // MARK: - Assemblage Tab
+    
+    private var assemblageTab: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if let cookingPhases = kit.cookingPhases {
+                // Combine assemble + cool_down + store phases
+                let combinedSteps = cookingPhases.assemble.steps +
+                                   cookingPhases.coolDown.steps +
+                                   cookingPhases.store.steps
+                
+                if !combinedSteps.isEmpty {
+                    // Progress bar
+                    assemblyProgressBar(steps: combinedSteps)
+                    
+                    // Steps
+                    ForEach(Array(combinedSteps.enumerated()), id: \.element.id) { index, step in
+                        assemblyStepCard(step, index: index + 1)
+                    }
+                } else {
+                    // Empty state
+                    VStack(spacing: 16) {
+                        Image(systemName: "tray.2")
+                            .font(.system(size: 48))
+                            .foregroundColor(.gray)
+                        
+                        Text(LocalizedStringKey("meal_prep.detail.assembly_instructions"))
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+                }
+            } else {
+                // Empty state
+                VStack(spacing: 16) {
+                    Image(systemName: "tray.2")
+                        .font(.system(size: 48))
+                        .foregroundColor(.gray)
+                    
+                    Text(LocalizedStringKey("meal_prep.detail.assembly_instructions"))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 40)
+            }
+        }
+        .padding(.top)
     }
     
     // MARK: - Ingredients Section
@@ -1221,6 +1340,414 @@ struct MealPrepDetailView: View {
         // Save items
         if let encoded = try? JSONEncoder().encode(completedPrepItems) {
             UserDefaults.standard.set(encoded, forKey: prepItemsKey)
+        }
+    }
+}
+
+    // MARK: - Cuisson Tab - NEW Format Functions
+    
+    private func globalCookingProgressBar(recipeGroups: [RecipeCookingGroup]) -> some View {
+        let allSteps = recipeGroups.flatMap { $0.steps }
+        let completedCount = allSteps.filter { completedCookingSteps.contains($0.id) }.count
+        let totalCount = allSteps.count
+        let progress = totalCount > 0 ? Double(completedCount) / Double(totalCount) : 0
+        
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(LocalizedStringKey("meal_prep.detail.global_cooking_progress"))
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                Text("\(completedCount)/\(totalCount)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                        .frame(height: 8)
+                        .cornerRadius(4)
+                    
+                    Rectangle()
+                        .fill(Color.accentColor)
+                        .frame(width: geometry.size.width * progress, height: 8)
+                        .cornerRadius(4)
+                        .animation(.easeInOut, value: progress)
+                }
+            }
+            .frame(height: 8)
+        }
+        .padding(.horizontal)
+    }
+    
+    private func recipeGroupCookingCard(_ recipeGroup: RecipeCookingGroup) -> some View {
+        let completedCount = recipeGroup.steps.filter { completedCookingSteps.contains($0.id) }.count
+        let totalCount = recipeGroup.steps.count
+        let progress = totalCount > 0 ? Double(completedCount) / Double(totalCount) : 0
+        
+        return VStack(alignment: .leading, spacing: 12) {
+            // Recipe header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(recipeGroup.recipeTitle)
+                        .font(.headline)
+                    
+                    HStack(spacing: 12) {
+                        Label("\(recipeGroup.estimatedMinutes)min", systemImage: "clock")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text("\(completedCount)/\(totalCount)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            // Recipe progress bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                        .frame(height: 6)
+                        .cornerRadius(3)
+                    
+                    Rectangle()
+                        .fill(recipeColor(for: recipeGroup.recipeId))
+                        .frame(width: geometry.size.width * progress, height: 6)
+                        .cornerRadius(3)
+                        .animation(.easeInOut, value: progress)
+                }
+            }
+            .frame(height: 6)
+            .padding(.horizontal)
+            
+            // Steps
+            ForEach(Array(recipeGroup.steps.enumerated()), id: \.element.id) { index, step in
+                cookingStepCard(step, index: index + 1)
+            }
+        }
+        .padding(.vertical, 8)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+    
+    private func cookingStepCard(_ step: PhaseStep, index: Int) -> some View {
+        let isCompleted = completedCookingSteps.contains(step.id)
+        
+        return HStack(alignment: .top, spacing: 12) {
+            // Checkbox
+            Button(action: {
+                toggleCookingStepCompletion(step.id)
+            }) {
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundColor(isCompleted ? .accentColor : .secondary)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top, spacing: 8) {
+                    Text("\(index).")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(isCompleted ? .secondary : .primary)
+                    
+                    Text(step.description)
+                        .font(.subheadline)
+                        .foregroundColor(isCompleted ? .secondary : .primary)
+                        .strikethrough(isCompleted)
+                }
+                
+                if let minutes = step.estimatedMinutes {
+                    Label("\(minutes)min", systemImage: "clock")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                if step.isParallel, let note = step.parallelNote {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.triangle.branch")
+                            .font(.caption2)
+                        Text(note)
+                            .font(.caption)
+                    }
+                    .foregroundColor(.orange)
+                    .padding(6)
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(6)
+                }
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 4)
+        .animation(.easeInOut(duration: 0.2), value: isCompleted)
+    }
+    
+    // MARK: - Cuisson Tab - Legacy Format Functions
+    
+    private func globalCookingProgressBarLegacy(steps: [PhaseStep]) -> some View {
+        let completedCount = steps.filter { completedCookingSteps.contains($0.id) }.count
+        let totalCount = steps.count
+        let progress = totalCount > 0 ? Double(completedCount) / Double(totalCount) : 0
+        
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(LocalizedStringKey("meal_prep.detail.global_cooking_progress"))
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                Text("\(completedCount)/\(totalCount)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                        .frame(height: 8)
+                        .cornerRadius(4)
+                    
+                    Rectangle()
+                        .fill(Color.accentColor)
+                        .frame(width: geometry.size.width * progress, height: 8)
+                        .cornerRadius(4)
+                        .animation(.easeInOut, value: progress)
+                }
+            }
+            .frame(height: 8)
+        }
+        .padding(.horizontal)
+    }
+    
+    private func recipeGroupCookingCardLegacy(recipeTitle: String, steps: [PhaseStep]) -> some View {
+        let completedCount = steps.filter { completedCookingSteps.contains($0.id) }.count
+        let totalCount = steps.count
+        let progress = totalCount > 0 ? Double(completedCount) / Double(totalCount) : 0
+        let estimatedMinutes = steps.compactMap { $0.estimatedMinutes }.reduce(0, +)
+        
+        return VStack(alignment: .leading, spacing: 12) {
+            // Recipe header
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(recipeTitle)
+                        .font(.headline)
+                    
+                    HStack(spacing: 12) {
+                        if estimatedMinutes > 0 {
+                            Label("\(estimatedMinutes)min", systemImage: "clock")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Text("\(completedCount)/\(totalCount)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            
+            // Recipe progress bar
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                        .frame(height: 6)
+                        .cornerRadius(3)
+                    
+                    Rectangle()
+                        .fill(recipeColor(for: recipeTitle))
+                        .frame(width: geometry.size.width * progress, height: 6)
+                        .cornerRadius(3)
+                        .animation(.easeInOut, value: progress)
+                }
+            }
+            .frame(height: 6)
+            .padding(.horizontal)
+            
+            // Steps
+            ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
+                cookingStepCard(step, index: index + 1)
+            }
+        }
+        .padding(.vertical, 8)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+    
+    // MARK: - Assemblage Tab Functions
+    
+    private func assemblyProgressBar(steps: [PhaseStep]) -> some View {
+        let completedCount = steps.filter { completedAssemblySteps.contains($0.id) }.count
+        let totalCount = steps.count
+        let progress = totalCount > 0 ? Double(completedCount) / Double(totalCount) : 0
+        
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("\(completedCount)/\(totalCount)")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                Text(LocalizedStringKey("meal_prep.detail.steps_completed"))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                        .frame(height: 8)
+                        .cornerRadius(4)
+                    
+                    Rectangle()
+                        .fill(Color.accentColor)
+                        .frame(width: geometry.size.width * progress, height: 8)
+                        .cornerRadius(4)
+                        .animation(.easeInOut, value: progress)
+                }
+            }
+            .frame(height: 8)
+        }
+        .padding(.horizontal)
+    }
+    
+    private func assemblyStepCard(_ step: PhaseStep, index: Int) -> some View {
+        let isCompleted = completedAssemblySteps.contains(step.id)
+        
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                // Checkbox
+                Button(action: {
+                    toggleAssemblyStepCompletion(step.id)
+                }) {
+                    Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundColor(isCompleted ? .accentColor : .secondary)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    // Step number and description
+                    HStack(alignment: .top, spacing: 8) {
+                        Text("\(index).")
+                            .font(.headline)
+                            .foregroundColor(isCompleted ? .secondary : .primary)
+                        
+                        Text(step.description)
+                            .font(.body)
+                            .foregroundColor(isCompleted ? .secondary : .primary)
+                            .strikethrough(isCompleted)
+                    }
+                    
+                    // Additional info
+                    HStack(spacing: 12) {
+                        // Recipe badge
+                        HStack(spacing: 4) {
+                            Image(systemName: "fork.knife")
+                                .font(.caption2)
+                            Text(step.recipeTitle)
+                                .font(.caption)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule()
+                                .fill(recipeColor(for: step.recipeTitle))
+                        )
+                        
+                        // Time estimate
+                        if let minutes = step.estimatedMinutes {
+                            Label("\(minutes)min", systemImage: "clock")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(UIColor.secondarySystemBackground))
+                .opacity(isCompleted ? 0.6 : 1.0)
+        )
+        .padding(.horizontal)
+        .animation(.easeInOut(duration: 0.2), value: isCompleted)
+    }
+    
+    // MARK: - Cooking & Assembly Persistence
+    
+    private var cookingStepsKey: String {
+        "mealprep_cooking_steps_\(kit.id.uuidString)"
+    }
+    
+    private var assemblyStepsKey: String {
+        "mealprep_assembly_steps_\(kit.id.uuidString)"
+    }
+    
+    private func toggleCookingStepCompletion(_ stepId: UUID) {
+        if completedCookingSteps.contains(stepId) {
+            completedCookingSteps.remove(stepId)
+        } else {
+            completedCookingSteps.insert(stepId)
+        }
+        saveCookingProgress()
+    }
+    
+    private func toggleAssemblyStepCompletion(_ stepId: UUID) {
+        if completedAssemblySteps.contains(stepId) {
+            completedAssemblySteps.remove(stepId)
+        } else {
+            completedAssemblySteps.insert(stepId)
+        }
+        saveAssemblyProgress()
+    }
+    
+    private func loadCookingProgress() {
+        if let data = UserDefaults.standard.data(forKey: cookingStepsKey),
+           let decoded = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
+            completedCookingSteps = decoded
+        }
+    }
+    
+    private func saveCookingProgress() {
+        if let encoded = try? JSONEncoder().encode(completedCookingSteps) {
+            UserDefaults.standard.set(encoded, forKey: cookingStepsKey)
+        }
+    }
+    
+    private func loadAssemblyProgress() {
+        if let data = UserDefaults.standard.data(forKey: assemblyStepsKey),
+           let decoded = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
+            completedAssemblySteps = decoded
+        }
+    }
+    
+    private func saveAssemblyProgress() {
+        if let encoded = try? JSONEncoder().encode(completedAssemblySteps) {
+            UserDefaults.standard.set(encoded, forKey: assemblyStepsKey)
         }
     }
 }
