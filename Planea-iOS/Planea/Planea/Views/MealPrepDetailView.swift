@@ -1749,7 +1749,7 @@ struct MealPrepDetailView: View {
             UserDefaults.standard.set(encoded, forKey: assemblyStepsKey)
         }
     }
-
+}
 
 // MARK: - LocalizedStringKey Extension
 
