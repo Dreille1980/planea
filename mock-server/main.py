@@ -3108,8 +3108,8 @@ RÈGLES CRITIQUES:
         "recipe_title": "Salmon Bowl",
         "recipe_index": 1,
         "estimated_minutes": 6,
-        "is_parallel": true,
-        "parallel_note": "Pendant que les légumes rôtissent"
+        "is_parallel": false,
+        "parallel_note": null
       }}
     ]
   }},
@@ -3178,9 +3178,8 @@ RÈGLES CRITIQUES:
   }}
 }}
 
-EXEMPLE DE PARALLÉLISME:
-- "Pendant que brocoli rôtit au four (30 min)" → is_parallel=true, parallel_note="Saisir poulet pendant ce temps"
-- Étapes actives → is_parallel=false
+❌ RÈGLE ABSOLUE: is_parallel DOIT TOUJOURS être false
+❌ RÈGLE ABSOLUE: parallel_note DOIT TOUJOURS être null
 
 SI TU NE RESPECTES PAS LE FORMAT [Verbe + Ingrédients spécifiques + Méthode/Location], LA TIMELINE SERA RATÉE.
 
@@ -3249,8 +3248,8 @@ CRITICAL RULES:
         "recipe_title": "Salmon Bowl",
         "recipe_index": 1,
         "estimated_minutes": 6,
-        "is_parallel": true,
-        "parallel_note": "While vegetables are roasting"
+        "is_parallel": false,
+        "parallel_note": null
       }}
     ]
   }},
