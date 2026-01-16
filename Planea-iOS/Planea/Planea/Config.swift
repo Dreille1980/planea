@@ -7,7 +7,7 @@ struct Config {
     static let isFreeVersion = true
     
     /// Monthly generation limit for free users
-    static let monthlyGenerationLimit = 30
+    static let monthlyGenerationLimit = 20
     
     /// Support email for feedback
     static let supportEmail = "dreyerfred+planea@gmail.com"
