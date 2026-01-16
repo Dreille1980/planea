@@ -1582,16 +1582,6 @@ struct MealPrepDetailView: View {
         let isCompleted = completedCookingSteps.contains(step.id)
         
         return HStack(alignment: .top, spacing: 12) {
-            // Checkbox
-            Button(action: {
-                toggleCookingStepCompletion(step.id)
-            }) {
-                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
-                    .foregroundColor(isCompleted ? .accentColor : .secondary)
-            }
-            .buttonStyle(PlainButtonStyle())
-            
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .top, spacing: 8) {
                     Text("\(index).")
@@ -1603,6 +1593,8 @@ struct MealPrepDetailView: View {
                         .font(.subheadline)
                         .foregroundColor(isCompleted ? .secondary : .primary)
                         .strikethrough(isCompleted)
+                    
+                    Spacer()
                 }
                 
                 if let minutes = step.estimatedMinutes {
@@ -1610,20 +1602,17 @@ struct MealPrepDetailView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
-                if step.isParallel, let note = step.parallelNote {
-                    HStack(spacing: 6) {
-                        Image(systemName: "arrow.triangle.branch")
-                            .font(.caption2)
-                        Text(note)
-                            .font(.caption)
-                    }
-                    .foregroundColor(.orange)
-                    .padding(6)
-                    .background(Color.orange.opacity(0.1))
-                    .cornerRadius(6)
-                }
             }
+            
+            // Checkbox à droite
+            Button(action: {
+                toggleCookingStepCompletion(step.id)
+            }) {
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundColor(isCompleted ? .accentColor : .secondary)
+            }
+            .buttonStyle(PlainButtonStyle())
         }
         .padding(.horizontal)
         .padding(.vertical, 4)
