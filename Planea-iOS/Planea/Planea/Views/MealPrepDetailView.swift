@@ -853,6 +853,115 @@ struct MealPrepDetailView: View {
         return "\(formatQuantity(ingredient.totalQuantity)) \(localizedUnit)"
     }
     
+    // MARK: - Emoji Helper for Ingredients
+    
+    private func emojiForIngredient(_ name: String) -> String {
+        let lowercased = name.lowercased()
+        switch true {
+        // Vegetables
+        case lowercased.contains("carotte"), lowercased.contains("carrot"):
+            return "🥕"
+        case lowercased.contains("oignon"), lowercased.contains("onion"):
+            return "🧅"
+        case lowercased.contains("ail"), lowercased.contains("garlic"):
+            return "🧄"
+        case lowercased.contains("tomate"), lowercased.contains("tomato"):
+            return "🍅"
+        case lowercased.contains("poivron"), lowercased.contains("pepper"), lowercased.contains("bell"):
+            return "🫑"
+        case lowercased.contains("brocoli"), lowercased.contains("broccoli"):
+            return "🥦"
+        case lowercased.contains("champignon"), lowercased.contains("mushroom"):
+            return "🍄"
+        case lowercased.contains("maïs"), lowercased.contains("corn"):
+            return "🌽"
+        case lowercased.contains("laitue"), lowercased.contains("lettuce"), lowercased.contains("salade"):
+            return "🥬"
+        case lowercased.contains("pomme de terre"), lowercased.contains("potato"):
+            return "🥔"
+        case lowercased.contains("patate douce"), lowercased.contains("sweet potato"):
+            return "🍠"
+        case lowercased.contains("concombre"), lowercased.contains("cucumber"):
+            return "🥒"
+        case lowercased.contains("avocat"), lowercased.contains("avocado"):
+            return "🥑"
+        case lowercased.contains("aubergine"), lowercased.contains("eggplant"):
+            return "🍆"
+        
+        // Proteins
+        case lowercased.contains("poulet"), lowercased.contains("chicken"):
+            return "🍗"
+        case lowercased.contains("bœuf"), lowercased.contains("beef"), lowercased.contains("boeuf"):
+            return "🥩"
+        case lowercased.contains("porc"), lowercased.contains("pork"):
+            return "🥓"
+        case lowercased.contains("poisson"), lowercased.contains("fish"):
+            return "🐟"
+        case lowercased.contains("crevette"), lowercased.contains("shrimp"), lowercased.contains("prawn"):
+            return "🦐"
+        case lowercased.contains("œuf"), lowercased.contains("egg"), lowercased.contains("oeuf"):
+            return "🥚"
+        case lowercased.contains("bacon"):
+            return "🥓"
+        
+        // Grains & Carbs
+        case lowercased.contains("riz"), lowercased.contains("rice"):
+            return "🍚"
+        case lowercased.contains("pâte"), lowercased.contains("pasta"), lowercased.contains("pate"):
+            return "🍝"
+        case lowercased.contains("pain"), lowercased.contains("bread"):
+            return "🍞"
+        case lowercased.contains("quinoa"):
+            return "🌾"
+        
+        // Fruits
+        case lowercased.contains("citron"), lowercased.contains("lemon"):
+            return "🍋"
+        case lowercased.contains("lime"), lowercased.contains("vert"):
+            return "🟢"
+        case lowercased.contains("pomme"), lowercased.contains("apple"):
+            return "🍎"
+        case lowercased.contains("banane"), lowercased.contains("banana"):
+            return "🍌"
+        case lowercased.contains("orange"):
+            return "🍊"
+        case lowercased.contains("fraise"), lowercased.contains("strawberry"):
+            return "🍓"
+        
+        // Dairy & Cheese
+        case lowercased.contains("fromage"), lowercased.contains("cheese"):
+            return "🧀"
+        case lowercased.contains("lait"), lowercased.contains("milk"):
+            return "🥛"
+        case lowercased.contains("beurre"), lowercased.contains("butter"):
+            return "🧈"
+        
+        // Condiments & Oils
+        case lowercased.contains("huile"), lowercased.contains("oil"):
+            return "🫒"
+        case lowercased.contains("sel"), lowercased.contains("salt"):
+            return "🧂"
+        case lowercased.contains("sucre"), lowercased.contains("sugar"):
+            return "🍬"
+        case lowercased.contains("miel"), lowercased.contains("honey"):
+            return "🍯"
+        
+        // Herbs & Spices
+        case lowercased.contains("basilic"), lowercased.contains("basil"):
+            return "🌿"
+        case lowercased.contains("persil"), lowercased.contains("parsley"):
+            return "🌿"
+        case lowercased.contains("coriandre"), lowercased.contains("cilantro"):
+            return "🌿"
+        case lowercased.contains("piment"), lowercased.contains("chili"), lowercased.contains("hot"):
+            return "🌶️"
+        
+        // Default
+        default:
+            return "🥄"
+        }
+    }
+    
     // MARK: - NEW Action-Based Preparation Section
     
     private var actionBasedPreparationSection: some View {
@@ -949,6 +1058,7 @@ struct MealPrepDetailView: View {
     private func actionSectionCard(_ section: ActionBasedPrepSection) -> some View {
         let sectionCompleted = completedPrepSections.contains(section.id)
         let allItemsCompleted = section.items.allSatisfy { completedPrepItems.contains($0.id) }
+        let isRecipeSpecific = section.usedInRecipeCount == 1 && !section.actionType.isSeparable
         
         return VStack(alignment: .leading, spacing: 12) {
             // Header with section checkbox
@@ -982,6 +1092,24 @@ struct MealPrepDetailView: View {
                         Label("\(section.estimatedMinutes) min", systemImage: "clock")
                             .font(.caption)
                             .foregroundColor(.secondary)
+                    }
+                    
+                    // RECIPE BADGE for non-separable actions (shown right after action title)
+                    if isRecipeSpecific, let recipeTitle = section.usedInRecipeTitles.first {
+                        HStack(spacing: 6) {
+                            Image(systemName: "fork.knife")
+                                .font(.caption2)
+                            Text("Pour \(recipeTitle)")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(
+                            Capsule()
+                                .fill(recipeColor(for: recipeTitle))
+                        )
                     }
                     
                     // Items list
@@ -1029,19 +1157,10 @@ struct MealPrepDetailView: View {
     private func prepItemRow(_ item: PrepItem, sectionCompleted: Bool) -> some View {
         let itemCompleted = completedPrepItems.contains(item.id) || sectionCompleted
         
-        return HStack(alignment: .top, spacing: 12) {
-            // Item Checkbox
-            Button(action: {
-                if !sectionCompleted {
-                    toggleItemCompletion(item.id)
-                }
-            }) {
-                Image(systemName: itemCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.body)
-                    .foregroundColor(itemCompleted ? .accentColor : .secondary)
-            }
-            .buttonStyle(PlainButtonStyle())
-            .disabled(sectionCompleted)
+        return HStack(alignment: .center, spacing: 8) {
+            // Emoji for ingredient
+            Text(emojiForIngredient(item.ingredientName))
+                .font(.title3)
             
             // Item content
             HStack(alignment: .firstTextBaseline, spacing: 0) {
@@ -1070,7 +1189,24 @@ struct MealPrepDetailView: View {
                         .foregroundColor(.secondary)
                 }
             }
+            
+            Spacer()
+            
+            // Item Checkbox (moved to right)
+            Button(action: {
+                if !sectionCompleted {
+                    toggleItemCompletion(item.id)
+                }
+            }) {
+                Image(systemName: itemCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.title3)
+                    .foregroundColor(itemCompleted ? .accentColor : .secondary)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .disabled(sectionCompleted)
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .animation(.easeInOut(duration: 0.2), value: itemCompleted)
     }
     
@@ -1760,4 +1896,3 @@ extension LocalizedStringKey {
         return NSLocalizedString(key ?? "", comment: "")
     }
 }
-

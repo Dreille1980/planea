@@ -544,6 +544,20 @@ enum PrepActionType: String, CaseIterable, Identifiable, Codable {
         }
     }
     
+    /// Whether ingredients from different recipes can be prepared together
+    /// True = can consolidate (e.g., chop all carrots together)
+    /// False = must separate by recipe (e.g., different marinades)
+    var isSeparable: Bool {
+        switch self {
+        case .chop, .peel, .grate, .measure:
+            return true  // Can prepare together regardless of recipe
+        case .mix, .marinate, .prepSauces, .pressDrain:
+            return false  // Must keep separate by recipe
+        case .other:
+            return true  // Default to separable
+        }
+    }
+    
     /// Priority order for display (chop first, etc.)
     var sortOrder: Int {
         switch self {
@@ -720,10 +734,29 @@ extension MealPrepKit {
             }
         }
         
-        // Step 2: Consolidate duplicate ingredients within each action group
+        // Step 2: For non-separable actions, group by recipe first
+        // For separable actions, consolidate across recipes
         var consolidatedGroups: [PrepActionType: [PrepItem]] = [:]
+        var recipeSpecificSections: [(actionType: PrepActionType, recipeTitle: String, items: [PrepItem])] = []
         
         for (actionType, items) in actionGroups {
+            // Check if this action type should be kept separate by recipe
+            if !actionType.isSeparable {
+                // Group items by recipe
+                let itemsByRecipe = Dictionary(grouping: items) { $0.recipeTitle }
+                
+                // Create a separate sub-section for each recipe
+                for (recipeTitle, recipeItems) in itemsByRecipe {
+                    recipeSpecificSections.append((
+                        actionType: actionType,
+                        recipeTitle: recipeTitle,
+                        items: recipeItems
+                    ))
+                }
+                continue  // Skip consolidation for non-separable actions
+            }
+            
+            // For separable actions, proceed with normal consolidation
             // First, group by ingredient name only (not action yet)
             var itemsByIngredient: [String: [PrepItem]] = [:]
             
@@ -893,7 +926,7 @@ extension MealPrepKit {
             consolidatedGroups[actionType] = consolidatedItems
         }
         
-        // Step 3: Build sections from consolidated groups
+        // Step 3: Build sections from consolidated groups (separable actions)
         var sections: [ActionBasedPrepSection] = []
         
         for (actionType, items) in consolidatedGroups {
@@ -940,7 +973,42 @@ extension MealPrepKit {
             sections.append(section)
         }
         
-        // Step 3: Sort by priority (chop first, then others)
+        // Step 4: Build sections for recipe-specific (non-separable) actions
+        for recipeSpecific in recipeSpecificSections {
+            // Estimate time (2 min per item, max 20 min per recipe)
+            let estimatedTime = min(20, max(3, recipeSpecific.items.count * 2))
+            
+            // Generate stable UUID for this action+recipe combination
+            let namespace = self.id.uuidString
+            let name = "\(recipeSpecific.actionType.rawValue)-\(recipeSpecific.recipeTitle)"
+            let combinedString = "\(namespace)-\(name)"
+            
+            var hasher = Hasher()
+            hasher.combine(combinedString)
+            let hash = abs(hasher.finalize())
+            
+            let uuidString = String(format: "%08x-%04x-%04x-%04x-%012x",
+                                   (hash >> 96) & 0xFFFFFFFF,
+                                   (hash >> 80) & 0xFFFF,
+                                   (hash >> 64) & 0xFFFF,
+                                   (hash >> 48) & 0xFFFF,
+                                   hash & 0xFFFFFFFFFFFF)
+            
+            let stableId = UUID(uuidString: uuidString) ?? UUID()
+            
+            let section = ActionBasedPrepSection(
+                id: stableId,
+                actionType: recipeSpecific.actionType,
+                estimatedMinutes: estimatedTime,
+                items: recipeSpecific.items,
+                usedInRecipeCount: 1,  // Always 1 since it's recipe-specific
+                usedInRecipeTitles: [recipeSpecific.recipeTitle]
+            )
+            
+            sections.append(section)
+        }
+        
+        // Step 5: Sort by priority (chop first, then others)
         sections.sort { $0.actionType.sortOrder < $1.actionType.sortOrder }
         
         return sections
