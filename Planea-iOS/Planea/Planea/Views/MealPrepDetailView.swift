@@ -867,8 +867,10 @@ struct MealPrepDetailView: View {
             return "🧄"
         case lowercased.contains("tomate"), lowercased.contains("tomato"):
             return "🍅"
-        case lowercased.contains("poivron"), lowercased.contains("pepper"), lowercased.contains("bell"):
+        case lowercased.contains("poivron"), lowercased.contains("bell pepper"):
             return "🫑"
+        case (lowercased.contains("pepper") && !lowercased.contains("black") && !lowercased.contains("white") && !lowercased.contains("ground") && !lowercased.contains("poivre")):
+            return "🫑"  // Only for bell pepper, not black/white pepper
         case lowercased.contains("brocoli"), lowercased.contains("broccoli"):
             return "🥦"
         case lowercased.contains("champignon"), lowercased.contains("mushroom"):
