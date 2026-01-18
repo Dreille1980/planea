@@ -88,7 +88,7 @@ struct RootView: View {
             }
         }
         .sheet(isPresented: $showWhatsNew) {
-            let version = WhatsNewService.shared.getCurrentVersion()
+            let version = "1.2.1"
             let features = WhatsNewService.shared.getWhatsNewItems(for: version)
             WhatsNewView(version: version, features: features)
         }
@@ -120,8 +120,9 @@ struct RootView: View {
     }
     
     private func checkWhatsNew() {
-        let currentVersion = WhatsNewService.shared.getCurrentVersion()
-        if WhatsNewService.shared.shouldShowWhatsNew(for: currentVersion) {
+        // Use version 1.2.1 as the target version for this release
+        let targetVersion = "1.2.1"
+        if WhatsNewService.shared.shouldShowWhatsNew(for: targetVersion) {
             // Delay showing What's New to avoid conflict with other sheets
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 showWhatsNew = true

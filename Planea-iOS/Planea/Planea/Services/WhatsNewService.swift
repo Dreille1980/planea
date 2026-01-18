@@ -43,16 +43,13 @@ class WhatsNewService {
     
     /// Get what's new items for a specific version
     func getWhatsNewItems(for version: String) -> [String] {
-        switch version {
-        case "1.2.1":
-            return [
-                "whats_new.v1.2.1.feature1",
-                "whats_new.v1.2.1.feature2",
-                "whats_new.v1.2.1.feature3",
-                "whats_new.v1.2.1.feature4"
-            ]
-        default:
-            return []
-        }
+        // Always return version 1.2.1 features for now
+        // This can be updated when new versions are released
+        return [
+            "whats_new.v1.2.1.feature1",
+            "whats_new.v1.2.1.feature2",
+            "whats_new.v1.2.1.feature3",
+            "whats_new.v1.2.1.feature4"
+        ]
     }
 }
