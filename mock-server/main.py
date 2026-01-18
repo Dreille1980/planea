@@ -903,18 +903,13 @@ IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de prépa
         return Recipe(**recipe_data)
         
     except Exception as e:
-        print(f"Error generating recipe with OpenAI: {e}")
-        # Fallback to a simple recipe
-        return Recipe(
-            title=f"Recette simple de {meal_type_fr}",
-            servings=servings,
-            total_minutes=30,
-            ingredients=[
-                Ingredient(name="ingrédient principal", quantity=500, unit="g" if units == "METRIC" else "oz", category="sec")
-            ],
-            steps=["Préparer les ingrédients", "Cuire selon les instructions"],
-            equipment=["poêle"],
-            tags=["simple"]
+        print(f"❌ CRITICAL ERROR generating recipe with OpenAI: {e}")
+        print(f"   Meal type: {meal_type}, Language: {language}")
+        # Re-raise the error instead of using fallback
+        # This allows proper error handling at the client level
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to generate recipe for {meal_type}: {str(e)}"
         )
 
 
