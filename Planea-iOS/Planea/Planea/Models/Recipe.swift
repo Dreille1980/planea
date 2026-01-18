@@ -16,6 +16,12 @@ struct Recipe: Identifiable, Codable, Hashable {
     var isFreezable: Bool? = nil   // Can be frozen
     var storageNote: String? = nil // User-friendly storage note
     
+    // Nutritional information per serving (optional, calculated by AI)
+    var caloriesPerServing: Int? = nil
+    var proteinPerServing: Int? = nil
+    var carbsPerServing: Int? = nil
+    var fatPerServing: Int? = nil
+    
     enum CodingKeys: String, CodingKey {
         case title
         case servings
@@ -28,6 +34,10 @@ struct Recipe: Identifiable, Codable, Hashable {
         case shelfLifeDays = "shelf_life_days"
         case isFreezable = "is_freezable"
         case storageNote = "storage_note"
+        case caloriesPerServing = "calories_per_serving"
+        case proteinPerServing = "protein_per_serving"
+        case carbsPerServing = "carbs_per_serving"
+        case fatPerServing = "fat_per_serving"
     }
 }
 

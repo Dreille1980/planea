@@ -152,6 +152,11 @@ class Recipe(BaseModel):
     steps: List[str]
     equipment: List[str] = []
     tags: List[str] = []
+    # Nutritional information per serving (calculated by AI)
+    calories_per_serving: Optional[int] = None
+    protein_per_serving: Optional[int] = None
+    carbs_per_serving: Optional[int] = None
+    fat_per_serving: Optional[int] = None
 
 class PlanItem(BaseModel):
     weekday: Weekday
@@ -807,8 +812,20 @@ Return ONLY a valid JSON object with this exact structure (no text before or aft
         "Finish with grated cheese and serve..."
     ],
     "equipment": ["pan", "pot"],
-    "tags": ["easy", "quick"]
+    "tags": ["easy", "quick"],
+    "calories_per_serving": 450,
+    "protein_per_serving": 35,
+    "carbs_per_serving": 40,
+    "fat_per_serving": 15
 }}
+
+CRITICAL - NUTRITIONAL CALCULATION:
+Calculate approximate nutritional values per serving using USDA database knowledge:
+- calories_per_serving: Total calories per serving (integer)
+- protein_per_serving: Protein in grams per serving (integer)
+- carbs_per_serving: Carbohydrates in grams per serving (integer)
+- fat_per_serving: Fat in grams per serving (integer)
+Base calculations on the actual ingredients and quantities in the recipe.
 
 Use the {unit_system_text} system.
 Possible ingredient categories: vegetables, fruits, meats, fish, dairy, dry goods, condiments, canned goods.
@@ -843,8 +860,20 @@ Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte (sans texte
         "Terminer avec le fromage râpé et servir..."
     ],
     "equipment": ["poêle", "casserole"],
-    "tags": ["facile", "rapide"]
+    "tags": ["facile", "rapide"],
+    "calories_per_serving": 450,
+    "protein_per_serving": 35,
+    "carbs_per_serving": 40,
+    "fat_per_serving": 15
 }}
+
+CRITIQUE - CALCUL NUTRITIONNEL:
+Calcule les valeurs nutritionnelles approximatives par portion en utilisant tes connaissances de la base USDA:
+- calories_per_serving: Calories totales par portion (entier)
+- protein_per_serving: Protéines en grammes par portion (entier)
+- carbs_per_serving: Glucides en grammes par portion (entier)
+- fat_per_serving: Lipides en grammes par portion (entier)
+Base les calculs sur les ingrédients et quantités réels de la recette.
 
 Utilise le système {unit_system}.
 Catégories d'ingrédients possibles: légumes, fruits, viandes, poissons, produits laitiers, sec, condiments, conserves.
@@ -1131,8 +1160,20 @@ Return ONLY a valid JSON object with this exact structure:
         "Add ingredients and cook..."
     ],
     "equipment": ["pan", "pot"],
-    "tags": ["easy"]
+    "tags": ["easy"],
+    "calories_per_serving": 450,
+    "protein_per_serving": 35,
+    "carbs_per_serving": 40,
+    "fat_per_serving": 15
 }}
+
+CRITICAL - NUTRITIONAL CALCULATION:
+Calculate approximate nutritional values per serving using USDA database knowledge:
+- calories_per_serving: Total calories per serving (integer)
+- protein_per_serving: Protein in grams per serving (integer)
+- carbs_per_serving: Carbohydrates in grams per serving (integer)
+- fat_per_serving: Fat in grams per serving (integer)
+Base calculations on the actual ingredients and quantities in the recipe.
 
 Use the {unit_system} system.
 Categories: vegetables, fruits, meats, fish, dairy, dry goods, condiments, canned goods.
@@ -1178,8 +1219,20 @@ Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte:
         "Ajouter les ingrédients et cuire..."
     ],
     "equipment": ["poêle", "casserole"],
-    "tags": ["facile"]
+    "tags": ["facile"],
+    "calories_per_serving": 450,
+    "protein_per_serving": 35,
+    "carbs_per_serving": 40,
+    "fat_per_serving": 15
 }}
+
+CRITIQUE - CALCUL NUTRITIONNEL:
+Calcule les valeurs nutritionnelles approximatives par portion en utilisant tes connaissances de la base USDA:
+- calories_per_serving: Calories totales par portion (entier)
+- protein_per_serving: Protéines en grammes par portion (entier)
+- carbs_per_serving: Glucides en grammes par portion (entier)
+- fat_per_serving: Lipides en grammes par portion (entier)
+Base les calculs sur les ingrédients et quantités réels de la recette.
 
 Utilise le système {unit_system}.
 Catégories: légumes, fruits, viandes, poissons, produits laitiers, sec, condiments, conserves.
@@ -1309,8 +1362,20 @@ Return ONLY a valid JSON object with this exact structure:
         "Add ingredients and cook..."
     ],
     "equipment": ["pan", "pot"],
-    "tags": ["easy"]
+    "tags": ["easy"],
+    "calories_per_serving": 450,
+    "protein_per_serving": 35,
+    "carbs_per_serving": 40,
+    "fat_per_serving": 15
 }}
+
+CRITICAL - NUTRITIONAL CALCULATION:
+Calculate approximate nutritional values per serving using USDA database knowledge:
+- calories_per_serving: Total calories per serving (integer)
+- protein_per_serving: Protein in grams per serving (integer)
+- carbs_per_serving: Carbohydrates in grams per serving (integer)
+- fat_per_serving: Fat in grams per serving (integer)
+Base calculations on the actual ingredients and quantities in the recipe.
 
 Use the {unit_system} system.
 Categories: vegetables, fruits, meats, fish, dairy, dry goods, condiments, canned goods.
@@ -1359,8 +1424,20 @@ Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte:
         "Ajouter les ingrédients et cuire..."
     ],
     "equipment": ["poêle", "casserole"],
-    "tags": ["facile"]
+    "tags": ["facile"],
+    "calories_per_serving": 450,
+    "protein_per_serving": 35,
+    "carbs_per_serving": 40,
+    "fat_per_serving": 15
 }}
+
+CRITIQUE - CALCUL NUTRITIONNEL:
+Calcule les valeurs nutritionnelles approximatives par portion en utilisant tes connaissances de la base USDA:
+- calories_per_serving: Calories totales par portion (entier)
+- protein_per_serving: Protéines en grammes par portion (entier)
+- carbs_per_serving: Glucides en grammes par portion (entier)
+- fat_per_serving: Lipides en grammes par portion (entier)
+Base les calculs sur les ingrédients et quantités réels de la recette.
 
 Utilise le système {unit_system}.
 Catégories: légumes, fruits, viandes, poissons, produits laitiers, sec, condiments, conserves.
