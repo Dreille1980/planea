@@ -166,6 +166,16 @@
 "action.remove_from_favorites" = "Remove from Favorites";
 "action.validate" = "Validate";
 
+// Add favorite recipes to plan
+"favorites.add_to_plan" = "Add to Plan";
+"favorites.select_slot" = "Select Slot";
+"favorites.select_slot_instruction" = "Select the day and meal type for this recipe";
+"favorites.slot_occupied" = "Occupied";
+"favorites.conflict_title" = "Slot Already Occupied";
+"favorites.conflict_message" = "A meal already exists in this slot. Do you want to replace it or add this recipe anyway?";
+"favorites.replace" = "Replace";
+"favorites.add_anyway" = "Add Anyway";
+
 // Subscription
 "settings.subscription" = "Subscription";
 "subscription.title" = "Planea Premium";

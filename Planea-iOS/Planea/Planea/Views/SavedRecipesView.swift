@@ -3,6 +3,10 @@ import SwiftUI
 struct SavedRecipesView: View {
     @StateObject private var favoritesVM = FavoritesViewModel()
     @EnvironmentObject var usageVM: UsageViewModel
+    @EnvironmentObject var planVM: PlanViewModel
+    
+    @State private var selectedRecipeToAdd: Recipe?
+    @State private var showAddToWeekSheet = false
     
     var body: some View {
         ZStack {
@@ -34,11 +38,18 @@ struct SavedRecipesView: View {
                         LazyVStack(spacing: 12) {
                             ForEach(favoritesVM.savedRecipes) { recipe in
                                 NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
-                                    SavedRecipeCard(recipe: recipe, onRemove: {
-                                        withAnimation {
-                                            favoritesVM.removeRecipe(recipe)
+                                    SavedRecipeCard(
+                                        recipe: recipe,
+                                        onRemove: {
+                                            withAnimation {
+                                                favoritesVM.removeRecipe(recipe)
+                                            }
+                                        },
+                                        onAddToPlan: {
+                                            selectedRecipeToAdd = recipe
+                                            showAddToWeekSheet = true
                                         }
-                                    })
+                                    )
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -49,6 +60,12 @@ struct SavedRecipesView: View {
             }
             .navigationTitle("favorites.title".localized)
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showAddToWeekSheet) {
+                if let recipe = selectedRecipeToAdd {
+                    AddFavoriteToWeekSheet(recipe: recipe)
+                        .environmentObject(planVM)
+                }
+            }
             }
             
             FloatingChatButton()
@@ -61,6 +78,7 @@ struct SavedRecipesView: View {
 struct SavedRecipeCard: View {
     let recipe: Recipe
     let onRemove: () -> Void
+    let onAddToPlan: () -> Void
     
     var body: some View {
         HStack(spacing: 12) {
@@ -90,11 +108,21 @@ struct SavedRecipeCard: View {
             
             Spacer()
             
-            // Remove button
-            Button(action: onRemove) {
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(.red)
+            // Action buttons
+            HStack(spacing: 12) {
+                // Add to plan button
+                Button(action: onAddToPlan) {
+                    Image(systemName: "calendar.badge.plus")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.green)
+                }
+                
+                // Remove button
+                Button(action: onRemove) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.red)
+                }
             }
             .padding(.leading, 8)
             

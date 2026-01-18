@@ -678,3 +678,13 @@
 "meal_prep.detail.recipe_progress" = "Progression de cette recette";
 "meal_prep.detail.cooking_instructions" = "Instructions de cuisson";
 "meal_prep.detail.assembly_instructions" = "Instructions d'assemblage et conservation";
+
+// Ajouter recettes favorites au plan
+"favorites.add_to_plan" = "Ajouter au plan";
+"favorites.select_slot" = "Sélectionner un créneau";
+"favorites.select_slot_instruction" = "Sélectionnez le jour et le type de repas pour cette recette";
+"favorites.slot_occupied" = "Occupé";
+"favorites.conflict_title" = "Créneau déjà occupé";
+"favorites.conflict_message" = "Un repas existe déjà pour ce créneau. Voulez-vous le remplacer ou ajouter cette recette en plus?";
+"favorites.replace" = "Remplacer";
+"favorites.add_anyway" = "Ajouter en plus";

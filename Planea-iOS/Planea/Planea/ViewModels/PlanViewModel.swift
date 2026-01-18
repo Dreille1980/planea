@@ -138,4 +138,53 @@ final class PlanViewModel: ObservableObject {
         guard let plan = currentPlan else { return false }
         return plan.items.contains(where: { $0.weekday == weekday && $0.mealType == mealType })
     }
+    
+    // MARK: - Add Favorite Recipe to Plan
+    
+    @MainActor func addFavoriteRecipeToSlot(recipe: Recipe, weekday: Weekday, mealType: MealType, replaceIfExists: Bool) {
+        // Get or create current plan
+        var plan = getOrCreateCurrentPlan()
+        
+        // If replacing, remove existing meal first
+        if replaceIfExists {
+            plan.items.removeAll(where: { $0.weekday == weekday && $0.mealType == mealType })
+        }
+        
+        // Create new meal item with the favorite recipe
+        let newMeal = MealItem(
+            id: UUID(),
+            weekday: weekday,
+            mealType: mealType,
+            recipe: recipe
+        )
+        
+        // Add to plan
+        plan.items.append(newMeal)
+        
+        // Update current plan and save
+        currentPlan = plan
+        persistence.saveMealPlan(plan)
+        
+        // Note: We do NOT record usage here - adding favorites is free!
+    }
+    
+    private func getOrCreateCurrentPlan() -> MealPlan {
+        // If current plan exists, return it
+        if let existing = currentPlan {
+            return existing
+        }
+        
+        // Otherwise, create a new draft plan
+        let newPlan = MealPlan(
+            id: UUID(),
+            weekStart: Date(),
+            items: [],
+            status: .draft,
+            name: nil,
+            createdAt: Date(),
+            lastModified: Date()
+        )
+        
+        return newPlan
+    }
 }
