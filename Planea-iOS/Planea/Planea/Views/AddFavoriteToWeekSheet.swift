@@ -16,13 +16,20 @@ struct AddFavoriteToWeekSheet: View {
     }
     
     var weekdays: [Weekday] {
-        PreferencesService.shared.loadPreferences().sortedWeekdays()
+        let prefs = PreferencesService.shared.loadPreferences()
+        let sorted = prefs.sortedWeekdays()
+        // Fallback to all weekdays if empty
+        return sorted.isEmpty ? [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday] : sorted
     }
     let mealTypes: [MealType] = [.breakfast, .lunch, .dinner, .snack]
     
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ZStack {
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
+                
+                ScrollView {
                 VStack(spacing: 16) {
                     // Recipe preview
                     HStack(spacing: 12) {
@@ -78,6 +85,7 @@ struct AddFavoriteToWeekSheet: View {
                     }
                 }
                 .padding()
+                }
             }
             .navigationTitle("favorites.add_to_plan".localized)
             .navigationBarTitleDisplayMode(.inline)
