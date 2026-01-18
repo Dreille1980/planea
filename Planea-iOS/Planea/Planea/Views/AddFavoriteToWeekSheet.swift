@@ -16,10 +16,8 @@ struct AddFavoriteToWeekSheet: View {
     }
     
     var weekdays: [Weekday] {
-        let prefs = PreferencesService.shared.loadPreferences()
-        let sorted = prefs.sortedWeekdays()
-        // Fallback to all weekdays if empty
-        return sorted.isEmpty ? [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday] : sorted
+        // Use all weekdays in order
+        return [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
     }
     let mealTypes: [MealType] = [.breakfast, .lunch, .dinner, .snack]
     
