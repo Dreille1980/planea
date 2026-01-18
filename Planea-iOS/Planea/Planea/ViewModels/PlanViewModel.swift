@@ -174,15 +174,19 @@ final class PlanViewModel: ObservableObject {
             return existing
         }
         
+        // Load family to get the familyId
+        let (family, _) = persistence.loadFamily()
+        let familyId = family?.id ?? UUID() // Use existing family ID or create a new one
+        
         // Otherwise, create a new draft plan
         let newPlan = MealPlan(
             id: UUID(),
+            familyId: familyId,
             weekStart: Date(),
             items: [],
             status: .draft,
-            name: nil,
-            createdAt: Date(),
-            lastModified: Date()
+            confirmedDate: nil,
+            name: nil
         )
         
         return newPlan
