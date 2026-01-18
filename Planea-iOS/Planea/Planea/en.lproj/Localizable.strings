@@ -687,3 +687,12 @@
 "meal_prep.detail.recipe_progress" = "Recipe progress";
 "meal_prep.detail.cooking_instructions" = "Cooking instructions";
 "meal_prep.detail.assembly_instructions" = "Assembly and storage instructions";
+
+// What's New
+"whats_new.title" = "What's New";
+"whats_new.version" = "Version %@";
+"whats_new.close" = "Got it";
+"whats_new.v1.2.1.feature1" = "Fixed bug showing \"Simple Dinner Recipe\"";
+"whats_new.v1.2.1.feature2" = "Added Macros and calories in recipe details";
+"whats_new.v1.2.1.feature3" = "Add a favorite recipe to the weekly plan";
+"whats_new.v1.2.1.feature4" = "Improved adding recipes to the weekly plan";

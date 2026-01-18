@@ -688,3 +688,12 @@
 "favorites.conflict_message" = "Un repas existe déjà pour ce créneau. Voulez-vous le remplacer ou ajouter cette recette en plus?";
 "favorites.replace" = "Remplacer";
 "favorites.add_anyway" = "Ajouter en plus";
+
+// What's New
+"whats_new.title" = "Nouveautés";
+"whats_new.version" = "Version %@";
+"whats_new.close" = "Compris";
+"whats_new.v1.2.1.feature1" = "Correction d'anomalie montrant \"Recette simple de souper\"";
+"whats_new.v1.2.1.feature2" = "Inscription des Macros et calories dans le détail des recettes";
+"whats_new.v1.2.1.feature3" = "Ajouter une recette préférée dans le plan d'une semaine";
+"whats_new.v1.2.1.feature4" = "Amélioration de l'ajout d'une recette dans le plan de la semaine";

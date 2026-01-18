@@ -48,6 +48,7 @@ struct RootView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     @State private var showOnboarding = false
     @State private var showFreeTrialExpiration = false
+    @State private var showWhatsNew = false
     
     private var hasActiveSubscription: Bool {
         storeManager.hasActiveSubscription
@@ -86,9 +87,17 @@ struct RootView: View {
                 FreeTrialExpirationView()
             }
         }
+        .sheet(isPresented: $showWhatsNew) {
+            let version = WhatsNewService.shared.getCurrentVersion()
+            let features = WhatsNewService.shared.getWhatsNewItems(for: version)
+            WhatsNewView(version: version, features: features)
+        }
         .onAppear {
             if !hasCompletedOnboarding {
                 showOnboarding = true
+            } else {
+                // Check if we should show What's New (only if onboarding is complete)
+                checkWhatsNew()
             }
             // Preload legal documents for offline use
             LegalDocumentService.shared.preloadDocuments()
@@ -107,6 +116,16 @@ struct RootView: View {
         if freeTrialService.shouldShowExpirationMessage {
             showFreeTrialExpiration = true
             freeTrialService.markExpirationMessageShown()
+        }
+    }
+    
+    private func checkWhatsNew() {
+        let currentVersion = WhatsNewService.shared.getCurrentVersion()
+        if WhatsNewService.shared.shouldShowWhatsNew(for: currentVersion) {
+            // Delay showing What's New to avoid conflict with other sheets
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                showWhatsNew = true
+            }
         }
     }
 }
