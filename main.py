@@ -74,7 +74,137 @@ class RecipeRequest(BaseModel):
     preferences: dict = Field(default_factory=dict)
 
 
-async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: str, servings: int = 4, previous_recipes: List[str] = None, diversity_seed: int = 0, language: str = "fr", preferences: dict = None) -> Recipe:
+async def generate_diversity_plan(num_meals: int, constraints: dict, language: str = "fr", preferences: dict = None) -> List[dict]:
+    """Generate a diversity blueprint for the meal plan to ensure variety."""
+    
+    # Build constraints for the diversity plan
+    constraints_text = ""
+    if constraints.get("diet"):
+        diets = ", ".join(constraints["diet"])
+        if language == "en":
+            constraints_text += f"Dietary requirements: {diets}. "
+        else:
+            constraints_text += f"Régimes alimentaires: {diets}. "
+    
+    # Build preferences context
+    prefs_text = ""
+    if preferences:
+        if preferences.get("preferredProteins"):
+            proteins = ", ".join(preferences["preferredProteins"])
+            if language == "en":
+                prefs_text += f"Preferred proteins (use these when possible): {proteins}. "
+            else:
+                prefs_text += f"Protéines préférées (à utiliser quand possible): {proteins}. "
+    
+    if language == "en":
+        prompt = f"""Create a diversity plan for {num_meals} meals with MAXIMUM VARIETY.
+
+{constraints_text}{prefs_text}
+
+CRITICAL DIVERSITY RULES:
+1. Each protein should appear at MOST 2 times (prefer different proteins)
+2. Each main vegetable should appear at MOST 2 times
+3. Include 1-2 meal-soups OR meal-salads naturally in the mix
+4. Vary cooking methods: stir-fry, grilled, braised, baked, soup, salad, pasta, rice bowl, curry, tacos, etc.
+5. Vary world cuisines: Asian (Chinese, Thai, Japanese, Korean), Mediterranean (Italian, Greek), Mexican, Middle-Eastern, Indian, French, American, Fusion
+
+Return ONLY valid JSON with this structure:
+{{
+    "meals": [
+        {{
+            "cuisine": "Thai",
+            "protein": "chicken",
+            "dish_type": "stir-fry",
+            "vegetable_focus": "bell peppers and basil",
+            "description": "Thai basil chicken stir-fry"
+        }},
+        {{
+            "cuisine": "Mediterranean",
+            "protein": "fish",
+            "dish_type": "grilled",
+            "vegetable_focus": "tomatoes and olives",
+            "description": "Grilled fish with Mediterranean vegetables"
+        }}
+    ]
+}}
+
+IMPORTANT: Create {num_meals} diverse meal blueprints ensuring no repetition."""
+    
+    else:
+        prompt = f"""Crée un plan de diversité pour {num_meals} repas avec une VARIÉTÉ MAXIMALE.
+
+{constraints_text}{prefs_text}
+
+RÈGLES DE DIVERSITÉ CRITIQUES:
+1. Chaque protéine doit apparaître AU MAXIMUM 2 fois (préférer des protéines différentes)
+2. Chaque légume principal doit apparaître AU MAXIMUM 2 fois
+3. Inclure 1-2 soupes-repas OU salades-repas naturellement dans le mélange
+4. Varier les méthodes de cuisson: sauté, grillé, mijoté, au four, soupe, salade, pâtes, bol de riz, cari, tacos, etc.
+5. Varier les cuisines du monde: Asiatique (chinoise, thaï, japonaise, coréenne), Méditerranéenne (italienne, grecque), Mexicaine, Moyen-orientale, Indienne, Française, Américaine, Fusion
+
+Retourne UNIQUEMENT du JSON valide avec cette structure:
+{{
+    "meals": [
+        {{
+            "cuisine": "Thaïlandaise",
+            "protein": "poulet",
+            "dish_type": "sauté",
+            "vegetable_focus": "poivrons et basilic",
+            "description": "Sauté de poulet au basilic thaï"
+        }},
+        {{
+            "cuisine": "Méditerranéenne",
+            "protein": "poisson",
+            "dish_type": "grillé",
+            "vegetable_focus": "tomates et olives",
+            "description": "Poisson grillé aux légumes méditerranéens"
+        }}
+    ]
+}}
+
+IMPORTANT: Crée {num_meals} plans de repas diversifiés sans répétition."""
+
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Tu es un expert en planification de menus qui crée des plans de repas extrêmement variés et équilibrés."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=1.0,
+            max_tokens=800
+        )
+        
+        content = response.choices[0].message.content.strip()
+        
+        # Remove markdown code blocks if present
+        if content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        
+        plan_data = json.loads(content)
+        print(f"✅ Generated diversity plan: {plan_data}")
+        return plan_data.get("meals", [])
+        
+    except Exception as e:
+        print(f"Error generating diversity plan: {e}")
+        # Fallback to basic diverse plan
+        basic_proteins = ["chicken", "beef", "fish", "pork", "tofu"]
+        return [
+            {
+                "cuisine": "varied",
+                "protein": basic_proteins[i % len(basic_proteins)],
+                "dish_type": "varied",
+                "vegetable_focus": "seasonal vegetables",
+                "description": f"Diverse meal {i+1}"
+            }
+            for i in range(num_meals)
+        ]
+
+
+async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: str, servings: int = 4, previous_recipes: List[str] = None, diversity_seed: int = 0, language: str = "fr", preferences: dict = None, diversity_blueprint: dict = None) -> Recipe:
     """Generate a single recipe using OpenAI with diversity awareness (async)."""
     
     # Build constraints text
@@ -137,13 +267,33 @@ async def generate_recipe_with_openai(meal_type: str, constraints: dict, units: 
     protein_portions_text += "- Ground meat (beef, pork, chicken): 150-180g per person\n"
     protein_portions_text += "These portions ensure adequate protein intake for a satisfying meal.\n"
     
-    # Build diversity instructions - NO restrictions, maximum creativity
-    diversity_text = "\n\nIMPÉRATIF - DIVERSITÉ MAXIMALE:\n"
-    diversity_text += "- Crée une recette TOTALEMENT UNIQUE et DIFFÉRENTE\n"
-    diversity_text += "- Varie librement: cuisines du monde, protéines, légumes, épices, techniques\n"
-    diversity_text += "- Explore des combinaisons créatives et inattendues\n"
-    diversity_text += "- Chaque recette doit être distincte des autres\n"
-    diversity_text += "- Utilise la créativité maximale sans limitations\n"
+    # Build diversity instructions based on blueprint
+    diversity_text = ""
+    if diversity_blueprint:
+        if language == "en":
+            diversity_text = f"\n\nDIVERSITY BLUEPRINT - MUST FOLLOW:\n"
+            diversity_text += f"- Cuisine style: {diversity_blueprint.get('cuisine', 'varied')}\n"
+            diversity_text += f"- Main protein: {diversity_blueprint.get('protein', 'varied')}\n"
+            diversity_text += f"- Dish type: {diversity_blueprint.get('dish_type', 'varied')}\n"
+            diversity_text += f"- Vegetable focus: {diversity_blueprint.get('vegetable_focus', 'seasonal')}\n"
+            diversity_text += f"- Concept: {diversity_blueprint.get('description', 'creative dish')}\n"
+            diversity_text += "You MUST respect these diversity constraints while creating a delicious recipe.\n"
+        else:
+            diversity_text = f"\n\nPLAN DE DIVERSITÉ - DOIT SUIVRE:\n"
+            diversity_text += f"- Style de cuisine: {diversity_blueprint.get('cuisine', 'varié')}\n"
+            diversity_text += f"- Protéine principale: {diversity_blueprint.get('protein', 'varié')}\n"
+            diversity_text += f"- Type de plat: {diversity_blueprint.get('dish_type', 'varié')}\n"
+            diversity_text += f"- Focus légumes: {diversity_blueprint.get('vegetable_focus', 'de saison')}\n"
+            diversity_text += f"- Concept: {diversity_blueprint.get('description', 'plat créatif')}\n"
+            diversity_text += "Tu DOIS respecter ces contraintes de diversité tout en créant une recette délicieuse.\n"
+    else:
+        # Fallback to general diversity instructions
+        diversity_text = "\n\nIMPÉRATIF - DIVERSITÉ MAXIMALE:\n"
+        diversity_text += "- Crée une recette TOTALEMENT UNIQUE et DIFFÉRENTE\n"
+        diversity_text += "- Varie librement: cuisines du monde, protéines, légumes, épices, techniques\n"
+        diversity_text += "- Explore des combinaisons créatives et inattendues\n"
+        diversity_text += "- Chaque recette doit être distincte des autres\n"
+        diversity_text += "- Utilise la créativité maximale sans limitations\n"
     
     unit_system = "métrique (grammes, ml)" if units == "METRIC" else "impérial (oz, cups)"
     
@@ -310,9 +460,31 @@ IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de prépa
 
 @app.post("/ai/plan", response_model=PlanResponse)
 async def ai_plan(req: PlanRequest):
-    """Generate a meal plan using OpenAI with parallel generation and diversity seeds."""
+    """Generate a meal plan using OpenAI with 2-phase diversity system."""
     
-    # Generate all recipes in parallel with diversity seeds for variety
+    # PHASE 1: Generate diversity blueprint for the entire plan
+    print(f"🎯 Phase 1: Generating diversity blueprint for {len(req.slots)} meals...")
+    diversity_blueprints = await generate_diversity_plan(
+        num_meals=len(req.slots),
+        constraints=req.constraints,
+        language=req.language,
+        preferences=req.preferences
+    )
+    
+    # Ensure we have enough blueprints (fallback if needed)
+    while len(diversity_blueprints) < len(req.slots):
+        diversity_blueprints.append({
+            "cuisine": "varied",
+            "protein": "varied",
+            "dish_type": "varied",
+            "vegetable_focus": "seasonal",
+            "description": "diverse meal"
+        })
+    
+    print(f"✅ Phase 1 complete. Blueprints: {[bp.get('description', 'N/A') for bp in diversity_blueprints]}")
+    
+    # PHASE 2: Generate all recipes in parallel with their specific blueprints
+    print(f"🎯 Phase 2: Generating {len(req.slots)} recipes in parallel with diversity constraints...")
     tasks = [
         generate_recipe_with_openai(
             meal_type=slot.meal_type,
@@ -320,15 +492,17 @@ async def ai_plan(req: PlanRequest):
             units=req.units,
             servings=4,
             previous_recipes=None,
-            diversity_seed=idx,  # Each recipe gets a different seed for variety
+            diversity_seed=idx,
             language=req.language,
-            preferences=req.preferences
+            preferences=req.preferences,
+            diversity_blueprint=diversity_blueprints[idx]  # Pass specific blueprint for this meal
         )
         for idx, slot in enumerate(req.slots)
     ]
     
     # Execute all API calls in parallel
     recipes = await asyncio.gather(*tasks)
+    print(f"✅ Phase 2 complete. Generated {len(recipes)} recipes.")
     
     # Build response
     items = [
