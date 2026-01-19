@@ -81,8 +81,18 @@ class FavoritesViewModel: ObservableObject {
             
             try context.save()
             loadSavedRecipes()
+            
+            // Log to Analytics
+            AnalyticsService.shared.logRecipeFavorited(
+                recipeID: recipe.id.uuidString,
+                recipeTitle: recipe.title
+            )
         } catch {
             print("Error saving recipe: \(error)")
+            CrashlyticsService.shared.logError(error, additionalInfo: [
+                "action": "save_recipe",
+                "recipe_id": recipe.id.uuidString
+            ])
         }
     }
     
@@ -98,8 +108,18 @@ class FavoritesViewModel: ObservableObject {
             }
             try context.save()
             loadSavedRecipes()
+            
+            // Log to Analytics
+            AnalyticsService.shared.logRecipeUnfavorited(
+                recipeID: recipe.id.uuidString,
+                recipeTitle: recipe.title
+            )
         } catch {
             print("Error removing recipe: \(error)")
+            CrashlyticsService.shared.logError(error, additionalInfo: [
+                "action": "remove_recipe",
+                "recipe_id": recipe.id.uuidString
+            ])
         }
     }
     

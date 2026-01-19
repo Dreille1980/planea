@@ -1,7 +1,20 @@
 import SwiftUI
+import FirebaseCore
+import FirebaseCrashlytics
 
 @main
 struct PlaneaApp: App {
+    
+    init() {
+        // Configure Firebase
+        FirebaseApp.configure()
+        
+        // Enable Crashlytics collection
+        #if DEBUG
+        // Disable Crashlytics in debug builds to avoid test crashes
+        // Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(false)
+        #endif
+    }
     @StateObject private var familyVM = FamilyViewModel()
     @StateObject private var planVM = PlanViewModel()
     @StateObject private var recipeVM = RecipeViewModel()
@@ -31,12 +44,44 @@ struct PlaneaApp: App {
                     LocalizationHelper.shared.currentLanguage = appLanguage
                     // Connect UsageViewModel to FavoritesViewModel
                     favoritesVM.setUsageViewModel(usageVM)
+                    
+                    // Log app open to Analytics
+                    AnalyticsService.shared.logAppOpen()
+                    
+                    // Set user properties for Analytics & Crashlytics
+                    setupAnalyticsUserProperties()
                 }
                 .onChange(of: appLanguage) {
                     // Update LocalizationHelper when language changes
                     LocalizationHelper.shared.currentLanguage = appLanguage
+                    
+                    // Update Analytics & Crashlytics
+                    AnalyticsService.shared.setUserProperty(appLanguage, forName: "app_language")
+                    CrashlyticsService.shared.setLanguage(appLanguage)
                 }
         }
+    }
+    
+    // MARK: - Analytics Setup
+    
+    private func setupAnalyticsUserProperties() {
+        // Set language
+        AnalyticsService.shared.setUserProperty(appLanguage, forName: "app_language")
+        CrashlyticsService.shared.setLanguage(appLanguage)
+        
+        // Set unit system
+        AnalyticsService.shared.setUserProperty(unitSystem, forName: "unit_system")
+        CrashlyticsService.shared.setUnitSystem(unitSystem)
+        
+        // Set subscription status
+        let subscriptionStatus = storeManager.hasActiveSubscription ? "subscribed" : "free"
+        AnalyticsService.shared.setUserProperty(subscriptionStatus, forName: "subscription_status")
+        CrashlyticsService.shared.setSubscriptionStatus(subscriptionStatus)
+        
+        // Set family member count
+        let memberCount = familyVM.members.count
+        AnalyticsService.shared.setUserProperty("\(memberCount)", forName: "family_member_count")
+        CrashlyticsService.shared.setFamilyMemberCount(memberCount)
     }
 }
 
@@ -126,6 +171,8 @@ struct RootView: View {
             // Delay showing What's New to avoid conflict with other sheets
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 showWhatsNew = true
+                // Log What's New view
+                AnalyticsService.shared.logWhatsNewViewed(version: targetVersion)
             }
         }
     }

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		218A409C2F1EFAFC0025895A /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 218A409B2F1EFAFC0025895A /* FirebaseAnalytics */; };
+		218A409E2F1EFAFC0025895A /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 218A409D2F1EFAFC0025895A /* FirebaseCrashlytics */; };
+		218A40A02F1EFAFC0025895A /* FirebasePerformance in Frameworks */ = {isa = PBXBuildFile; productRef = 218A409F2F1EFAFC0025895A /* FirebasePerformance */; };
 		21B91CB42EBD72D8001CCA24 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21B91CB32EBD72D8001CCA24 /* WidgetKit.framework */; };
 		21B91CB62EBD72D8001CCA24 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21B91CB52EBD72D8001CCA24 /* SwiftUI.framework */; };
 		21B91CC72EBD72DA001CCA24 /* PleneaWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 21B91CB22EBD72D8001CCA24 /* PleneaWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -88,6 +91,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				218A409E2F1EFAFC0025895A /* FirebaseCrashlytics in Frameworks */,
+				218A409C2F1EFAFC0025895A /* FirebaseAnalytics in Frameworks */,
+				218A40A02F1EFAFC0025895A /* FirebasePerformance in Frameworks */,
 				21D272C42E9F2CFF00B5A329 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -157,6 +163,9 @@
 			);
 			name = Planea;
 			packageProductDependencies = (
+				218A409B2F1EFAFC0025895A /* FirebaseAnalytics */,
+				218A409D2F1EFAFC0025895A /* FirebaseCrashlytics */,
+				218A409F2F1EFAFC0025895A /* FirebasePerformance */,
 			);
 			productName = Planea;
 			productReference = 21463BD82E98922300C17D17 /* Planea.app */;
@@ -212,6 +221,9 @@
 			);
 			mainGroup = 21463BCF2E98922300C17D17;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				218A409A2F1EFAFC0025895A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 21463BD92E98922300C17D17 /* Products */;
 			projectDirPath = "";
@@ -410,7 +422,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dreille.Planea;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -441,7 +453,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dreille.Planea;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -545,6 +557,35 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		218A409A2F1EFAFC0025895A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.8.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		218A409B2F1EFAFC0025895A /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 218A409A2F1EFAFC0025895A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		218A409D2F1EFAFC0025895A /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 218A409A2F1EFAFC0025895A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		218A409F2F1EFAFC0025895A /* FirebasePerformance */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 218A409A2F1EFAFC0025895A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebasePerformance;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 21463BD02E98922300C17D17 /* Project object */;
 }

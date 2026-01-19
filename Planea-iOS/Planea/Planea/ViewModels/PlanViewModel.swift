@@ -47,6 +47,12 @@ final class PlanViewModel: ObservableObject {
         // Record that 1 generation was used (1 plan = 1 generation)
         let usageVM = UsageViewModel()
         usageVM.recordGenerations(count: 1)
+        
+        // Log recipe generation to Analytics
+        AnalyticsService.shared.logRecipeGenerated(
+            type: "plan",
+            recipeCount: plan.items.count
+        )
     }
     
     func activateCurrentPlan(withName name: String? = nil) {
@@ -132,6 +138,12 @@ final class PlanViewModel: ObservableObject {
         // Record that 1 generation was used for adding a meal
         let usageVM = UsageViewModel()
         usageVM.recordGenerations(count: 1)
+        
+        // Log to Analytics
+        AnalyticsService.shared.logRecipeGenerated(
+            type: "plan",
+            recipeCount: 1
+        )
     }
     
     func hasMealInSlot(weekday: Weekday, mealType: MealType) -> Bool {
@@ -166,6 +178,15 @@ final class PlanViewModel: ObservableObject {
         persistence.saveMealPlan(plan)
         
         // Note: We do NOT record usage here - adding favorites is free!
+        
+        // Log to Analytics
+        let weekDateFormatter = DateFormatter()
+        weekDateFormatter.dateFormat = "yyyy-MM-dd"
+        AnalyticsService.shared.logFavoriteAddedToWeek(
+            recipeID: recipe.id.uuidString,
+            recipeTitle: recipe.title,
+            weekDate: weekDateFormatter.string(from: plan.weekStart)
+        )
     }
     
     private func getOrCreateCurrentPlan() -> MealPlan {
