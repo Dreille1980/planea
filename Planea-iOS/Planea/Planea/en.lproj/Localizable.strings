@@ -293,6 +293,25 @@
 "protein.legumes" = "Legumes";
 "protein.eggs" = "Eggs";
 
+// Dietary Preferences
+"diet.vegetarian" = "Vegetarian";
+"diet.vegan" = "Vegan";
+"diet.pescatarian" = "Pescatarian";
+"diet.gluten-free" = "Gluten-free";
+"diet.dairy-free" = "Dairy-free";
+"diet.keto" = "Keto";
+"diet.paleo" = "Paleo";
+
+// Allergens
+"allergen.nuts" = "Nuts";
+"allergen.peanuts" = "Peanuts";
+"allergen.dairy" = "Dairy";
+"allergen.eggs" = "Eggs";
+"allergen.soy" = "Soy";
+"allergen.wheat" = "Wheat";
+"allergen.fish" = "Fish";
+"allergen.shellfish" = "Shellfish";
+
 // Contact & Support
 "settings.support" = "Support & Feedback";
 "settings.contact" = "Contact Us";

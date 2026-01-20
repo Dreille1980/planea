@@ -40,7 +40,7 @@ struct MemberDetailView: View {
             
             Section(header: Text("member.dietaryPreferences".localized)) {
                 ForEach(availableDiets, id: \.self) { diet in
-                    Toggle(diet.capitalized, isOn: Binding(
+                    Toggle("diet.\(diet)".localized, isOn: Binding(
                         get: { selectedDiets.contains(diet) },
                         set: { isOn in
                             if isOn {
@@ -55,7 +55,7 @@ struct MemberDetailView: View {
             
             Section(header: Text("member.allergens".localized)) {
                 ForEach(Self.availableAllergens, id: \.self) { allergen in
-                    Toggle(allergen.capitalized, isOn: Binding(
+                    Toggle("allergen.\(allergen)".localized, isOn: Binding(
                         get: { selectedAllergens.contains(allergen) },
                         set: { isOn in
                             if isOn {
