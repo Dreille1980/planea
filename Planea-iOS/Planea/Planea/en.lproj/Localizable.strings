@@ -72,6 +72,8 @@
 "member.memberName" = "Member name";
 "member.dietaryPreferences" = "Dietary Preferences";
 "member.allergens" = "Allergens";
+"member.customAllergens" = "Custom Allergens";
+"member.addCustomAllergen" = "Add allergen";
 "member.dislikes" = "Dislikes";
 "member.addDislike" = "Add dislike";
 "member.editMember" = "Edit Member";
@@ -401,6 +403,7 @@
 "onboarding.member.title" = "Member Configuration";
 "onboarding.member.diets.footer" = "Select all applicable dietary preferences";
 "onboarding.member.allergens.footer" = "Important to avoid allergic reactions";
+"onboarding.member.customAllergens.footer" = "Add other allergens not listed (e.g., kiwi, sesame)";
 "onboarding.member.dislikes.footer" = "Foods this member doesn't like";
 
 // New Onboarding - Preferences

@@ -11,8 +11,10 @@ struct OnboardingMemberDetailView: View {
     @State private var name: String
     @State private var selectedDiets: Set<String>
     @State private var selectedAllergens: Set<String>
+    @State private var customAllergens: [String]
     @State private var dislikes: [String]
     @State private var newDislike: String = ""
+    @State private var newCustomAllergen: String = ""
     @FocusState private var isTextFieldFocused: Bool
     
     init(member: Member, progress: Binding<OnboardingProgress>, onSave: @escaping () -> Void) {
@@ -21,12 +23,18 @@ struct OnboardingMemberDetailView: View {
         self.onSave = onSave
         _name = State(initialValue: member.displayName)
         _selectedDiets = State(initialValue: Set(member.diets))
-        _selectedAllergens = State(initialValue: Set(member.allergens))
+        
+        // Separate predefined allergens from custom ones
+        let predefinedSet = Set(Self.availableAllergens)
+        let memberAllergens = Set(member.allergens)
+        _selectedAllergens = State(initialValue: memberAllergens.intersection(predefinedSet))
+        _customAllergens = State(initialValue: Array(memberAllergens.subtracting(predefinedSet)))
+        
         _dislikes = State(initialValue: member.dislikes)
     }
     
     let availableDiets = ["vegetarian", "vegan", "pescatarian", "gluten-free", "dairy-free", "keto", "paleo"]
-    let availableAllergens = ["nuts", "peanuts", "dairy", "eggs", "soy", "wheat", "fish", "shellfish"]
+    static let availableAllergens = ["nuts", "peanuts", "dairy", "eggs", "soy", "wheat", "fish", "shellfish"]
     
     var body: some View {
         NavigationStack {
@@ -57,7 +65,7 @@ struct OnboardingMemberDetailView: View {
                 }
                 
                 Section {
-                    ForEach(availableAllergens, id: \.self) { allergen in
+                    ForEach(Self.availableAllergens, id: \.self) { allergen in
                         Toggle(allergen.capitalized, isOn: Binding(
                             get: { selectedAllergens.contains(allergen) },
                             set: { isOn in
@@ -73,6 +81,41 @@ struct OnboardingMemberDetailView: View {
                     Label("member.allergens".localized, systemImage: "exclamationmark.triangle.fill")
                 } footer: {
                     Text("onboarding.member.allergens.footer".localized)
+                        .font(.caption)
+                }
+                
+                Section {
+                    ForEach(customAllergens.indices, id: \.self) { index in
+                        HStack {
+                            Text(customAllergens[index].capitalized)
+                            Spacer()
+                            Button(action: {
+                                customAllergens.remove(at: index)
+                            }) {
+                                Image(systemName: "trash")
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                    }
+                    
+                    HStack {
+                        TextField("member.addCustomAllergen".localized, text: $newCustomAllergen)
+                            .focused($isTextFieldFocused)
+                        Button(action: {
+                            let trimmed = newCustomAllergen.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                            if !trimmed.isEmpty && !customAllergens.contains(trimmed) && !selectedAllergens.contains(trimmed) {
+                                customAllergens.append(trimmed)
+                                newCustomAllergen = ""
+                            }
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                        }
+                        .disabled(newCustomAllergen.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                } header: {
+                    Label("member.customAllergens".localized, systemImage: "plus.circle")
+                } footer: {
+                    Text("onboarding.member.customAllergens.footer".localized)
                         .font(.caption)
                 }
                 
@@ -137,11 +180,14 @@ struct OnboardingMemberDetailView: View {
     }
     
     func saveMember() {
+        // Combine predefined and custom allergens
+        let allAllergens = Array(selectedAllergens) + customAllergens
+        
         familyVM.updateMember(
             id: member.id,
             name: name,
             preferences: Array(selectedDiets),
-            allergens: Array(selectedAllergens),
+            allergens: allAllergens,
             dislikes: dislikes
         )
         
