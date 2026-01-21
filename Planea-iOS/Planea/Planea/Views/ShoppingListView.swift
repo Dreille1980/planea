@@ -57,7 +57,7 @@ struct ShoppingListView: View {
                                     
                                     Spacer()
                                     
-                                    Text("\(converted.quantity, specifier: "%.1f") \(converted.unit)")
+                                    Text(formatQuantity(converted.quantity, unit: converted.unit))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -275,7 +275,8 @@ struct ShoppingListView: View {
             }
             
             let check = item.isChecked ? "✓" : "○"
-            text += "\(check) \(item.name) - \(String(format: "%.1f", item.totalQuantity)) \(item.unit)\n"
+            let quantityText = formatQuantityForExport(item.totalQuantity, unit: item.unit)
+            text += "\(check) \(item.name) - \(quantityText) \(item.unit)\n"
         }
         
         return text
@@ -320,7 +321,8 @@ struct ShoppingListView: View {
                 
                 for item in getSortedItems() where !item.isChecked {
                     let reminder = EKReminder(eventStore: eventStore)
-                    reminder.title = "\(item.name) - \(String(format: "%.1f", item.totalQuantity)) \(item.unit)"
+                    let quantityText = formatQuantityForExport(item.totalQuantity, unit: item.unit)
+                    reminder.title = "\(item.name) - \(quantityText) \(item.unit)"
                     reminder.calendar = calendar
                     reminder.priority = 1
                     
@@ -392,5 +394,41 @@ struct ShoppingListView: View {
             from: .metric,
             to: currentSystem
         )
+    }
+    
+    // MARK: - Quantity Formatting
+    
+    /// Format quantity for display - show integers for count-based units
+    private func formatQuantity(_ quantity: Double, unit: String) -> String {
+        let unitLower = unit.lowercased()
+        
+        // Units that should show as integers (count-based)
+        let countUnits = ["unité", "unités", "unit", "units", "gousse", "gousses", "clove", "cloves", 
+                          "tranche", "tranches", "slice", "slices", "pièce", "pièces", "piece", "pieces"]
+        
+        if countUnits.contains(unitLower) {
+            // Show as integer
+            return "\(Int(round(quantity)))"
+        } else {
+            // Show with one decimal for weight/volume
+            return String(format: "%.1f", quantity)
+        }
+    }
+    
+    /// Format quantity for export - same logic as formatQuantity but returns the quantity part only
+    private func formatQuantityForExport(_ quantity: Double, unit: String) -> String {
+        let unitLower = unit.lowercased()
+        
+        // Units that should show as integers (count-based)
+        let countUnits = ["unité", "unités", "unit", "units", "gousse", "gousses", "clove", "cloves",
+                          "tranche", "tranches", "slice", "slices", "pièce", "pièces", "piece", "pieces"]
+        
+        if countUnits.contains(unitLower) {
+            // Show as integer
+            return "\(Int(round(quantity)))"
+        } else {
+            // Show with one decimal for weight/volume
+            return String(format: "%.1f", quantity)
+        }
     }
 }
