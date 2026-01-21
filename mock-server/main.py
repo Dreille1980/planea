@@ -3192,11 +3192,13 @@ RÈGLES CRITIQUES:
    - Consolider les quantités pour ingrédients utilisés dans plusieurs recettes
    - Ordre: Protéines → Légumes → Féculents → Autres
 
-1. common_preps: Inclure 3 catégories SIMPLIFIÉES - "Cuire", "Laver, couper et portionner", "Préparer / conserver"
+1. common_preps: Inclure 3 catégories - "Cuire", "Laver, couper et portionner", "Préparer / conserver"
    - Format: "Ingredient QUANTITÉ" (ex: "Brocoli 500g", "Oignons 3 unités", "Ail 6 gousses")
-   - MAXIMUM 3-5 items par catégorie (grouper les similaires)
-   - Être GÉNÉRAL: "Légumes 1kg" plutôt que lister chaque légume
+   - TOUJOURS lister les ingrédients de BASE comme riz, quinoa, pâtes (même si 1 seule recette)
+   - Lister TOUS les légumes principaux à laver/couper (2-4 items max par catégorie)
+   - Grouper intelligemment: si 5+ légumes différents → "Légumes variés 1.2kg"
    - TOUJOURS inclure la quantité avec l'unité appropriée (g, ml, unités, gousses, etc.)
+   - Cette section ne doit JAMAIS être vide - toujours au moins 3-6 items au total
 
 2. recipe_preps: OBLIGATOIRE - UNE entrée pour CHAQUE recette (total: {len(recipe_summaries)} entrées)
    - prep_today: Étapes ULTRA-PRÉCISES (8-12 étapes par recette)
