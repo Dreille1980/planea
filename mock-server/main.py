@@ -3108,6 +3108,8 @@ async def generate_today_preparation(kit_recipes: List[dict], language: str = "f
             "total_minutes": recipe.get("total_minutes", 30)
         })
     
+    print(f"  Recipe summaries prepared: {[r['title'] for r in recipe_summaries]}")
+    
     # Create AI prompt
     if language == "fr":
         prompt = f"""Tu es un expert meal prep qui crée des guides de préparation SIMPLES et NARRATIFS.
@@ -3164,14 +3166,22 @@ FORMAT OBLIGATOIRE:
   "total_minutes": 120
 }}
 
+🚨🚨🚨 RÈGLE ABSOLUE - GÉNÉRATION COMPLÈTE 🚨🚨🚨
+
+Tu DOIS générer une entrée dans recipe_preps pour CHAQUE recette listée ci-dessus.
+Si tu as reçu {len(recipe_summaries)} recettes, tu DOIS créer EXACTEMENT {len(recipe_summaries)} entrées dans recipe_preps.
+
 RÈGLES CRITIQUES:
 1. common_preps: Inclure 3 catégories - "Cuire", "Laver, couper et portionner", "Préparer / conserver"
-2. recipe_preps: Ce qu'on fait AUJOURD'HUI pour chaque repas
+2. recipe_preps: OBLIGATOIRE - UNE entrée pour CHAQUE recette (total: {len(recipe_summaries)} entrées)
 3. dont_prep_today: TOUJOURS inclure si une protéine NE doit PAS être cuite (poisson, fruits de mer)
 4. evening_minutes: "Temps soir" - temps de réchauffage/finition (10-25 min)
 5. Emojis: 🐔 poulet, 🥩 boeuf, 🐟 poisson, 🦐 crevettes, 🍝 pâtes, etc.
 6. Sois NARRATIF et simple, pas technique
 7. Total ~2h de préparation
+
+❌ INTERDIT: Omettre des recettes, fusionner des recettes, ou sauter des entrées
+✅ OBLIGATOIRE: {len(recipe_summaries)} entrées dans recipe_preps
 
 Retourne UNIQUEMENT le JSON."""
     

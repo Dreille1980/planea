@@ -368,14 +368,14 @@ struct MealPrepDetailView: View {
                     }
                 }
             }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(UIColor.secondarySystemBackground))
+                    .opacity(isCompleted ? 0.6 : 1.0)
+            )
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(UIColor.secondarySystemBackground))
-                .opacity(isCompleted ? 0.6 : 1.0)
-        )
-        .padding(.horizontal)
+        .padding(.horizontal, 16)
         .animation(.easeInOut(duration: 0.2), value: isCompleted)
     }
     
@@ -457,14 +457,14 @@ struct MealPrepDetailView: View {
                     }
                 }
             }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(UIColor.secondarySystemBackground))
+                    .opacity(isCompleted ? 0.6 : 1.0)
+            )
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(UIColor.secondarySystemBackground))
-                .opacity(isCompleted ? 0.6 : 1.0)
-        )
-        .padding(.horizontal)
+        .padding(.horizontal, 16)
         .animation(.easeInOut(duration: 0.2), value: isCompleted)
     }
     
