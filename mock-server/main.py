@@ -3088,6 +3088,373 @@ Rends les descriptions attrayantes et spécifiques."""
         return {"concepts": fallback}
 
 
+async def generate_today_preparation(kit_recipes: List[dict], language: str = "fr") -> dict:
+    """
+    Generate simplified "Today's Preparation" section in ChatGPT style.
+    Returns common preps + recipe-specific preps with emojis.
+    """
+    
+    print(f"\n📋 Generating TODAY preparation for {len(kit_recipes)} recipes")
+    
+    # Build recipe summaries for AI
+    recipe_summaries = []
+    for idx, recipe_ref in enumerate(kit_recipes):
+        recipe = recipe_ref.get("recipe", {})
+        recipe_summaries.append({
+            "index": idx + 1,
+            "title": recipe.get("title", "Unknown"),
+            "ingredients": recipe.get("ingredients", []),
+            "steps": recipe.get("steps", []),
+            "total_minutes": recipe.get("total_minutes", 30)
+        })
+    
+    # Create AI prompt
+    if language == "fr":
+        prompt = f"""Tu es un expert meal prep qui crée des guides de préparation SIMPLES et NARRATIFS.
+
+RECETTES À PRÉPARER AUJOURD'HUI:
+{json.dumps(recipe_summaries, indent=2, ensure_ascii=False)}
+
+🎯 CRÉE UNE SECTION "CE QUE TU FAIS AUJOURD'HUI" (~2h)
+
+FORMAT OBLIGATOIRE:
+{{
+  "common_preps": [
+    {{
+      "category": "Cuire",
+      "items": ["Quinoa (pour 2 repas)", "Riz blanc ou jasmin (pour 2 repas)"]
+    }},
+    {{
+      "category": "Laver, couper et portionner",
+      "items": ["Brocoli", "Carottes", "Courgettes", "Oignons"]
+    }}
+  ],
+  "recipe_preps": [
+    {{
+      "recipe_name": "Poulet citron & herbes",
+      "emoji": "🐔",
+      "prep_today": [
+        "Mariner le poulet (huile, citron, ail, herbes)",
+        "Rôtir le poulet",
+        "Rôtir les légumes",
+        "Cuire le quinoa",
+        "Conserver séparément au frigo"
+      ],
+      "dont_prep_today": null,
+      "estimated_minutes": 25
+    }},
+    {{
+      "recipe_name": "Saumon érable-soya",
+      "emoji": "🐟",
+      "prep_today": [
+        "Préparer la marinade (érable, soya, ail)",
+        "Couper le brocoli",
+        "Blanchir le brocoli 2 min (optionnel)"
+      ],
+      "dont_prep_today": "⚠️ Ne pas cuire le saumon aujourd'hui (meilleure texture)",
+      "estimated_minutes": 15
+    }}
+  ],
+  "total_minutes": 120
+}}
+
+RÈGLES CRITIQUES:
+1. common_preps: Uniquement les ingrédients de BASE (riz, quinoa, légumes à couper)
+2. recipe_preps: Ce qu'on fait AUJOURD'HUI pour chaque repas
+3. dont_prep_today: TOUJOURS inclure si une protéine NE doit PAS être cuite (poisson, fruits de mer)
+4. Emojis: 🐔 poulet, 🥩 boeuf, 🐟 poisson, 🦐 crevettes, 🍝 pâtes, etc.
+5. Sois NARRATIF et simple, pas technique
+6. Total ~2h de préparation
+
+Retourne UNIQUEMENT le JSON."""
+    
+    else:  # English
+        prompt = f"""You are a meal prep expert creating SIMPLE and NARRATIVE preparation guides.
+
+RECIPES TO PREPARE TODAY:
+{json.dumps(recipe_summaries, indent=2, ensure_ascii=False)}
+
+🎯 CREATE A "WHAT YOU DO TODAY" SECTION (~2h)
+
+REQUIRED FORMAT:
+{{
+  "common_preps": [
+    {{
+      "category": "Cook",
+      "items": ["Quinoa (for 2 meals)", "White or jasmine rice (for 2 meals)"]
+    }},
+    {{
+      "category": "Wash, cut and portion",
+      "items": ["Broccoli", "Carrots", "Zucchini", "Onions"]
+    }}
+  ],
+  "recipe_preps": [
+    {{
+      "recipe_name": "Lemon Herb Chicken",
+      "emoji": "🐔",
+      "prep_today": [
+        "Marinate chicken (oil, lemon, garlic, herbs)",
+        "Roast chicken",
+        "Roast vegetables",
+        "Cook quinoa",
+        "Store separately in fridge"
+      ],
+      "dont_prep_today": null,
+      "estimated_minutes": 25
+    }},
+    {{
+      "recipe_name": "Maple Soy Salmon",
+      "emoji": "🐟",
+      "prep_today": [
+        "Prepare marinade (maple, soy, garlic)",
+        "Cut broccoli",
+        "Blanch broccoli 2 min (optional)"
+      ],
+      "dont_prep_today": "⚠️ Don't cook salmon today (better texture)",
+      "estimated_minutes": 15
+    }}
+  ],
+  "total_minutes": 120
+}}
+
+CRITICAL RULES:
+1. common_preps: Only BASE ingredients (rice, quinoa, vegetables to cut)
+2. recipe_preps: What we do TODAY for each meal
+3. dont_prep_today: ALWAYS include if protein should NOT be cooked (fish, seafood)
+4. Emojis: 🐔 chicken, 🥩 beef, 🐟 fish, 🦐 shrimp, 🍝 pasta, etc.
+5. Be NARRATIVE and simple, not technical
+6. Total ~2h preparation
+
+Return ONLY the JSON."""
+    
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Tu es un expert meal prep qui crée des guides simples et narratifs."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=2000
+        )
+        
+        content = response.choices[0].message.content.strip()
+        
+        # Extract JSON
+        if "```json" in content:
+            parts = content.split("```json")
+            if len(parts) > 1:
+                json_part = parts[1].split("```")[0]
+                content = json_part.strip()
+        elif content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        
+        start_idx = content.find('{')
+        end_idx = content.rfind('}')
+        if start_idx != -1 and end_idx != -1:
+            content = content[start_idx:end_idx+1]
+        
+        today_data = json.loads(content)
+        
+        # Generate UUIDs for all items
+        for common_prep in today_data.get("common_preps", []):
+            if "id" not in common_prep:
+                common_prep["id"] = str(uuid.uuid4())
+        
+        for recipe_prep in today_data.get("recipe_preps", []):
+            if "id" not in recipe_prep:
+                recipe_prep["id"] = str(uuid.uuid4())
+        
+        print(f"  ✅ Today preparation generated:")
+        print(f"     Common preps: {len(today_data.get('common_preps', []))} categories")
+        print(f"     Recipe preps: {len(today_data.get('recipe_preps', []))} recipes")
+        print(f"     Total time: {today_data.get('total_minutes', 0)} min")
+        
+        return today_data
+        
+    except Exception as e:
+        print(f"  ❌ Error generating today preparation: {e}")
+        # Fallback
+        return {
+            "common_preps": [],
+            "recipe_preps": [],
+            "total_minutes": 120
+        }
+
+
+async def generate_weekly_reheating(kit_recipes: List[dict], days: List[str], meals: List[str], language: str = "fr") -> dict:
+    """
+    Generate simplified "Weekly Reheating" section in ChatGPT style.
+    Returns what to do each evening (10-25 min per evening).
+    """
+    
+    print(f"\n📅 Generating WEEKLY reheating for {len(days)} days")
+    
+    # Build recipe summaries with day assignments
+    recipe_summaries = []
+    for idx, recipe_ref in enumerate(kit_recipes):
+        recipe = recipe_ref.get("recipe", {})
+        day_idx = idx // len(meals)
+        target_day = days[day_idx] if day_idx < len(days) else days[0]
+        
+        recipe_summaries.append({
+            "day_number": day_idx + 1,
+            "day": target_day,
+            "recipe_name": recipe.get("title", "Unknown"),
+            "ingredients": recipe.get("ingredients", []),
+            "storage_note": recipe_ref.get("storage_note", "")
+        })
+    
+    # Create AI prompt
+    if language == "fr":
+        prompt = f"""Tu es un expert meal prep qui crée des guides de réchauffage SIMPLES.
+
+RECETTES PRÉPARÉES + JOURS:
+{json.dumps(recipe_summaries, indent=2, ensure_ascii=False)}
+
+🎯 CRÉE LA SECTION "CE QUI RESTE À FAIRE CHAQUE SOIR"
+
+FORMAT OBLIGATOIRE:
+{{
+  "days": [
+    {{
+      "day_number": 1,
+      "day_label": "Soir 1",
+      "recipe_name": "Poulet citron",
+      "emoji": "🐔",
+      "steps": [
+        "Réchauffer poulet + légumes au four ou poêle",
+        "Réchauffer le quinoa"
+      ],
+      "estimated_minutes": 12
+    }},
+    {{
+      "day_number": 3,
+      "day_label": "Soir 3",
+      "recipe_name": "Saumon",
+      "emoji": "🐟",
+      "steps": [
+        "Cuire le saumon (four ou poêle)",
+        "Réchauffer le brocoli",
+        "Ajouter riz ou quinoa"
+      ],
+      "estimated_minutes": 18
+    }}
+  ]
+}}
+
+RÈGLES CRITIQUES:
+1. UN soir par recette (Soir 1, Soir 2, Soir 3, Soir 4)
+2. Emojis: 🐔 poulet, 🥩 boeuf, 🐟 poisson, 🦐 crevettes, 🍝 pâtes
+3. Étapes SIMPLES: "Réchauffer X", "Cuire Y", "Ajouter Z"
+4. 10-25 min par soir MAX
+5. Si protéine non cuite (poisson), inclure "Cuire le..."
+6. Toujours finir par "✔️ Fini en X-Y min" dans le récit
+
+Retourne UNIQUEMENT le JSON."""
+    
+    else:  # English
+        prompt = f"""You are a meal prep expert creating SIMPLE reheating guides.
+
+PREPARED RECIPES + DAYS:
+{json.dumps(recipe_summaries, indent=2, ensure_ascii=False)}
+
+🎯 CREATE THE "WHAT TO DO EACH EVENING" SECTION
+
+REQUIRED FORMAT:
+{{
+  "days": [
+    {{
+      "day_number": 1,
+      "day_label": "Evening 1",
+      "recipe_name": "Lemon Chicken",
+      "emoji": "🐔",
+      "steps": [
+        "Reheat chicken + vegetables in oven or pan",
+        "Reheat quinoa"
+      ],
+      "estimated_minutes": 12
+    }},
+    {{
+      "day_number": 3,
+      "day_label": "Evening 3",
+      "recipe_name": "Salmon",
+      "emoji": "🐟",
+      "steps": [
+        "Cook salmon (oven or pan)",
+        "Reheat broccoli",
+        "Add rice or quinoa"
+      ],
+      "estimated_minutes": 18
+    }}
+  ]
+}}
+
+CRITICAL RULES:
+1. ONE evening per recipe (Evening 1, Evening 2, Evening 3, Evening 4)
+2. Emojis: 🐔 chicken, 🥩 beef, 🐟 fish, 🦐 shrimp, 🍝 pasta
+3. SIMPLE steps: "Reheat X", "Cook Y", "Add Z"
+4. 10-25 min per evening MAX
+5. If protein not cooked (fish), include "Cook the..."
+6. Always end with "✔️ Done in X-Y min" in narrative
+
+Return ONLY the JSON."""
+    
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Tu es un expert meal prep qui crée des guides simples de réchauffage."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=1500
+        )
+        
+        content = response.choices[0].message.content.strip()
+        
+        # Extract JSON
+        if "```json" in content:
+            parts = content.split("```json")
+            if len(parts) > 1:
+                json_part = parts[1].split("```")[0]
+                content = json_part.strip()
+        elif content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        
+        start_idx = content.find('{')
+        end_idx = content.rfind('}')
+        if start_idx != -1 and end_idx != -1:
+            content = content[start_idx:end_idx+1]
+        
+        weekly_data = json.loads(content)
+        
+        # Generate UUIDs for all days
+        for day in weekly_data.get("days", []):
+            if "id" not in day:
+                day["id"] = str(uuid.uuid4())
+        
+        print(f"  ✅ Weekly reheating generated:")
+        print(f"     Days: {len(weekly_data.get('days', []))}")
+        for day in weekly_data.get("days", []):
+            print(f"       {day.get('day_label')}: {day.get('recipe_name')} ({day.get('estimated_minutes')}min)")
+        
+        return weekly_data
+        
+    except Exception as e:
+        print(f"  ❌ Error generating weekly reheating: {e}")
+        # Fallback
+        return {
+            "days": []
+        }
+
+
 async def generate_cooking_phases(kit_recipes: List[dict], language: str = "fr") -> dict:
     """
     Generate structured cooking phases using OpenAI for intelligent orchestration.
@@ -3806,9 +4173,14 @@ async def generate_meal_prep_kits(req: dict):
     grouped_prep_steps = group_preparation_steps(kit_recipes, language)
     print(f"  ✅ Generated {len(grouped_prep_steps)} grouped prep steps")
     
-    # Generate cooking phases with AI
+    # Generate cooking phases with AI (DEPRECATED - keeping for backward compatibility)
     print(f"\n⚡ Generating cooking phases with AI...")
     cooking_phases = await generate_cooking_phases(kit_recipes, language)
+    
+    # NEW: Generate simplified ChatGPT-style structure
+    print(f"\n✨ Generating simplified meal prep structure (ChatGPT style)...")
+    today_preparation = await generate_today_preparation(kit_recipes, language)
+    weekly_reheating = await generate_weekly_reheating(kit_recipes, days, meals, language)
     
     # Create kit
     if language == "fr":
@@ -3826,13 +4198,17 @@ async def generate_meal_prep_kits(req: dict):
         "estimated_prep_minutes": total_prep_minutes,
         "recipes": kit_recipes,
         "grouped_prep_steps": grouped_prep_steps,
-        "cooking_phases": cooking_phases,  # NEW: Add cooking phases with 4 structured phases
+        "cooking_phases": cooking_phases,  # DEPRECATED: keeping for backward compatibility
+        "today_preparation": today_preparation,  # NEW: Simplified structure
+        "weekly_reheating": weekly_reheating,    # NEW: Simplified structure
         "created_at": datetime.now().isoformat()
     }
     
     print(f"\n✅ Kit created: {len(kit_recipes)} recipes, {total_portions} portions, {total_prep_minutes} min")
     print(f"   Grouped steps: {len(grouped_prep_steps)} action groups")
-    print(f"   Cooking phases generated: 4 phases (Cook, Assemble, Cool down, Store)")
+    print(f"   Cooking phases: 4 phases (DEPRECATED)")
+    print(f"   Today preparation: {len(today_preparation.get('common_preps', []))} common + {len(today_preparation.get('recipe_preps', []))} recipes")
+    print(f"   Weekly reheating: {len(weekly_reheating.get('days', []))} days")
     
     # Return single kit in kits array for backward compatibility
     return {"kits": [kit]}

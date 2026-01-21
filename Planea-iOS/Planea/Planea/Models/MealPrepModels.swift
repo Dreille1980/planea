@@ -214,7 +214,12 @@ struct MealPrepKit: Identifiable, Codable {
     let recipes: [MealPrepRecipeRef]
     let groupedPrepSteps: [GroupedPrepStep]?
     let optimizedRecipeSteps: [OptimizedRecipeStep]? // DEPRECATED
-    let cookingPhases: CookingPhasesSet? // NEW: Structured cooking phases
+    let cookingPhases: CookingPhasesSet? // DEPRECATED
+    
+    // NEW: Simplified ChatGPT-style structure
+    let todayPreparation: TodayPreparation?
+    let weeklyReheating: WeeklyReheating?
+    
     let createdAt: Date
     
     enum CodingKeys: String, CodingKey {
@@ -227,10 +232,12 @@ struct MealPrepKit: Identifiable, Codable {
         case groupedPrepSteps = "grouped_prep_steps"
         case optimizedRecipeSteps = "optimized_recipe_steps"
         case cookingPhases = "cooking_phases"
+        case todayPreparation = "today_preparation"
+        case weeklyReheating = "weekly_reheating"
         case createdAt = "created_at"
     }
     
-    init(id: UUID = UUID(), name: String, description: String? = nil, totalPortions: Int, estimatedPrepMinutes: Int, recipes: [MealPrepRecipeRef], groupedPrepSteps: [GroupedPrepStep]? = nil, optimizedRecipeSteps: [OptimizedRecipeStep]? = nil, cookingPhases: CookingPhasesSet? = nil, createdAt: Date = Date()) {
+    init(id: UUID = UUID(), name: String, description: String? = nil, totalPortions: Int, estimatedPrepMinutes: Int, recipes: [MealPrepRecipeRef], groupedPrepSteps: [GroupedPrepStep]? = nil, optimizedRecipeSteps: [OptimizedRecipeStep]? = nil, cookingPhases: CookingPhasesSet? = nil, todayPreparation: TodayPreparation? = nil, weeklyReheating: WeeklyReheating? = nil, createdAt: Date = Date()) {
         self.id = id
         self.name = name
         self.description = description
@@ -240,6 +247,8 @@ struct MealPrepKit: Identifiable, Codable {
         self.groupedPrepSteps = groupedPrepSteps
         self.optimizedRecipeSteps = optimizedRecipeSteps
         self.cookingPhases = cookingPhases
+        self.todayPreparation = todayPreparation
+        self.weeklyReheating = weeklyReheating
         self.createdAt = createdAt
     }
     
@@ -256,6 +265,10 @@ struct MealPrepKit: Identifiable, Codable {
         groupedPrepSteps = try container.decodeIfPresent([GroupedPrepStep].self, forKey: .groupedPrepSteps)
         optimizedRecipeSteps = try container.decodeIfPresent([OptimizedRecipeStep].self, forKey: .optimizedRecipeSteps)
         cookingPhases = try container.decodeIfPresent(CookingPhasesSet.self, forKey: .cookingPhases)
+        
+        // NEW: Simplified structure
+        todayPreparation = try container.decodeIfPresent(TodayPreparation.self, forKey: .todayPreparation)
+        weeklyReheating = try container.decodeIfPresent(WeeklyReheating.self, forKey: .weeklyReheating)
         
         // Try to decode created_at as ISO string first, then fall back to Date
         if let dateString = try? container.decode(String.self, forKey: .createdAt) {
@@ -369,6 +382,154 @@ struct PrepIngredient: Identifiable, Codable {
         self.recipeTitle = recipeTitle
         self.recipeId = recipeId
         self.usage = usage
+    }
+}
+
+// MARK: - NEW SIMPLIFIED STRUCTURE (ChatGPT-style)
+
+/// Structure pour "CE QUE TU FAIS AUJOURD'HUI"
+struct TodayPreparation: Codable {
+    let commonPreps: [CommonPrepStep]
+    let recipePreps: [RecipePrep]
+    let totalMinutes: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case commonPreps = "common_preps"
+        case recipePreps = "recipe_preps"
+        case totalMinutes = "total_minutes"
+    }
+    
+    init(commonPreps: [CommonPrepStep], recipePreps: [RecipePrep], totalMinutes: Int) {
+        self.commonPreps = commonPreps
+        self.recipePreps = recipePreps
+        self.totalMinutes = totalMinutes
+    }
+}
+
+/// Préparations communes (cuire riz, quinoa, etc.)
+struct CommonPrepStep: Identifiable, Codable {
+    let id: UUID
+    let category: String  // "Cuire", "Laver, couper et portionner", etc.
+    let items: [String]   // ["Quinoa (pour 2 repas)", "Riz blanc"]
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case category
+        case items
+    }
+    
+    init(id: UUID = UUID(), category: String, items: [String]) {
+        self.id = id
+        self.category = category
+        self.items = items
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let decodedId = try? container.decode(UUID.self, forKey: .id) {
+            id = decodedId
+        } else {
+            id = UUID()
+        }
+        category = try container.decode(String.self, forKey: .category)
+        items = try container.decode([String].self, forKey: .items)
+    }
+}
+
+/// Préparation par repas
+struct RecipePrep: Identifiable, Codable {
+    let id: UUID
+    let recipeName: String
+    let emoji: String
+    let prepToday: [String]        // Ce qu'on fait aujourd'hui
+    let dontPrepToday: String?     // ⚠️ Note importante (ex: "Ne pas cuire le saumon")
+    let estimatedMinutes: Int?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case recipeName = "recipe_name"
+        case emoji
+        case prepToday = "prep_today"
+        case dontPrepToday = "dont_prep_today"
+        case estimatedMinutes = "estimated_minutes"
+    }
+    
+    init(id: UUID = UUID(), recipeName: String, emoji: String, prepToday: [String], dontPrepToday: String? = nil, estimatedMinutes: Int? = nil) {
+        self.id = id
+        self.recipeName = recipeName
+        self.emoji = emoji
+        self.prepToday = prepToday
+        self.dontPrepToday = dontPrepToday
+        self.estimatedMinutes = estimatedMinutes
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let decodedId = try? container.decode(UUID.self, forKey: .id) {
+            id = decodedId
+        } else {
+            id = UUID()
+        }
+        recipeName = try container.decode(String.self, forKey: .recipeName)
+        emoji = try container.decode(String.self, forKey: .emoji)
+        prepToday = try container.decode([String].self, forKey: .prepToday)
+        dontPrepToday = try container.decodeIfPresent(String.self, forKey: .dontPrepToday)
+        estimatedMinutes = try container.decodeIfPresent(Int.self, forKey: .estimatedMinutes)
+    }
+}
+
+/// Structure pour "CE QUI RESTE À FAIRE CHAQUE SOIR"
+struct WeeklyReheating: Codable {
+    let days: [DailyReheating]
+    
+    init(days: [DailyReheating]) {
+        self.days = days
+    }
+}
+
+/// Réchauffage quotidien
+struct DailyReheating: Identifiable, Codable {
+    let id: UUID
+    let dayNumber: Int
+    let dayLabel: String  // "Soir 1", "Soir 2"
+    let recipeName: String
+    let emoji: String
+    let steps: [String]
+    let estimatedMinutes: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case dayNumber = "day_number"
+        case dayLabel = "day_label"
+        case recipeName = "recipe_name"
+        case emoji
+        case steps
+        case estimatedMinutes = "estimated_minutes"
+    }
+    
+    init(id: UUID = UUID(), dayNumber: Int, dayLabel: String, recipeName: String, emoji: String, steps: [String], estimatedMinutes: Int) {
+        self.id = id
+        self.dayNumber = dayNumber
+        self.dayLabel = dayLabel
+        self.recipeName = recipeName
+        self.emoji = emoji
+        self.steps = steps
+        self.estimatedMinutes = estimatedMinutes
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let decodedId = try? container.decode(UUID.self, forKey: .id) {
+            id = decodedId
+        } else {
+            id = UUID()
+        }
+        dayNumber = try container.decode(Int.self, forKey: .dayNumber)
+        dayLabel = try container.decode(String.self, forKey: .dayLabel)
+        recipeName = try container.decode(String.self, forKey: .recipeName)
+        emoji = try container.decode(String.self, forKey: .emoji)
+        steps = try container.decode([String].self, forKey: .steps)
+        estimatedMinutes = try container.decode(Int.self, forKey: .estimatedMinutes)
     }
 }
 
