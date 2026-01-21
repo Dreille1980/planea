@@ -3357,7 +3357,30 @@ Return ONLY the JSON."""
         if start_idx != -1 and end_idx != -1:
             content = content[start_idx:end_idx+1]
         
-        today_data = json.loads(content)
+        # Try to parse JSON with error recovery
+        try:
+            today_data = json.loads(content)
+        except json.JSONDecodeError as e:
+            print(f"  ⚠️ JSON parsing error: {e}")
+            print(f"  📄 Problematic JSON (first 500 chars): {content[:500]}")
+            print(f"  📄 Problematic JSON (last 500 chars): {content[-500:]}")
+            
+            # Try to fix common JSON errors
+            import re
+            # Remove trailing commas before ] or }
+            content = re.sub(r',(\s*[}\]])', r'\1', content)
+            # Try again
+            try:
+                today_data = json.loads(content)
+                print(f"  ✅ JSON fixed with trailing comma removal")
+            except:
+                # Last resort: return empty structure
+                print(f"  ❌ Could not fix JSON, returning empty structure")
+                return {
+                    "common_preps": [],
+                    "recipe_preps": [],
+                    "total_minutes": 120
+                }
         
         # CRITICAL DEBUG: Log what AI returned
         print(f"\n🔍 DEBUG - AI Response:")
