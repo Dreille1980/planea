@@ -719,3 +719,16 @@
 "whats_new.v1.2.1.feature2" = "Inscription des Macros et calories dans le détail des recettes";
 "whats_new.v1.2.1.feature3" = "Ajouter une recette préférée dans le plan d'une semaine";
 "whats_new.v1.2.1.feature4" = "Amélioration de l'ajout d'une recette dans le plan de la semaine";
+
+// Meal Prep Detail - NEW Simplified Structure
+"meal_prep.detail.today_tab" = "Aujourd'hui";
+"meal_prep.detail.weekly_tab" = "Cette semaine";
+"meal_prep.detail.today_title" = "Ce que tu fais aujourd'hui";
+"meal_prep.detail.common_preps_title" = "Préparations communes";
+"meal_prep.detail.recipe_preps_title" = "Préparations par recette";
+"meal_prep.detail.no_today_prep" = "Aucune préparation disponible pour aujourd'hui";
+"meal_prep.detail.sections_completed" = "sections complétées";
+"meal_prep.detail.weekly_title" = "Ce qui reste à faire chaque soir";
+"meal_prep.detail.weekly_subtitle" = "Réchauffage et finition rapide pour chaque repas";
+"meal_prep.detail.no_weekly_reheating" = "Aucune instruction de réchauffage disponible";
+"meal_prep.detail.days_completed" = "jours complétés";

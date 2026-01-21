@@ -3127,6 +3127,10 @@ FORMAT OBLIGATOIRE:
     {{
       "category": "Laver, couper et portionner",
       "items": ["Brocoli", "Carottes", "Courgettes", "Oignons"]
+    }},
+    {{
+      "category": "Préparer / conserver",
+      "items": ["Ail haché", "Oignons émincés"]
     }}
   ],
   "recipe_preps": [
@@ -3138,10 +3142,11 @@ FORMAT OBLIGATOIRE:
         "Rôtir le poulet",
         "Rôtir les légumes",
         "Cuire le quinoa",
-        "Conserver séparément au frigo"
+        "Tout conserver séparément au frigo"
       ],
       "dont_prep_today": null,
-      "estimated_minutes": 25
+      "estimated_minutes": 25,
+      "evening_minutes": 12
     }},
     {{
       "recipe_name": "Saumon érable-soya",
@@ -3149,22 +3154,24 @@ FORMAT OBLIGATOIRE:
       "prep_today": [
         "Préparer la marinade (érable, soya, ail)",
         "Couper le brocoli",
-        "Blanchir le brocoli 2 min (optionnel)"
+        "(Optionnel) blanchir le brocoli 2 min"
       ],
       "dont_prep_today": "⚠️ Ne pas cuire le saumon aujourd'hui (meilleure texture)",
-      "estimated_minutes": 15
+      "estimated_minutes": 15,
+      "evening_minutes": 18
     }}
   ],
   "total_minutes": 120
 }}
 
 RÈGLES CRITIQUES:
-1. common_preps: Uniquement les ingrédients de BASE (riz, quinoa, légumes à couper)
+1. common_preps: Inclure 3 catégories - "Cuire", "Laver, couper et portionner", "Préparer / conserver"
 2. recipe_preps: Ce qu'on fait AUJOURD'HUI pour chaque repas
 3. dont_prep_today: TOUJOURS inclure si une protéine NE doit PAS être cuite (poisson, fruits de mer)
-4. Emojis: 🐔 poulet, 🥩 boeuf, 🐟 poisson, 🦐 crevettes, 🍝 pâtes, etc.
-5. Sois NARRATIF et simple, pas technique
-6. Total ~2h de préparation
+4. evening_minutes: "Temps soir" - temps de réchauffage/finition (10-25 min)
+5. Emojis: 🐔 poulet, 🥩 boeuf, 🐟 poisson, 🦐 crevettes, 🍝 pâtes, etc.
+6. Sois NARRATIF et simple, pas technique
+7. Total ~2h de préparation
 
 Retourne UNIQUEMENT le JSON."""
     

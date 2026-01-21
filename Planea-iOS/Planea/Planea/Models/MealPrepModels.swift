@@ -443,7 +443,8 @@ struct RecipePrep: Identifiable, Codable {
     let emoji: String
     let prepToday: [String]        // Ce qu'on fait aujourd'hui
     let dontPrepToday: String?     // ⚠️ Note importante (ex: "Ne pas cuire le saumon")
-    let estimatedMinutes: Int?
+    let estimatedMinutes: Int?     // Temps de préparation aujourd'hui
+    let eveningMinutes: Int?       // "Temps soir" - temps de réchauffage/finition
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -452,15 +453,17 @@ struct RecipePrep: Identifiable, Codable {
         case prepToday = "prep_today"
         case dontPrepToday = "dont_prep_today"
         case estimatedMinutes = "estimated_minutes"
+        case eveningMinutes = "evening_minutes"
     }
     
-    init(id: UUID = UUID(), recipeName: String, emoji: String, prepToday: [String], dontPrepToday: String? = nil, estimatedMinutes: Int? = nil) {
+    init(id: UUID = UUID(), recipeName: String, emoji: String, prepToday: [String], dontPrepToday: String? = nil, estimatedMinutes: Int? = nil, eveningMinutes: Int? = nil) {
         self.id = id
         self.recipeName = recipeName
         self.emoji = emoji
         self.prepToday = prepToday
         self.dontPrepToday = dontPrepToday
         self.estimatedMinutes = estimatedMinutes
+        self.eveningMinutes = eveningMinutes
     }
     
     init(from decoder: Decoder) throws {
@@ -475,6 +478,7 @@ struct RecipePrep: Identifiable, Codable {
         prepToday = try container.decode([String].self, forKey: .prepToday)
         dontPrepToday = try container.decodeIfPresent(String.self, forKey: .dontPrepToday)
         estimatedMinutes = try container.decodeIfPresent(Int.self, forKey: .estimatedMinutes)
+        eveningMinutes = try container.decodeIfPresent(Int.self, forKey: .eveningMinutes)
     }
 }
 
