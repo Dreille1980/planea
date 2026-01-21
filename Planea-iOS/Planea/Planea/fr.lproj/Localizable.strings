@@ -732,3 +732,5 @@
 "meal_prep.detail.weekly_subtitle" = "Réchauffage et finition rapide pour chaque repas";
 "meal_prep.detail.no_weekly_reheating" = "Aucune instruction de réchauffage disponible";
 "meal_prep.detail.days_completed" = "jours complétés";
+"meal_prep.detail.shopping_list_title" = "Liste d'ingrédients à acheter";
+"meal_prep.detail.shopping_list_header" = "Ingrédients à avoir";

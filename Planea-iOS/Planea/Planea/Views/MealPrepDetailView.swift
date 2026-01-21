@@ -241,6 +241,17 @@ struct MealPrepDetailView: View {
                     // Progress bar
                     todayProgressBar(todayPrep: todayPrep)
                     
+                    // Consolidated Ingredients Section (NEW - BEFORE common preps)
+                    if let consolidatedIngredients = todayPrep.consolidatedIngredients, !consolidatedIngredients.isEmpty {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text(LocalizedStringKey("meal_prep.detail.shopping_list_title"))
+                                .font(.headline)
+                                .padding(.horizontal)
+                            
+                            consolidatedIngredientsCard(consolidatedIngredients)
+                        }
+                    }
+                    
                     // Common Preparations Section
                     if !todayPrep.commonPreps.isEmpty {
                         VStack(alignment: .leading, spacing: 16) {
@@ -466,6 +477,54 @@ struct MealPrepDetailView: View {
         }
         .padding(.horizontal, 16)
         .animation(.easeInOut(duration: 0.2), value: isCompleted)
+    }
+    
+    // Consolidated Ingredients Card (NEW)
+    private func consolidatedIngredientsCard(_ ingredients: [ConsolidatedIngredient]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                // Icon
+                Image(systemName: "cart.fill")
+                    .font(.title2)
+                    .foregroundColor(.accentColor)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    // Header
+                    Text(LocalizedStringKey("meal_prep.detail.shopping_list_header"))
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    // Ingredients grid
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 8) {
+                        ForEach(ingredients) { ingredient in
+                            HStack(alignment: .top, spacing: 6) {
+                                Circle()
+                                    .fill(Color.accentColor.opacity(0.3))
+                                    .frame(width: 6, height: 6)
+                                    .padding(.top, 6)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(ingredient.name)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.primary)
+                                    
+                                    Text(ingredient.quantity)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(UIColor.secondarySystemBackground))
+            )
+        }
+        .padding(.horizontal, 16)
     }
     
     // MARK: - WEEKLY REHEATING Tab (Nouveau format simplifié)
