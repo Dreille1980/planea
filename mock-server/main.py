@@ -3121,6 +3121,13 @@ RECETTES À PRÉPARER AUJOURD'HUI:
 
 FORMAT OBLIGATOIRE:
 {{
+  "consolidated_ingredients": [
+    {{"name": "Brocoli", "quantity": "500g"}},
+    {{"name": "Poulet (poitrines)", "quantity": "800g"}},
+    {{"name": "Riz blanc", "quantity": "400g"}},
+    {{"name": "Ail", "quantity": "8 gousses"}},
+    {{"name": "Oignons", "quantity": "3 unités"}}
+  ],
   "common_preps": [
     {{
       "category": "Cuire",
@@ -3172,6 +3179,11 @@ Tu DOIS générer une entrée dans recipe_preps pour CHAQUE recette listée ci-d
 Si tu as reçu {len(recipe_summaries)} recettes, tu DOIS créer EXACTEMENT {len(recipe_summaries)} entrées dans recipe_preps.
 
 RÈGLES CRITIQUES:
+0. consolidated_ingredients: Liste COMPLÈTE de TOUS les ingrédients nécessaires avec quantités
+   - Format: {{"name": "Nom ingrédient", "quantity": "XXXg/ml/unités"}}
+   - Consolider les quantités pour ingrédients utilisés dans plusieurs recettes
+   - Ordre: Protéines → Légumes → Féculents → Autres
+
 1. common_preps: Inclure 3 catégories avec QUANTITÉS - "Cuire", "Laver, couper et portionner", "Préparer / conserver"
    - Format: "Ingredient QUANTITÉ" (ex: "Brocoli 500g", "Oignons 3 unités", "Ail 6 gousses")
    - TOUJOURS inclure la quantité avec l'unité appropriée (g, ml, unités, gousses, etc.)

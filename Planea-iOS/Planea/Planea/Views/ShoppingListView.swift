@@ -57,7 +57,7 @@ struct ShoppingListView: View {
                                     
                                     Spacer()
                                     
-                                    Text(formatQuantity(converted.quantity, unit: converted.unit))
+                                    Text(formatQuantityWithUnit(converted.quantity, unit: converted.unit))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -398,8 +398,8 @@ struct ShoppingListView: View {
     
     // MARK: - Quantity Formatting
     
-    /// Format quantity for display - show integers for count-based units
-    private func formatQuantity(_ quantity: Double, unit: String) -> String {
+    /// Format quantity WITH unit for display - always show the unit
+    private func formatQuantityWithUnit(_ quantity: Double, unit: String) -> String {
         let unitLower = unit.lowercased()
         
         // Units that should show as integers (count-based)
@@ -407,11 +407,11 @@ struct ShoppingListView: View {
                           "tranche", "tranches", "slice", "slices", "pièce", "pièces", "piece", "pieces"]
         
         if countUnits.contains(unitLower) {
-            // Show as integer
-            return "\(Int(round(quantity)))"
+            // Show as integer with unit
+            return "\(Int(round(quantity))) \(unit)"
         } else {
-            // Show with one decimal for weight/volume
-            return String(format: "%.1f", quantity)
+            // Show with one decimal and unit for weight/volume
+            return String(format: "%.1f", quantity) + " \(unit)"
         }
     }
     

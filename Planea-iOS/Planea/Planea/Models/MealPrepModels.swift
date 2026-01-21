@@ -389,20 +389,53 @@ struct PrepIngredient: Identifiable, Codable {
 
 /// Structure pour "CE QUE TU FAIS AUJOURD'HUI"
 struct TodayPreparation: Codable {
+    let consolidatedIngredients: [ConsolidatedIngredient]?  // NEW: Liste consolidée
     let commonPreps: [CommonPrepStep]
     let recipePreps: [RecipePrep]
     let totalMinutes: Int
     
     enum CodingKeys: String, CodingKey {
+        case consolidatedIngredients = "consolidated_ingredients"
         case commonPreps = "common_preps"
         case recipePreps = "recipe_preps"
         case totalMinutes = "total_minutes"
     }
     
-    init(commonPreps: [CommonPrepStep], recipePreps: [RecipePrep], totalMinutes: Int) {
+    init(consolidatedIngredients: [ConsolidatedIngredient]? = nil, commonPreps: [CommonPrepStep], recipePreps: [RecipePrep], totalMinutes: Int) {
+        self.consolidatedIngredients = consolidatedIngredients
         self.commonPreps = commonPreps
         self.recipePreps = recipePreps
         self.totalMinutes = totalMinutes
+    }
+}
+
+/// Ingrédient consolidé (liste complète pour faire l'épicerie)
+struct ConsolidatedIngredient: Identifiable, Codable {
+    let id: UUID
+    let name: String
+    let quantity: String  // "500g", "3 unités", etc.
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case quantity
+    }
+    
+    init(id: UUID = UUID(), name: String, quantity: String) {
+        self.id = id
+        self.name = name
+        self.quantity = quantity
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let decodedId = try? container.decode(UUID.self, forKey: .id) {
+            id = decodedId
+        } else {
+            id = UUID()
+        }
+        name = try container.decode(String.self, forKey: .name)
+        quantity = try container.decode(String.self, forKey: .quantity)
     }
 }
 
