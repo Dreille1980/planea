@@ -3359,6 +3359,13 @@ Return ONLY the JSON."""
         
         today_data = json.loads(content)
         
+        # CRITICAL DEBUG: Log what AI returned
+        print(f"\n🔍 DEBUG - AI Response:")
+        print(f"  Keys in response: {list(today_data.keys())}")
+        print(f"  common_preps: {today_data.get('common_preps', 'MISSING')}")
+        print(f"  recipe_preps: {today_data.get('recipe_preps', 'MISSING')}")
+        print(f"  consolidated_ingredients: {today_data.get('consolidated_ingredients', 'MISSING')}")
+        
         # Generate UUIDs for all items
         for common_prep in today_data.get("common_preps", []):
             if "id" not in common_prep:
@@ -3368,7 +3375,7 @@ Return ONLY the JSON."""
             if "id" not in recipe_prep:
                 recipe_prep["id"] = str(uuid.uuid4())
         
-        print(f"  ✅ Today preparation generated:")
+        print(f"\n  ✅ Today preparation generated:")
         print(f"     Common preps: {len(today_data.get('common_preps', []))} categories")
         print(f"     Recipe preps: {len(today_data.get('recipe_preps', []))} recipes")
         print(f"     Total time: {today_data.get('total_minutes', 0)} min")
