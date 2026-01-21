@@ -3194,7 +3194,7 @@ RÈGLES CRITIQUES:
    - TOUJOURS inclure la quantité avec l'unité appropriée (g, ml, unités, gousses, etc.)
    - Cette section ne doit JAMAIS être vide - toujours au moins 3-6 items au total
 
-2. recipe_preps: OBLIGATOIRE - UNE entrée pour CHAQUE recette (total: {len(recipe_summaries)} entrées)
+2. recipe_preps: OBLIGATOIRE - UNE entrée pour CHAQUE recette (total: {len(recipe_list)} entrées)
 
 🚨 RÈGLE ABSOLUE: Tu DOIS générer AU MOINS 5-6 étapes par recette dans prep_today
 
@@ -3243,7 +3243,7 @@ Si tu génères moins de 5 étapes, la recette sera REJETÉE.
 6. Total ~2h de préparation
 
 ❌ INTERDIT: Omettre des recettes, fusionner des recettes, ou sauter des entrées
-✅ OBLIGATOIRE: {len(recipe_summaries)} entrées dans recipe_preps avec QUANTITÉS
+✅ OBLIGATOIRE: {len(recipe_list)} entrées dans recipe_preps avec QUANTITÉS
 
 Retourne UNIQUEMENT le JSON."""
     
