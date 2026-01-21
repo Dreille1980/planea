@@ -922,12 +922,33 @@ IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de prépa
             print(f"Problematic content: {content[:500]}...")
             raise HTTPException(status_code=500, detail=f"Failed to parse recipe JSON: {str(e)}")
         
-        # Ensure all ingredients have required fields
+        # Ensure all ingredients have required fields AND fix invalid quantities
         for ingredient in recipe_data.get("ingredients", []):
             if "unit" not in ingredient or not ingredient.get("unit"):
                 ingredient["unit"] = "unité"
             if "category" not in ingredient or not ingredient.get("category"):
                 ingredient["category"] = "autre"
+            
+            # CRITICAL FIX: Convert non-numeric quantities to default values
+            quantity = ingredient.get("quantity")
+            if isinstance(quantity, str):
+                # Handle "au goût", "to taste", etc.
+                quantity_lower = quantity.lower().strip()
+                if any(phrase in quantity_lower for phrase in ['au goût', 'to taste', 'goût', 'taste']):
+                    ingredient["quantity"] = 1.0  # Default to 1
+                    if not ingredient.get("unit") or ingredient["unit"] == "unité":
+                        ingredient["unit"] = "pincée" if language == "fr" else "pinch"
+                else:
+                    # Try to extract a number from the string
+                    import re
+                    numbers = re.findall(r'\d+\.?\d*', quantity)
+                    if numbers:
+                        ingredient["quantity"] = float(numbers[0])
+                    else:
+                        # Fallback to 1 if no number found
+                        ingredient["quantity"] = 1.0
+            elif quantity is None:
+                ingredient["quantity"] = 1.0
         
         return Recipe(**recipe_data)
         
