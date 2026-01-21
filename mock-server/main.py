@@ -3201,18 +3201,25 @@ RÈGLES CRITIQUES:
    - Cette section ne doit JAMAIS être vide - toujours au moins 3-6 items au total
 
 2. recipe_preps: OBLIGATOIRE - UNE entrée pour CHAQUE recette (total: {len(recipe_summaries)} entrées)
-   - prep_today: Étapes ULTRA-PRÉCISES (8-12 étapes par recette)
-     * 🚨 CRITIQUE: TOUJOURS spécifier la FORME DE COUPE précise:
-       - "Couper carottes en dés de 1cm" (PAS juste "Couper carottes")
-       - "Émincer oignons finement" (PAS juste "Couper oignons")
-       - "Trancher poulet en lanières de 2cm" (PAS juste "Couper poulet")
-       - "Hacher ail grossièrement" (PAS juste "Préparer ail")
-     * Inclure les températures de cuisson (ex: "Préchauffer four à 200°C")
-     * Inclure les temps de cuisson (ex: "Rôtir 25-30 min")
-     * Inclure les techniques spécifiques (ex: "Mariner 15-30 min", "Saisir à feu vif")
-     * Décrire chaque action clairement avec PRÉCISION MAXIMALE
-     * CUIRE COMPLÈTEMENT les protéines qui peuvent l'être (poulet, boeuf, porc, légumes)
-   - Indiquer les quantités dans les étapes (ex: "Rôtir poulet 800g", "Cuire riz 300g")
+   - prep_today: CUISSON ET ASSEMBLAGE UNIQUEMENT (4-6 étapes concentrées par recette)
+     * 🚨🚨🚨 RÈGLE ABSOLUE: N'INCLURE QUE CE QUI N'EST PAS DANS common_preps
+     * ❌ INTERDICTIONS:
+       - PAS de "Couper", "Émincer", "Hacher", "Râper" → Déjà dans common_preps
+       - PAS de "Laver", "Éplucher", "Préparer les ingrédients" → Déjà fait
+       - PAS de mise en place → Tout est déjà préparé plus haut
+     * ✅ INCLURE SEULEMENT:
+       - Cuisson: "Préchauffer four à 200°C", "Rôtir poulet 25-30 min à 200°C"
+       - Techniques: "Mariner poulet 15 min", "Saisir à feu vif 3 min par côté"
+       - Assemblage: "Mélanger poulet rôti avec légumes", "Napper de sauce"
+       - Finition: "Portionner dans 4 contenants", "Laisser refroidir 10 min"
+     * Format: [Action de cuisson/assemblage] + [ingrédients] + [méthode précise]
+     * Exemples acceptables:
+       - "Préchauffer four à 200°C"
+       - "Rôtir poulet avec légumes 25-30 min jusqu'à 75°C interne"
+       - "Pendant ce temps: cuire quinoa 300g (2:1 eau, 15 min)"
+       - "Mélanger poulet rôti avec brocoli et carottes"
+       - "Laisser refroidir 10 min puis portionner"
+   - Indiquer les quantités (ex: "Rôtir poulet 800g", "Cuire riz 300g")
    - evening_minutes: Temps de RÉCHAUFFAGE seulement (5-12 min) si déjà cuit
 
 3. dont_prep_today: Utiliser UNIQUEMENT pour poisson frais/fruits de mer qui perdent texture
