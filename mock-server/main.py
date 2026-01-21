@@ -3201,25 +3201,42 @@ RÈGLES CRITIQUES:
    - Cette section ne doit JAMAIS être vide - toujours au moins 3-6 items au total
 
 2. recipe_preps: OBLIGATOIRE - UNE entrée pour CHAQUE recette (total: {len(recipe_summaries)} entrées)
-   - prep_today: Liste de 4-8 étapes CONCRÈTES pour chaque recette
-     * 🎯 OBJECTIF: Décrire le PROCESSUS de cuisson/assemblage de A à Z
-     * ✅ CE QU'IL FAUT INCLURE (exemples CONCRETS):
-       1. Marinades: "Mariner poulet 600g (huile, citron, herbes) 15-30 min"
-       2. Préchauffage: "Préchauffer four à 200°C"
-       3. Cuisson principale: "Rôtir poulet mariné 25-30 min jusqu'à 75°C interne"
-       4. Cuisson accompagnements: "Cuire riz 300g (2:1 eau:riz) 15 min"
-       5. Cuisson légumes: "Rôtir brocoli et carottes 20 min à 200°C"
-       6. Assemblage: "Mélanger poulet avec légumes rôtis"
-       7. Sauces/Finition: "Napper de sauce citron-herbes"
-       8. Refroidissement: "Laisser refroidir 10 min"
-       9. Portionnement: "Portionner dans 4 contenants"
-     * ⚠️ NOTE SUR LES COUPES:
-       - Si besoin de mentionner une coupe SPÉCIFIQUE à cette recette (ex: "Trancher poulet cuit"),
-         tu PEUX l'inclure car c'est après la cuisson
-       - Mais NE RÉPÈTE PAS les coupes de préparation (déjà dans common_preps)
-     * FORMAT: Être NARRATIF et PRÉCIS avec quantités
-     * MINIMUM 4 étapes, MAXIMUM 8 étapes
-   - evening_minutes: Temps de RÉCHAUFFAGE seulement (5-12 min) si déjà cuit
+
+🚨 RÈGLE ABSOLUE: Tu DOIS générer AU MOINS 5-6 étapes par recette dans prep_today
+
+EXEMPLE COMPLET pour "Poulet rôti avec légumes":
+{{
+  "recipe_name": "Poulet rôti avec légumes",
+  "emoji": "🐔",
+  "prep_today": [
+    "Préchauffer le four à 200°C",
+    "Assaisonner poulet 600g avec sel, poivre, paprika",
+    "Rôtir poulet au four 30 min jusqu'à cuisson complète",
+    "Pendant ce temps: rôtir brocoli et carottes sur plaque séparée 20 min",
+    "Cuire quinoa 300g (2:1 eau) pendant 15 min",
+    "Laisser refroidir 10 min",
+    "Portionner dans 4 contenants hermétiques"
+  ],
+  "estimated_minutes": 35,
+  "evening_minutes": 8
+}}
+
+TU DOIS SUIVRE CE FORMAT pour CHAQUE recette:
+- Étape 1: Préchauffage si nécessaire
+- Étape 2-3: Cuisson protéine principale
+- Étape 4-5: Cuisson accompagnements/légumes/féculents
+- Étape 6: Refroidissement
+- Étape 7: Portionnement/conservation
+
+✅ TOUJOURS inclure:
+- Températures (ex: 200°C)
+- Quantités (ex: poulet 600g, riz 300g)
+- Temps (ex: 25-30 min)
+- Actions précises (rôtir, cuire, saisir, mélanger)
+
+❌ PAS de préparation d'ingrédients (couper, hacher) → déjà dans common_preps
+
+Si tu génères moins de 5 étapes, la recette sera REJETÉE.
 
 3. dont_prep_today: Utiliser UNIQUEMENT pour poisson frais/fruits de mer qui perdent texture
    - Poulet, boeuf, porc, légumes → À CUIRE aujourd'hui
