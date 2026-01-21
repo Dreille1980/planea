@@ -3147,11 +3147,16 @@ FORMAT OBLIGATOIRE:
       "recipe_name": "Poulet citron & herbes",
       "emoji": "🐔",
       "prep_today": [
-        "Mariner le poulet 600g (huile, citron, ail, herbes)",
-        "Rôtir le poulet complètement au four",
-        "Rôtir les légumes (brocoli, carottes)",
-        "Cuire le quinoa 300g",
-        "Tout conserver séparément au frigo"
+        "Couper le poulet 600g en morceaux de taille égale",
+        "Préparer la marinade: mélanger huile d'olive, jus de citron, ail émincé, herbes fraîches",
+        "Mariner le poulet dans le mélange, couvrir et réfrigérer 15-30 min",
+        "Préchauffer le four à 200°C",
+        "Disposer le poulet mariné sur une plaque, rôtir 25-30 min jusqu'à cuisson complète (75°C interne)",
+        "Pendant ce temps: couper brocoli en bouquets, carottes en rondelles",
+        "Rôtir les légumes (brocoli, carottes) avec huile, sel, poivre à 200°C pendant 20 min",
+        "Cuire le quinoa 300g: rincer, puis 2 parts d'eau pour 1 part de quinoa, bouillir 15 min",
+        "Laisser refroidir tous les éléments 10-15 min",
+        "Portionner dans des contenants séparés: poulet, légumes, quinoa"
       ],
       "dont_prep_today": null,
       "estimated_minutes": 35,
@@ -3161,11 +3166,14 @@ FORMAT OBLIGATOIRE:
       "recipe_name": "Saumon érable-soya",
       "emoji": "🐟",
       "prep_today": [
-        "Préparer la marinade (érable, soya, ail)",
-        "Couper et mariner le saumon",
-        "Couper le brocoli 300g"
+        "Préparer la marinade: mélanger 3 c. à soupe sirop d'érable, 2 c. à soupe sauce soya, 2 gousses d'ail émincées",
+        "Couper le saumon en portions individuelles (environ 150g chacune)",
+        "Placer le saumon dans un plat, verser la marinade, couvrir et réfrigérer",
+        "Laver le brocoli 300g, couper en bouquets de taille moyenne",
+        "Conserver le brocoli dans un contenant hermétique au frigo",
+        "Préparer tout le reste (riz, accompagnements) selon les autres recettes"
       ],
-      "dont_prep_today": "⚠️ Ne PAS cuire le saumon aujourd'hui (se cuit le soir même pour meilleure texture)",
+      "dont_prep_today": "⚠️ Ne PAS cuire le saumon aujourd'hui - il se cuit frais le soir même en 12-15 minutes pour une texture parfaite",
       "estimated_minutes": 15,
       "evening_minutes": 18
     }}
@@ -3189,7 +3197,12 @@ RÈGLES CRITIQUES:
    - TOUJOURS inclure la quantité avec l'unité appropriée (g, ml, unités, gousses, etc.)
 
 2. recipe_preps: OBLIGATOIRE - UNE entrée pour CHAQUE recette (total: {len(recipe_summaries)} entrées)
-   - prep_today: CUIRE COMPLÈTEMENT les protéines qui peuvent l'être (poulet, boeuf, porc)
+   - prep_today: Étapes DÉTAILLÉES et PRÉCISES (8-12 étapes par recette)
+     * Inclure les températures de cuisson (ex: "Préchauffer four à 200°C")
+     * Inclure les temps de cuisson (ex: "Rôtir 25-30 min")
+     * Inclure les techniques spécifiques (ex: "Couper en morceaux de 2cm", "Mariner 15-30 min")
+     * Décrire chaque action clairement: couper, assaisonner, cuire, refroidir, portionner
+     * CUIRE COMPLÈTEMENT les protéines qui peuvent l'être (poulet, boeuf, porc, légumes)
    - Indiquer les quantités dans les étapes (ex: "Rôtir poulet 800g", "Cuire riz 300g")
    - evening_minutes: Temps de RÉCHAUFFAGE seulement (5-12 min) si déjà cuit
 
@@ -3389,7 +3402,10 @@ FORMAT OBLIGATOIRE:
 RÈGLES CRITIQUES:
 1. UN soir par recette (Soir 1, Soir 2, Soir 3, Soir 4)
 2. Emojis: 🐔 poulet, 🥩 boeuf, 🐟 poisson, 🦐 crevettes, 🍝 pâtes
-3. Étapes SIMPLES: "Réchauffer X", "Cuire Y", "Ajouter Z"
+3. Étapes SIMPLES et FLEXIBLES:
+   - Pour réchauffer: "Réchauffer X au micro-ondes ou à la poêle" (toujours donner les 2 options)
+   - Pour cuire frais: "Cuire Y (four ou poêle)" avec méthode spécifique
+   - NE PAS forcer "à la poêle" si le micro-ondes fonctionne bien
 4. 10-25 min par soir MAX
 5. Si protéine non cuite (poisson), inclure "Cuire le..."
 6. Toujours finir par "✔️ Fini en X-Y min" dans le récit
@@ -3436,7 +3452,10 @@ REQUIRED FORMAT:
 CRITICAL RULES:
 1. ONE evening per recipe (Evening 1, Evening 2, Evening 3, Evening 4)
 2. Emojis: 🐔 chicken, 🥩 beef, 🐟 fish, 🦐 shrimp, 🍝 pasta
-3. SIMPLE steps: "Reheat X", "Cook Y", "Add Z"
+3. SIMPLE and FLEXIBLE steps:
+   - For reheating: "Reheat X in microwave or pan" (always give both options)
+   - For fresh cooking: "Cook Y (oven or pan)" with specific method
+   - DO NOT force "in pan" if microwave works well
 4. 10-25 min per evening MAX
 5. If protein not cooked (fish), include "Cook the..."
 6. Always end with "✔️ Done in X-Y min" in narrative

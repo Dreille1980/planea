@@ -383,6 +383,7 @@ struct MealPrepDetailView: View {
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color(UIColor.secondarySystemBackground))
+                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                     .opacity(isCompleted ? 0.6 : 1.0)
             )
         }
@@ -472,6 +473,7 @@ struct MealPrepDetailView: View {
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color(UIColor.secondarySystemBackground))
+                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                     .opacity(isCompleted ? 0.6 : 1.0)
             )
         }
@@ -522,6 +524,7 @@ struct MealPrepDetailView: View {
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color(UIColor.secondarySystemBackground))
+                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
             )
         }
         .padding(.horizontal, 16)
@@ -682,6 +685,7 @@ struct MealPrepDetailView: View {
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(UIColor.secondarySystemBackground))
+                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                 .opacity(isCompleted ? 0.6 : 1.0)
         )
         .padding(.horizontal)
