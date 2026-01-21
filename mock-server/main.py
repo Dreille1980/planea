@@ -3096,26 +3096,20 @@ async def generate_today_preparation(kit_recipes: List[dict], language: str = "f
     
     print(f"\n📋 Generating TODAY preparation for {len(kit_recipes)} recipes")
     
-    # Build recipe summaries for AI
-    recipe_summaries = []
+    # Build recipe summaries for AI - SIMPLIFIED
+    recipe_list = []
     for idx, recipe_ref in enumerate(kit_recipes):
         recipe = recipe_ref.get("recipe", {})
-        recipe_summaries.append({
-            "index": idx + 1,
-            "title": recipe.get("title", "Unknown"),
-            "ingredients": recipe.get("ingredients", []),
-            "steps": recipe.get("steps", []),
-            "total_minutes": recipe.get("total_minutes", 30)
-        })
+        recipe_list.append(f"{idx+1}. {recipe.get('title', 'Unknown')}")
     
-    print(f"  Recipe summaries prepared: {[r['title'] for r in recipe_summaries]}")
+    print(f"  Recipes: {recipe_list}")
     
     # Create AI prompt
     if language == "fr":
         prompt = f"""Tu es un expert meal prep qui crée des guides de préparation SIMPLES et NARRATIFS.
 
 RECETTES À PRÉPARER AUJOURD'HUI:
-{json.dumps(recipe_summaries, indent=2, ensure_ascii=False)}
+{chr(10).join(recipe_list)}
 
 🎯 CRÉE UNE SECTION "CE QUE TU FAIS AUJOURD'HUI" (~2h)
 
@@ -3184,7 +3178,7 @@ FORMAT OBLIGATOIRE:
 🚨🚨🚨 RÈGLE ABSOLUE - GÉNÉRATION COMPLÈTE 🚨🚨🚨
 
 Tu DOIS générer une entrée dans recipe_preps pour CHAQUE recette listée ci-dessus.
-Si tu as reçu {len(recipe_summaries)} recettes, tu DOIS créer EXACTEMENT {len(recipe_summaries)} entrées dans recipe_preps.
+Si tu as reçu {len(recipe_list)} recettes, tu DOIS créer EXACTEMENT {len(recipe_list)} entrées dans recipe_preps.
 
 RÈGLES CRITIQUES:
 0. consolidated_ingredients: Liste COMPLÈTE de TOUS les ingrédients nécessaires avec quantités
