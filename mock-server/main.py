@@ -3124,15 +3124,15 @@ FORMAT OBLIGATOIRE:
   "common_preps": [
     {{
       "category": "Cuire",
-      "items": ["Quinoa (pour 2 repas)", "Riz blanc ou jasmin (pour 2 repas)"]
+      "items": ["Quinoa 300g (pour 2 repas)", "Riz blanc 400g (pour 2 repas)"]
     }},
     {{
       "category": "Laver, couper et portionner",
-      "items": ["Brocoli", "Carottes", "Courgettes", "Oignons"]
+      "items": ["Brocoli 500g", "Carottes 400g", "Courgettes 300g", "Oignons 3 unités"]
     }},
     {{
       "category": "Préparer / conserver",
-      "items": ["Ail haché", "Oignons émincés"]
+      "items": ["Ail haché 4 gousses", "Oignons émincés 2 unités"]
     }}
   ],
   "recipe_preps": [
@@ -3140,25 +3140,25 @@ FORMAT OBLIGATOIRE:
       "recipe_name": "Poulet citron & herbes",
       "emoji": "🐔",
       "prep_today": [
-        "Mariner le poulet (huile, citron, ail, herbes)",
-        "Rôtir le poulet",
-        "Rôtir les légumes",
-        "Cuire le quinoa",
+        "Mariner le poulet 600g (huile, citron, ail, herbes)",
+        "Rôtir le poulet complètement au four",
+        "Rôtir les légumes (brocoli, carottes)",
+        "Cuire le quinoa 300g",
         "Tout conserver séparément au frigo"
       ],
       "dont_prep_today": null,
-      "estimated_minutes": 25,
-      "evening_minutes": 12
+      "estimated_minutes": 35,
+      "evening_minutes": 8
     }},
     {{
       "recipe_name": "Saumon érable-soya",
       "emoji": "🐟",
       "prep_today": [
         "Préparer la marinade (érable, soya, ail)",
-        "Couper le brocoli",
-        "(Optionnel) blanchir le brocoli 2 min"
+        "Couper et mariner le saumon",
+        "Couper le brocoli 300g"
       ],
-      "dont_prep_today": "⚠️ Ne pas cuire le saumon aujourd'hui (meilleure texture)",
+      "dont_prep_today": "⚠️ Ne PAS cuire le saumon aujourd'hui (se cuit le soir même pour meilleure texture)",
       "estimated_minutes": 15,
       "evening_minutes": 18
     }}
@@ -3172,16 +3172,27 @@ Tu DOIS générer une entrée dans recipe_preps pour CHAQUE recette listée ci-d
 Si tu as reçu {len(recipe_summaries)} recettes, tu DOIS créer EXACTEMENT {len(recipe_summaries)} entrées dans recipe_preps.
 
 RÈGLES CRITIQUES:
-1. common_preps: Inclure 3 catégories - "Cuire", "Laver, couper et portionner", "Préparer / conserver"
+1. common_preps: Inclure 3 catégories avec QUANTITÉS - "Cuire", "Laver, couper et portionner", "Préparer / conserver"
+   - Format: "Ingredient QUANTITÉ" (ex: "Brocoli 500g", "Oignons 3 unités", "Ail 6 gousses")
+   - TOUJOURS inclure la quantité avec l'unité appropriée (g, ml, unités, gousses, etc.)
+
 2. recipe_preps: OBLIGATOIRE - UNE entrée pour CHAQUE recette (total: {len(recipe_summaries)} entrées)
-3. dont_prep_today: TOUJOURS inclure si une protéine NE doit PAS être cuite (poisson, fruits de mer)
-4. evening_minutes: "Temps soir" - temps de réchauffage/finition (10-25 min)
-5. Emojis: 🐔 poulet, 🥩 boeuf, 🐟 poisson, 🦐 crevettes, 🍝 pâtes, etc.
-6. Sois NARRATIF et simple, pas technique
-7. Total ~2h de préparation
+   - prep_today: CUIRE COMPLÈTEMENT les protéines qui peuvent l'être (poulet, boeuf, porc)
+   - Indiquer les quantités dans les étapes (ex: "Rôtir poulet 800g", "Cuire riz 300g")
+   - evening_minutes: Temps de RÉCHAUFFAGE seulement (5-12 min) si déjà cuit
+
+3. dont_prep_today: Utiliser UNIQUEMENT pour poisson frais/fruits de mer qui perdent texture
+   - Poulet, boeuf, porc, légumes → À CUIRE aujourd'hui
+   - Poisson, crevettes, pétoncles → NE PAS cuire (warning)
+
+4. Emojis: 🐔 poulet, 🥩 boeuf, 🐟 poisson, 🦐 crevettes, 🍝 pâtes, 🥗 salade, etc.
+
+5. Sois NARRATIF et simple, pas technique
+
+6. Total ~2h de préparation
 
 ❌ INTERDIT: Omettre des recettes, fusionner des recettes, ou sauter des entrées
-✅ OBLIGATOIRE: {len(recipe_summaries)} entrées dans recipe_preps
+✅ OBLIGATOIRE: {len(recipe_summaries)} entrées dans recipe_preps avec QUANTITÉS
 
 Retourne UNIQUEMENT le JSON."""
     
