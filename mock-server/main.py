@@ -3192,16 +3192,23 @@ RÈGLES CRITIQUES:
    - Consolider les quantités pour ingrédients utilisés dans plusieurs recettes
    - Ordre: Protéines → Légumes → Féculents → Autres
 
-1. common_preps: Inclure 3 catégories avec QUANTITÉS - "Cuire", "Laver, couper et portionner", "Préparer / conserver"
+1. common_preps: Inclure 3 catégories SIMPLIFIÉES - "Cuire", "Laver, couper et portionner", "Préparer / conserver"
    - Format: "Ingredient QUANTITÉ" (ex: "Brocoli 500g", "Oignons 3 unités", "Ail 6 gousses")
+   - MAXIMUM 3-5 items par catégorie (grouper les similaires)
+   - Être GÉNÉRAL: "Légumes 1kg" plutôt que lister chaque légume
    - TOUJOURS inclure la quantité avec l'unité appropriée (g, ml, unités, gousses, etc.)
 
 2. recipe_preps: OBLIGATOIRE - UNE entrée pour CHAQUE recette (total: {len(recipe_summaries)} entrées)
-   - prep_today: Étapes DÉTAILLÉES et PRÉCISES (8-12 étapes par recette)
+   - prep_today: Étapes ULTRA-PRÉCISES (8-12 étapes par recette)
+     * 🚨 CRITIQUE: TOUJOURS spécifier la FORME DE COUPE précise:
+       - "Couper carottes en dés de 1cm" (PAS juste "Couper carottes")
+       - "Émincer oignons finement" (PAS juste "Couper oignons")
+       - "Trancher poulet en lanières de 2cm" (PAS juste "Couper poulet")
+       - "Hacher ail grossièrement" (PAS juste "Préparer ail")
      * Inclure les températures de cuisson (ex: "Préchauffer four à 200°C")
      * Inclure les temps de cuisson (ex: "Rôtir 25-30 min")
-     * Inclure les techniques spécifiques (ex: "Couper en morceaux de 2cm", "Mariner 15-30 min")
-     * Décrire chaque action clairement: couper, assaisonner, cuire, refroidir, portionner
+     * Inclure les techniques spécifiques (ex: "Mariner 15-30 min", "Saisir à feu vif")
+     * Décrire chaque action clairement avec PRÉCISION MAXIMALE
      * CUIRE COMPLÈTEMENT les protéines qui peuvent l'être (poulet, boeuf, porc, légumes)
    - Indiquer les quantités dans les étapes (ex: "Rôtir poulet 800g", "Cuire riz 300g")
    - evening_minutes: Temps de RÉCHAUFFAGE seulement (5-12 min) si déjà cuit
