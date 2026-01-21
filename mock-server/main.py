@@ -3201,25 +3201,24 @@ RÈGLES CRITIQUES:
    - Cette section ne doit JAMAIS être vide - toujours au moins 3-6 items au total
 
 2. recipe_preps: OBLIGATOIRE - UNE entrée pour CHAQUE recette (total: {len(recipe_summaries)} entrées)
-   - prep_today: CUISSON ET ASSEMBLAGE UNIQUEMENT (4-6 étapes concentrées par recette)
-     * 🚨🚨🚨 RÈGLE ABSOLUE: N'INCLURE QUE CE QUI N'EST PAS DANS common_preps
-     * ❌ INTERDICTIONS:
-       - PAS de "Couper", "Émincer", "Hacher", "Râper" → Déjà dans common_preps
-       - PAS de "Laver", "Éplucher", "Préparer les ingrédients" → Déjà fait
-       - PAS de mise en place → Tout est déjà préparé plus haut
-     * ✅ INCLURE SEULEMENT:
-       - Cuisson: "Préchauffer four à 200°C", "Rôtir poulet 25-30 min à 200°C"
-       - Techniques: "Mariner poulet 15 min", "Saisir à feu vif 3 min par côté"
-       - Assemblage: "Mélanger poulet rôti avec légumes", "Napper de sauce"
-       - Finition: "Portionner dans 4 contenants", "Laisser refroidir 10 min"
-     * Format: [Action de cuisson/assemblage] + [ingrédients] + [méthode précise]
-     * Exemples acceptables:
-       - "Préchauffer four à 200°C"
-       - "Rôtir poulet avec légumes 25-30 min jusqu'à 75°C interne"
-       - "Pendant ce temps: cuire quinoa 300g (2:1 eau, 15 min)"
-       - "Mélanger poulet rôti avec brocoli et carottes"
-       - "Laisser refroidir 10 min puis portionner"
-   - Indiquer les quantités (ex: "Rôtir poulet 800g", "Cuire riz 300g")
+   - prep_today: Liste de 4-8 étapes CONCRÈTES pour chaque recette
+     * 🎯 OBJECTIF: Décrire le PROCESSUS de cuisson/assemblage de A à Z
+     * ✅ CE QU'IL FAUT INCLURE (exemples CONCRETS):
+       1. Marinades: "Mariner poulet 600g (huile, citron, herbes) 15-30 min"
+       2. Préchauffage: "Préchauffer four à 200°C"
+       3. Cuisson principale: "Rôtir poulet mariné 25-30 min jusqu'à 75°C interne"
+       4. Cuisson accompagnements: "Cuire riz 300g (2:1 eau:riz) 15 min"
+       5. Cuisson légumes: "Rôtir brocoli et carottes 20 min à 200°C"
+       6. Assemblage: "Mélanger poulet avec légumes rôtis"
+       7. Sauces/Finition: "Napper de sauce citron-herbes"
+       8. Refroidissement: "Laisser refroidir 10 min"
+       9. Portionnement: "Portionner dans 4 contenants"
+     * ⚠️ NOTE SUR LES COUPES:
+       - Si besoin de mentionner une coupe SPÉCIFIQUE à cette recette (ex: "Trancher poulet cuit"),
+         tu PEUX l'inclure car c'est après la cuisson
+       - Mais NE RÉPÈTE PAS les coupes de préparation (déjà dans common_preps)
+     * FORMAT: Être NARRATIF et PRÉCIS avec quantités
+     * MINIMUM 4 étapes, MAXIMUM 8 étapes
    - evening_minutes: Temps de RÉCHAUFFAGE seulement (5-12 min) si déjà cuit
 
 3. dont_prep_today: Utiliser UNIQUEMENT pour poisson frais/fruits de mer qui perdent texture
