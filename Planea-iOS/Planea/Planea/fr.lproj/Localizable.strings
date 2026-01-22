@@ -736,3 +736,10 @@
 "meal_prep.detail.days_completed" = "jours complétés";
 "meal_prep.detail.shopping_list_title" = "Liste d'ingrédients à acheter";
 "meal_prep.detail.shopping_list_header" = "Ingrédients à avoir";
+
+// Notifications
+"settings.notifications" = "Notifications";
+"settings.notifications.weeklyReminder" = "Rappel hebdomadaire";
+"settings.notifications.weeklyReminder.footer" = "Recevez un rappel chaque samedi matin pour planifier vos repas de la semaine";
+"notification.mealprep.title" = "C'est l'heure de planifier! 🍽️";
+"notification.mealprep.body.1" = "Planifiez vos repas de la semaine";

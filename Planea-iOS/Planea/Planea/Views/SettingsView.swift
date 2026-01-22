@@ -5,6 +5,7 @@ struct SettingsView: View {
     @EnvironmentObject var usageVM: UsageViewModel
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
     @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
+    @AppStorage("weeklyMealPrepReminder") private var weeklyMealPrepReminder: Bool = true
     @StateObject private var storeManager = StoreManager.shared
     @State private var showDeveloperCodeField = false
     @State private var developerCode = ""
@@ -153,6 +154,15 @@ struct SettingsView: View {
                             Label("prefs.title".localized, systemImage: "slider.horizontal.3")
                         }
                     }
+                }
+                
+                // Notifications Section
+                Section(header: Text("settings.notifications".localized),
+                       footer: Text("settings.notifications.weeklyReminder.footer".localized)) {
+                    Toggle("settings.notifications.weeklyReminder".localized, isOn: $weeklyMealPrepReminder)
+                        .onChange(of: weeklyMealPrepReminder) {
+                            handleWeeklyReminderToggle(weeklyMealPrepReminder)
+                        }
                 }
                 
                 Section(header: Text("settings.preferences".localized)) {
@@ -336,6 +346,20 @@ struct SettingsView: View {
             if UIApplication.shared.canOpenURL(mailtoURL) {
                 UIApplication.shared.open(mailtoURL)
             }
+        }
+    }
+    
+    // MARK: - Notification Actions
+    
+    private func handleWeeklyReminderToggle(_ isEnabled: Bool) {
+        if isEnabled {
+            // Enable weekly notification
+            NotificationService.shared.scheduleWeeklyMealPrepReminder()
+            print("Weekly meal prep reminder enabled")
+        } else {
+            // Disable weekly notification
+            NotificationService.shared.cancelWeeklyMealPrepReminder()
+            print("Weekly meal prep reminder disabled")
         }
     }
 }

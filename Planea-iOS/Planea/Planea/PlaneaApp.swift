@@ -1,9 +1,11 @@
 import SwiftUI
 import FirebaseCore
 import FirebaseCrashlytics
+import UserNotifications
 
 @main
 struct PlaneaApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
         // Configure Firebase
@@ -94,6 +96,7 @@ struct RootView: View {
     @State private var showOnboarding = false
     @State private var showFreeTrialExpiration = false
     @State private var showWhatsNew = false
+    @State private var selectedTab: Int = 0
     
     private var hasActiveSubscription: Bool {
         storeManager.hasActiveSubscription
@@ -106,22 +109,26 @@ struct RootView: View {
                 FreeTrialBanner()
             }
             
-            TabView {
+            TabView(selection: $selectedTab) {
                 // Recipes tab - combines Plan and Ad hoc generation
                 RecipesView()
                     .tabItem { Label("tab.recipes".localized, systemImage: "fork.knife") }
+                    .tag(0)
                 
                 // Shopping tab - freemium access with export restrictions
                 ShoppingListView()
                     .tabItem { Label("tab.shopping".localized, systemImage: "cart") }
+                    .tag(1)
                 
                 // Favorites tab - freemium access with save restrictions
                 SavedRecipesView()
                     .tabItem { Label("tab.favorites".localized, systemImage: "heart.fill") }
+                    .tag(2)
                 
                 // Settings tab - always accessible
                 SettingsView()
                     .tabItem { Label("tab.settings".localized, systemImage: "gearshape") }
+                    .tag(3)
             }
         }
         .sheet(isPresented: $showOnboarding) {
@@ -149,6 +156,9 @@ struct RootView: View {
             
             // Check if trial just expired
             checkTrialExpiration()
+            
+            // Listen for notification to open Recipes tab
+            setupNotificationObserver()
         }
         .onChange(of: storeManager.subscriptionInfo?.status) { oldValue, newValue in
             // Check for trial expiration when status changes
@@ -175,5 +185,63 @@ struct RootView: View {
                 AnalyticsService.shared.logWhatsNewViewed(version: targetVersion)
             }
         }
+    }
+    
+    // MARK: - Notification Observer
+    
+    private func setupNotificationObserver() {
+        // Listen for notification to open Recipes tab
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("OpenRecipesTab"),
+            object: nil,
+            queue: .main
+        ) { [self] _ in
+            // Switch to Recipes tab (tab 0)
+            selectedTab = 0
+        }
+    }
+}
+
+// MARK: - AppDelegate for Notifications
+
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    @AppStorage("weeklyMealPrepReminder") private var weeklyMealPrepReminder: Bool = true
+    
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        // Set notification delegate
+        UNUserNotificationCenter.current().delegate = self
+        
+        // Schedule weekly reminder if enabled
+        if weeklyMealPrepReminder {
+            NotificationService.shared.scheduleWeeklyMealPrepReminder()
+        }
+        
+        return true
+    }
+    
+    // MARK: - UNUserNotificationCenterDelegate
+    
+    // Called when notification is received while app is in foreground
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // Show notification even when app is in foreground
+        completionHandler([.banner, .sound])
+    }
+    
+    // Called when user taps on notification
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+        
+        // Check if this is a meal prep reminder notification
+        if let action = userInfo["action"] as? String, action == "openRecipesTab" {
+            // Post notification to open Recipes tab
+            NotificationCenter.default.post(name: NSNotification.Name("OpenRecipesTab"), object: nil)
+            
+            // Log analytics
+            AnalyticsService.shared.logEvent(name: "notification_tapped", parameters: [
+                "type": "weekly_meal_prep"
+            ])
+        }
+        
+        completionHandler()
     }
 }

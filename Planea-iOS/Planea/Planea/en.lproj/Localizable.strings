@@ -720,3 +720,10 @@
 "whats_new.v1.2.1.feature2" = "Added Macros and calories in recipe details";
 "whats_new.v1.2.1.feature3" = "Add a favorite recipe to the weekly plan";
 "whats_new.v1.2.1.feature4" = "Improved adding recipes to the weekly plan";
+
+// Notifications
+"settings.notifications" = "Notifications";
+"settings.notifications.weeklyReminder" = "Weekly Reminder";
+"settings.notifications.weeklyReminder.footer" = "Receive a reminder every Saturday morning to plan your meals for the week";
+"notification.mealprep.title" = "Time to plan! 🍽️";
+"notification.mealprep.body.1" = "Plan your meals for the week";
