@@ -343,50 +343,51 @@ struct MealPrepDetailView: View {
     private func commonPrepCard(_ commonPrep: CommonPrepStep) -> some View {
         let isCompleted = completedCommonPreps.contains(commonPrep.id)
         
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 12) {
-                // Checkbox
-                Button(action: {
-                    toggleCommonPrep(commonPrep.id)
-                }) {
-                    Image(systemName: isCompleted ? "checkmark.square.fill" : "square")
-                        .font(.title2)
-                        .foregroundColor(isCompleted ? .accentColor : .secondary)
-                }
-                .buttonStyle(PlainButtonStyle())
+        return HStack(alignment: .top, spacing: 12) {
+            // Checkbox
+            Button(action: {
+                toggleCommonPrep(commonPrep.id)
+            }) {
+                Image(systemName: isCompleted ? "checkmark.square.fill" : "square")
+                    .font(.title2)
+                    .foregroundColor(isCompleted ? .accentColor : .secondary)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            VStack(alignment: .leading, spacing: 8) {
+                // Category header
+                Text(commonPrep.category)
+                    .font(.headline)
+                    .foregroundColor(isCompleted ? .secondary : .primary)
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    // Category header
-                    Text(commonPrep.category)
-                        .font(.headline)
-                        .foregroundColor(isCompleted ? .secondary : .primary)
-                    
-                    // Items list
-                    VStack(alignment: .leading, spacing: 6) {
-                        ForEach(commonPrep.items, id: \.self) { item in
-                            HStack(alignment: .top, spacing: 8) {
-                                Circle()
-                                    .fill(Color.accentColor.opacity(0.3))
-                                    .frame(width: 6, height: 6)
-                                    .padding(.top, 6)
-                                
-                                Text(item)
-                                    .font(.subheadline)
-                                    .foregroundColor(isCompleted ? .secondary : .primary)
-                                    .strikethrough(isCompleted)
-                            }
+                // Items list
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(commonPrep.items, id: \.self) { item in
+                        HStack(alignment: .top, spacing: 8) {
+                            Circle()
+                                .fill(Color.accentColor.opacity(0.3))
+                                .frame(width: 6, height: 6)
+                                .padding(.top, 6)
+                            
+                            Text(item)
+                                .font(.subheadline)
+                                .foregroundColor(isCompleted ? .secondary : .primary)
+                                .strikethrough(isCompleted)
                         }
                     }
                 }
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(UIColor.secondarySystemBackground))
-                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-                    .opacity(isCompleted ? 0.6 : 1.0)
-            )
+            
+            Spacer()
         }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(UIColor.secondarySystemBackground))
+                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                .opacity(isCompleted ? 0.6 : 1.0)
+        )
         .padding(.horizontal, 16)
         .animation(.easeInOut(duration: 0.2), value: isCompleted)
     }
@@ -395,138 +396,140 @@ struct MealPrepDetailView: View {
     private func recipePrepCard(_ recipePrep: RecipePrep) -> some View {
         let isCompleted = completedRecipePreps.contains(recipePrep.id)
         
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 12) {
-                // Checkbox
-                Button(action: {
-                    toggleRecipePrep(recipePrep.id)
-                }) {
-                    Image(systemName: isCompleted ? "checkmark.square.fill" : "square")
-                        .font(.title2)
-                        .foregroundColor(isCompleted ? .accentColor : .secondary)
-                }
-                .buttonStyle(PlainButtonStyle())
-                
-                VStack(alignment: .leading, spacing: 10) {
-                    // Recipe header with emoji
-                    HStack(spacing: 8) {
-                        Text(recipePrep.emoji)
-                            .font(.title)
+        return HStack(alignment: .top, spacing: 12) {
+            // Checkbox
+            Button(action: {
+                toggleRecipePrep(recipePrep.id)
+            }) {
+                Image(systemName: isCompleted ? "checkmark.square.fill" : "square")
+                    .font(.title2)
+                    .foregroundColor(isCompleted ? .accentColor : .secondary)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            VStack(alignment: .leading, spacing: 10) {
+                // Recipe header with emoji
+                HStack(spacing: 8) {
+                    Text(recipePrep.emoji)
+                        .font(.title)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(recipePrep.recipeName)
+                            .font(.headline)
+                            .foregroundColor(isCompleted ? .secondary : .primary)
                         
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(recipePrep.recipeName)
-                                .font(.headline)
-                                .foregroundColor(isCompleted ? .secondary : .primary)
-                            
-                            if let minutes = recipePrep.estimatedMinutes {
-                                HStack(spacing: 12) {
-                                    Label("\(minutes)min", systemImage: "clock")
+                        if let minutes = recipePrep.estimatedMinutes {
+                            HStack(spacing: 12) {
+                                Label("\(minutes)min", systemImage: "clock")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                if let eveningMinutes = recipePrep.eveningMinutes {
+                                    Label("\(eveningMinutes)min soir", systemImage: "moon")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
-                                    
-                                    if let eveningMinutes = recipePrep.eveningMinutes {
-                                        Label("\(eveningMinutes)min soir", systemImage: "moon")
-                                            .font(.caption)
-                                            .foregroundColor(.orange)
-                                    }
+                                        .foregroundColor(.orange)
                                 }
                             }
                         }
                     }
-                    
-                    // Warning banner if present
-                    if let warning = recipePrep.dontPrepToday {
-                        HStack(spacing: 8) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                            
-                            Text(warning)
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                        }
-                        .padding(8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.orange.opacity(0.1))
-                        .cornerRadius(8)
+                }
+                
+                // Warning banner if present
+                if let warning = recipePrep.dontPrepToday {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                        
+                        Text(warning)
+                            .font(.caption)
+                            .foregroundColor(.orange)
                     }
-                    
-                    // Prep steps
-                    VStack(alignment: .leading, spacing: 6) {
-                        ForEach(Array(recipePrep.prepToday.enumerated()), id: \.offset) { index, step in
-                            HStack(alignment: .top, spacing: 8) {
-                                Text("\(index + 1).")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(isCompleted ? .secondary : .primary)
-                                
-                                Text(step)
-                                    .font(.subheadline)
-                                    .foregroundColor(isCompleted ? .secondary : .primary)
-                                    .strikethrough(isCompleted)
-                            }
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(8)
+                }
+                
+                // Prep steps
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(Array(recipePrep.prepToday.enumerated()), id: \.offset) { index, step in
+                        HStack(alignment: .top, spacing: 8) {
+                            Text("\(index + 1).")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundColor(isCompleted ? .secondary : .primary)
+                            
+                            Text(step)
+                                .font(.subheadline)
+                                .foregroundColor(isCompleted ? .secondary : .primary)
+                                .strikethrough(isCompleted)
                         }
                     }
                 }
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(UIColor.secondarySystemBackground))
-                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-                    .opacity(isCompleted ? 0.6 : 1.0)
-            )
+            
+            Spacer()
         }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(UIColor.secondarySystemBackground))
+                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                .opacity(isCompleted ? 0.6 : 1.0)
+        )
         .padding(.horizontal, 16)
         .animation(.easeInOut(duration: 0.2), value: isCompleted)
     }
     
     // Consolidated Ingredients Card (NEW)
     private func consolidatedIngredientsCard(_ ingredients: [ConsolidatedIngredient]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 12) {
-                // Icon
-                Image(systemName: "cart.fill")
-                    .font(.title2)
-                    .foregroundColor(.accentColor)
+        HStack(alignment: .top, spacing: 12) {
+            // Icon
+            Image(systemName: "cart.fill")
+                .font(.title2)
+                .foregroundColor(.accentColor)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                // Header
+                Text(LocalizedStringKey("meal_prep.detail.shopping_list_header"))
+                    .font(.headline)
+                    .foregroundColor(.primary)
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    // Header
-                    Text(LocalizedStringKey("meal_prep.detail.shopping_list_header"))
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    
-                    // Ingredients grid
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 8) {
-                        ForEach(ingredients) { ingredient in
-                            HStack(alignment: .top, spacing: 6) {
-                                Circle()
-                                    .fill(Color.accentColor.opacity(0.3))
-                                    .frame(width: 6, height: 6)
-                                    .padding(.top, 6)
+                // Ingredients grid
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 8) {
+                    ForEach(ingredients) { ingredient in
+                        HStack(alignment: .top, spacing: 6) {
+                            Circle()
+                                .fill(Color.accentColor.opacity(0.3))
+                                .frame(width: 6, height: 6)
+                                .padding(.top, 6)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(ingredient.name)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
                                 
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(ingredient.name)
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.primary)
-                                    
-                                    Text(ingredient.quantity)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
+                                Text(ingredient.quantity)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
                             }
                         }
                     }
                 }
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(UIColor.secondarySystemBackground))
-                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
-            )
+            
+            Spacer()
         }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(UIColor.secondarySystemBackground))
+                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+        )
         .padding(.horizontal, 16)
     }
     
@@ -628,67 +631,68 @@ struct MealPrepDetailView: View {
     private func dailyReheatingCard(_ day: DailyReheating) -> some View {
         let isCompleted = completedDays.contains(day.id)
         
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 12) {
-                // Checkbox
-                Button(action: {
-                    toggleDay(day.id)
-                }) {
-                    Image(systemName: isCompleted ? "checkmark.square.fill" : "square")
-                        .font(.title2)
-                        .foregroundColor(isCompleted ? .accentColor : .secondary)
-                }
-                .buttonStyle(PlainButtonStyle())
-                
-                VStack(alignment: .leading, spacing: 10) {
-                    // Day header with emoji
-                    HStack(spacing: 8) {
-                        Text(day.emoji)
-                            .font(.title)
+        return HStack(alignment: .top, spacing: 12) {
+            // Checkbox
+            Button(action: {
+                toggleDay(day.id)
+            }) {
+                Image(systemName: isCompleted ? "checkmark.square.fill" : "square")
+                    .font(.title2)
+                    .foregroundColor(isCompleted ? .accentColor : .secondary)
+            }
+            .buttonStyle(PlainButtonStyle())
+            
+            VStack(alignment: .leading, spacing: 10) {
+                // Day header with emoji
+                HStack(spacing: 8) {
+                    Text(day.emoji)
+                        .font(.title)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(day.dayLabel)
+                            .font(.headline)
+                            .foregroundColor(isCompleted ? .secondary : .accentColor)
                         
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(day.dayLabel)
-                                .font(.headline)
-                                .foregroundColor(isCompleted ? .secondary : .accentColor)
-                            
-                            Text(day.recipeName)
+                        Text(day.recipeName)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(isCompleted ? .secondary : .primary)
+                        
+                        Label("\(day.estimatedMinutes)min", systemImage: "clock")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                // Steps
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(Array(day.steps.enumerated()), id: \.offset) { index, step in
+                        HStack(alignment: .top, spacing: 8) {
+                            Text("\(index + 1).")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                                 .foregroundColor(isCompleted ? .secondary : .primary)
                             
-                            Label("\(day.estimatedMinutes)min", systemImage: "clock")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    
-                    // Steps
-                    VStack(alignment: .leading, spacing: 6) {
-                        ForEach(Array(day.steps.enumerated()), id: \.offset) { index, step in
-                            HStack(alignment: .top, spacing: 8) {
-                                Text("\(index + 1).")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(isCompleted ? .secondary : .primary)
-                                
-                                Text(step)
-                                    .font(.subheadline)
-                                    .foregroundColor(isCompleted ? .secondary : .primary)
-                                    .strikethrough(isCompleted)
-                            }
+                            Text(step)
+                                .font(.subheadline)
+                                .foregroundColor(isCompleted ? .secondary : .primary)
+                                .strikethrough(isCompleted)
                         }
                     }
                 }
             }
+            
+            Spacer()
         }
         .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(UIColor.secondarySystemBackground))
                 .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                 .opacity(isCompleted ? 0.6 : 1.0)
         )
-        .padding(.horizontal)
+        .padding(.horizontal, 16)
         .animation(.easeInOut(duration: 0.2), value: isCompleted)
     }
     

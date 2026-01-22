@@ -28,7 +28,7 @@ struct MemberDetailView: View {
         _dislikes = State(initialValue: member.dislikes)
     }
     
-    let availableDiets = ["vegetarian", "vegan", "pescatarian", "gluten-free", "dairy-free", "keto", "paleo"]
+    let availableDiets = ["vegetarian", "vegan", "pescatarian", "gluten-free", "dairy-free", "keto", "paleo", "halal", "kosher"]
     static let availableAllergens = ["nuts", "peanuts", "dairy", "eggs", "soy", "wheat", "fish", "shellfish"]
     
     var body: some View {

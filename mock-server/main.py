@@ -596,13 +596,25 @@ async def generate_recipe_with_openai(
                 constraints_text += f"If an ingredient is similar (e.g., if 'nuts' is forbidden, avoid ALL nuts: almonds, hazelnuts, etc.)\n"
                 constraints_text += f"THIS RULE IS ABSOLUTE AND NON-NEGOTIABLE.\n\n"
     
-    # PRIORITY #2: Diet requirements (vegetarian, vegan, etc.)
+    # PRIORITY #2: Diet requirements (vegetarian, vegan, halal, kosher, etc.)
     if constraints.get("diet"):
         diets = ", ".join(constraints["diet"])
         if language == "fr":
             constraints_text += f"Régimes alimentaires à respecter: {diets}\n"
+            # Add specific guidance for halal and kosher
+            diets_lower = [d.lower() for d in constraints["diet"]]
+            if "halal" in diets_lower:
+                constraints_text += f"⚠️ HALAL: N'utilise JAMAIS de porc, d'alcool, ou de produits dérivés du porc. Toutes les viandes doivent être halal.\n"
+            if "kosher" in diets_lower or "casher" in diets_lower:
+                constraints_text += f"⚠️ CASHER: N'utilise JAMAIS de porc, de fruits de mer (crustacés, mollusques), ou de mélanges viande-lait. Respecte les lois casher.\n"
         else:
             constraints_text += f"Dietary requirements to follow: {diets}\n"
+            # Add specific guidance for halal and kosher
+            diets_lower = [d.lower() for d in constraints["diet"]]
+            if "halal" in diets_lower:
+                constraints_text += f"⚠️ HALAL: NEVER use pork, alcohol, or pork-derived products. All meats must be halal.\n"
+            if "kosher" in diets_lower:
+                constraints_text += f"⚠️ KOSHER: NEVER use pork, shellfish (crustaceans, mollusks), or mix meat with dairy. Follow kosher laws.\n"
     
     # Build preferences text - check constraints first, then preferences dict
     preferences_text = ""

@@ -291,6 +291,8 @@
 "diet.dairy-free" = "Sans produits laitiers";
 "diet.keto" = "Keto";
 "diet.paleo" = "Paléo";
+"diet.halal" = "Halal";
+"diet.kosher" = "Casher";
 
 // Allergènes
 "allergen.nuts" = "Noix";

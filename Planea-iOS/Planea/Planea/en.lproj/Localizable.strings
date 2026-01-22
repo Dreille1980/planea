@@ -301,6 +301,8 @@
 "diet.dairy-free" = "Dairy-free";
 "diet.keto" = "Keto";
 "diet.paleo" = "Paleo";
+"diet.halal" = "Halal";
+"diet.kosher" = "Kosher";
 
 // Allergens
 "allergen.nuts" = "Nuts";
