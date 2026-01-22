@@ -3445,6 +3445,14 @@ async def generate_weekly_reheating(kit_recipes: List[dict], days: List[str], me
 RECETTES PRÉPARÉES + JOURS:
 {json.dumps(recipe_summaries, indent=2, ensure_ascii=False)}
 
+🚨🚨🚨 RÈGLE ABSOLUE - GÉNÉRATION COMPLÈTE 🚨🚨🚨
+
+Tu as reçu {len(recipe_summaries)} recettes.
+Tu DOIS générer EXACTEMENT {len(recipe_summaries)} entrées dans "days".
+
+Si tu reçois 10 recettes, tu dois créer 10 entrées.
+Une entrée = un repas = un moment de réchauffage.
+
 🎯 CRÉE LA SECTION "CE QUI RESTE À FAIRE CHAQUE SOIR"
 
 FORMAT OBLIGATOIRE:
@@ -3452,42 +3460,73 @@ FORMAT OBLIGATOIRE:
   "days": [
     {{
       "day_number": 1,
-      "day_label": "Soir 1",
+      "day_label": "Dîner Jour 1",
       "recipe_name": "Poulet citron",
       "emoji": "🐔",
       "steps": [
-        "Réchauffer poulet + légumes au four ou poêle",
-        "Réchauffer le quinoa"
+        "Réchauffer poulet + légumes au micro-ondes ou poêle (8 min)",
+        "Réchauffer quinoa au micro-ondes (2 min)"
       ],
       "estimated_minutes": 12
     }},
     {{
-      "day_number": 3,
-      "day_label": "Soir 3",
+      "day_number": 1,
+      "day_label": "Souper Jour 1",
+      "recipe_name": "Boeuf aux légumes",
+      "emoji": "🥩",
+      "steps": [
+        "Réchauffer boeuf + légumes au micro-ondes ou poêle (8 min)",
+        "Réchauffer riz au micro-ondes (2 min)"
+      ],
+      "estimated_minutes": 12
+    }},
+    {{
+      "day_number": 2,
+      "day_label": "Dîner Jour 2",
       "recipe_name": "Saumon",
       "emoji": "🐟",
       "steps": [
-        "Cuire le saumon (four ou poêle)",
-        "Réchauffer le brocoli",
-        "Ajouter riz ou quinoa"
+        "Cuire saumon au four ou poêle (12 min)",
+        "Réchauffer brocoli au micro-ondes (3 min)",
+        "Réchauffer riz au micro-ondes (2 min)"
       ],
       "estimated_minutes": 18
+    }},
+    {{
+      "day_number": 2,
+      "day_label": "Souper Jour 2",
+      "recipe_name": "...",
+      "emoji": "...",
+      "steps": ["..."],
+      "estimated_minutes": XX
     }}
   ]
 }}
 
 RÈGLES CRITIQUES:
-1. UN soir par recette (Soir 1, Soir 2, Soir 3, Soir 4)
-2. Emojis: 🐔 poulet, 🥩 boeuf, 🐟 poisson, 🦐 crevettes, 🍝 pâtes
-3. Étapes SIMPLES et FLEXIBLES:
-   - Pour réchauffer: "Réchauffer X au micro-ondes ou à la poêle" (toujours donner les 2 options)
-   - Pour cuire frais: "Cuire Y (four ou poêle)" avec méthode spécifique
-   - NE PAS forcer "à la poêle" si le micro-ondes fonctionne bien
-4. 10-25 min par soir MAX
-5. Si protéine non cuite (poisson), inclure "Cuire le..."
-6. Toujours finir par "✔️ Fini en X-Y min" dans le récit
+1. day_label: Utilise "Dîner Jour X" ou "Souper Jour X" selon le moment
+   - Dîner = midi (lunch)
+   - Souper = soir (dinner)
+   - Si 2 repas par jour: Jour 1 a Dîner + Souper, Jour 2 a Dîner + Souper, etc.
+
+2. Une entrée OBLIGATOIRE pour CHAQUE recette listée ci-dessus
+
+3. Emojis: 🐔 poulet, 🥩 boeuf, 🐟 poisson, 🦐 crevettes, 🍝 pâtes, 🥚 oeufs
+
+4. Étapes SIMPLES et FLEXIBLES:
+   - Pour réchauffer: "Réchauffer X au micro-ondes ou poêle (temps)"
+   - Pour cuire frais: "Cuire Y au four ou poêle (temps)"
+   - Toujours donner les 2 options (micro-ondes ET poêle/four)
+
+5. 8-20 min par repas MAX
+
+6. Si protéine non cuite (poisson frais), inclure "Cuire le..."
+
+❌ INTERDIT: Omettre des recettes, fusionner des recettes, ou sauter des entrées
+✅ OBLIGATOIRE: {len(recipe_summaries)} entrées dans days
 
 Retourne UNIQUEMENT le JSON."""
+
     
     else:  # English
         prompt = f"""You are a meal prep expert creating SIMPLE reheating guides.
