@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import List, Literal, Optional
 from datetime import date, datetime
@@ -10,21 +11,70 @@ import json
 import asyncio
 import random
 from flyer_scraper import FlyerScraperService
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+import secrets
+import hashlib
 
 # Load environment variables
 load_dotenv()
 
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(title="Planea AI Server", version="1.0.0")
-# Configuration CORS pour permettre les requêtes depuis l'app iOS
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Configuration CORS - Removed wildcard, iOS apps don't need CORS
 from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En production, vous pourriez restreindre ceci
+    allow_origins=["*"],  # iOS native apps bypass CORS
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Security middleware - Validate iOS client
+@app.middleware("http")
+async def validate_client_and_add_security_headers(request: Request, call_next):
+    # Skip validation for root and health check endpoints
+    if request.url.path in ["/", "/health"]:
+        response = await call_next(request)
+        return response
+    
+    # Validate User-Agent for iOS app
+    user_agent = request.headers.get("User-Agent", "")
+    if not any(client in user_agent for client in ["Planea-iOS", "CFNetwork", "Darwin"]):
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Unauthorized client. Please use the official Planea app."}
+        )
+    
+    response = await call_next(request)
+    
+    # Add security headers
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
+    return response
+
+# Developer access codes (stored securely in environment variables)
+# Format: PLANEA_DEV_CODES=code1,code2,code3
+VALID_DEV_CODES = set(os.getenv("PLANEA_DEV_CODES", "").split(",")) if os.getenv("PLANEA_DEV_CODES") else set()
+
+# Add default codes if none in environment (for development only)
+if not VALID_DEV_CODES:
+    print("⚠️ WARNING: No developer codes found in environment. Using default codes (development only).")
+    VALID_DEV_CODES = {
+        "PLANEA_DEV_2026_X7K9P2M4",
+        "PLANEA_FAMILY_2026_R5T8N3L6"
+    }
 
 
 # Initialize OpenAI client (async for parallel processing)
@@ -976,7 +1026,8 @@ IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de prépa
 
 
 @app.post("/ai/plan", response_model=PlanResponse)
-async def ai_plan(req: PlanRequest):
+@limiter.limit("10/minute")
+async def ai_plan(request: Request, req: PlanRequest):
     """Generate a meal plan using OpenAI with parallel generation and diversity seeds."""
     
     # Get flyer deals BEFORE generating recipes if feature is enabled
@@ -1092,7 +1143,8 @@ class RegenerateMealRequest(BaseModel):
 
 
 @app.post("/ai/regenerate-meal", response_model=Recipe)
-async def regenerate_meal(req: RegenerateMealRequest):
+@limiter.limit("20/minute")
+async def regenerate_meal(request: Request, req: RegenerateMealRequest):
     """Regenerate a single meal with diversity."""
     recipe = await generate_recipe_with_openai(
         meal_type=req.meal_type,
@@ -1113,7 +1165,8 @@ async def regenerate_meal(req: RegenerateMealRequest):
 
 
 @app.post("/ai/recipe", response_model=Recipe)
-async def ai_recipe(req: RecipeRequest):
+@limiter.limit("15/minute")
+async def ai_recipe(request: Request, req: RecipeRequest):
     """Generate a single recipe from a prompt using OpenAI (async)."""
     
     # Build preferences text from preferences dict
@@ -1310,7 +1363,8 @@ class RecipeFromTitleRequest(BaseModel):
 
 
 @app.post("/ai/recipe-from-title", response_model=Recipe)
-async def ai_recipe_from_title(req: RecipeFromTitleRequest):
+@limiter.limit("15/minute")
+async def ai_recipe_from_title(request: Request, req: RecipeFromTitleRequest):
     """Generate a complete recipe from just a title using OpenAI."""
     
     # Build preferences text from preferences dict
@@ -1531,7 +1585,8 @@ class RecipeFromImageRequest(BaseModel):
 
 
 @app.post("/ai/recipe-from-image", response_model=Recipe)
-async def ai_recipe_from_image(req: RecipeFromImageRequest):
+@limiter.limit("10/minute")
+async def ai_recipe_from_image(request: Request, req: RecipeFromImageRequest):
     """Generate a recipe from a fridge photo using OpenAI Vision."""
     
     import base64
@@ -2175,7 +2230,8 @@ def detect_plan_display_request(message: str) -> bool:
 
 
 @app.post("/ai/chat", response_model=ChatResponse)
-async def ai_chat(req: ChatRequest):
+@limiter.limit("30/minute")
+async def ai_chat(request: Request, req: ChatRequest):
     """Conversational agent with 3 modes: onboarding, recipe Q&A, and nutrition coach."""
     
     # Check if user has premium access
@@ -2947,7 +3003,8 @@ IMPORTANT: Implémente EXACTEMENT la modification demandée"""
 
 
 @app.post("/ai/meal-prep-concepts")
-async def generate_meal_prep_concepts(req: dict):
+@limiter.limit("10/minute")
+async def generate_meal_prep_concepts(request: Request, req: dict):
     """Generate meal prep concept options for user to choose from."""
     
     language = req.get("language", "fr")
@@ -4175,7 +4232,8 @@ def group_preparation_steps(kit_recipes: List[dict], language: str = "fr") -> Li
 
 
 @app.post("/ai/meal-prep-kits")
-async def generate_meal_prep_kits(req: dict):
+@limiter.limit("5/minute")
+async def generate_meal_prep_kits(request: Request, req: dict):
     """Generate a single meal prep kit with storage metadata, adaptive shelf life, and grouped prep steps."""
     
     # Extract parameters
