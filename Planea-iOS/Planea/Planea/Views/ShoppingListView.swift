@@ -436,7 +436,7 @@ struct ShoppingListView: View {
         .foregroundColor(.white)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(Capsule().fill(.planeaSecondary))
+        .background(Capsule().fill(Color.planeaSecondary))
     }
     
     private func handleExportAction() {
