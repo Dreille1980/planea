@@ -120,12 +120,21 @@ struct PlanWeekView: View {
                         // Modern slot selection UI
                         ScrollView {
                             VStack(spacing: 12) {
-                                // Header with styled title
+                                // Header with logo and styled title
                                 VStack(spacing: 4) {
-                                    // Styled title with "Planifiez" in orange
-                                    Text(attributedPlanTitle())
-                                        .font(.title3)
-                                        .bold()
+                                    HStack(spacing: 8) {
+                                        Image("PlaneaLogo 1")
+                                            .resizable()
+                                            .renderingMode(.template)
+                                            .scaledToFit()
+                                            .frame(width: 18, height: 18)
+                                            .foregroundColor(.planeaTextPrimary)
+                                        
+                                        // Styled title with "Planifiez" in orange
+                                        Text(attributedPlanTitle())
+                                            .font(.title3)
+                                            .bold()
+                                    }
                                     
                                     Text("plan.selectMeals".localized)
                                         .font(.caption)
