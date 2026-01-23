@@ -31,28 +31,28 @@ struct FloatingChatButton: View {
                             .frame(width: 60, height: 60)
                             .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
                         
-                        // Magnifying glass with sparkles overlay
+                        // Robot with sparkles overlay
                         ZStack {
-                            // Main search icon
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 26, weight: .semibold))
+                            // Main robot icon
+                            Image(systemName: "figure.wave.circle.fill")
+                                .font(.system(size: 28))
                                 .foregroundColor(.white)
                             
-                            // Sparkles positioned around the magnifying glass
+                            // Sparkles positioned around the robot
                             Image(systemName: "sparkle")
                                 .font(.system(size: 12))
                                 .foregroundColor(.white)
-                                .offset(x: -12, y: -10)
+                                .offset(x: -14, y: -12)
                             
                             Image(systemName: "sparkle")
                                 .font(.system(size: 8))
                                 .foregroundColor(.white)
-                                .offset(x: -8, y: -15)
+                                .offset(x: 14, y: -12)
                             
                             Image(systemName: "sparkle")
                                 .font(.system(size: 10))
                                 .foregroundColor(.white)
-                                .offset(x: 2, y: -14)
+                                .offset(x: 0, y: -16)
                         }
                     }
                 }
