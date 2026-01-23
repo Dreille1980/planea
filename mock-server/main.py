@@ -4428,7 +4428,12 @@ async def generate_meal_prep_kits(request: Request, req: dict):
                     "tags": recipe.tags,
                     "shelf_life_days": shelf_life_days,
                     "is_freezable": is_freezable,
-                    "storage_note": storage_note
+                    "storage_note": storage_note,
+                    # Include nutritional information if available
+                    "calories_per_serving": recipe.calories_per_serving if hasattr(recipe, 'calories_per_serving') else None,
+                    "protein_per_serving": recipe.protein_per_serving if hasattr(recipe, 'protein_per_serving') else None,
+                    "carbs_per_serving": recipe.carbs_per_serving if hasattr(recipe, 'carbs_per_serving') else None,
+                    "fat_per_serving": recipe.fat_per_serving if hasattr(recipe, 'fat_per_serving') else None
                 }
             }
             

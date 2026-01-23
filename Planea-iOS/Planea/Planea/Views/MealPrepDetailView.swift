@@ -170,6 +170,27 @@ struct MealPrepDetailView: View {
                             .font(.caption)
                     }
                     .foregroundColor(.secondary)
+                    
+                    // Nutritional information (if available)
+                    if let calories = recipe.caloriesPerServing,
+                       let protein = recipe.proteinPerServing,
+                       let carbs = recipe.carbsPerServing,
+                       let fat = recipe.fatPerServing {
+                        
+                        HStack(spacing: 8) {
+                            Image(systemName: "flame.fill")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                            Text("\(calories) cal")
+                            Text("|")
+                                .foregroundColor(.secondary)
+                            Text("P: \(protein)g")
+                            Text("G: \(carbs)g")
+                            Text("L: \(fat)g")
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    }
                 }
             }
         }
