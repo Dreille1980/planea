@@ -128,7 +128,7 @@ struct PlanWeekView: View {
                                             .renderingMode(.template)
                                             .scaledToFit()
                                             .frame(width: 18, height: 18)
-                                            .foregroundStyle(.planeaTextPrimary)
+                                            .foregroundColor(.planeaTextPrimary)
                                         
                                         // Styled title with "Planifiez" in orange
                                         Text(attributedPlanTitle())
@@ -138,7 +138,7 @@ struct PlanWeekView: View {
                                     
                                     Text("plan.selectMeals".localized)
                                         .font(.caption)
-                                        .foregroundStyle(.planeaTextSecondary)
+                                        .foregroundColor(.planeaTextSecondary)
                                 }
                                 .padding(.top, 4)
                                 
@@ -452,7 +452,7 @@ struct DaySelectionRow: View {
                 Text(dayLabel)
                     .font(.subheadline)
                     .bold()
-                    .foregroundStyle(.planeaTextPrimary)
+                    .foregroundColor(.planeaTextPrimary)
                 
                 HStack(spacing: 6) {
                     ForEach(mealTypes, id: \.self) { mealType in
@@ -520,7 +520,7 @@ struct MealPillButton: View {
                           Color.planeaSecondary.opacity(0.15) : 
                           Color.planeaChipDefault)
             )
-            .foregroundStyle(.planeaTextPrimary)
+            .foregroundColor(.planeaTextPrimary)
         }
         .buttonStyle(.plain)
     }
@@ -547,7 +547,7 @@ struct DayCardView: View {
                     Text(day)
                         .font(.headline)
                         .bold()
-                        .foregroundStyle(.planeaTextPrimary)
+                        .foregroundColor(.planeaTextPrimary)
                     
                     Spacer()
                     
@@ -558,7 +558,7 @@ struct DayCardView: View {
                             .font(.caption)
                             .bold()
                     }
-                    .foregroundStyle(.planeaTextSecondary)
+                    .foregroundColor(.planeaTextSecondary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color.planeaChipDefault)
