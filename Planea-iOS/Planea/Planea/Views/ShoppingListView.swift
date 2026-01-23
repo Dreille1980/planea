@@ -433,7 +433,7 @@ struct ShoppingListView: View {
         }
         .font(.caption)
         .fontWeight(.semibold)
-        .foregroundStyle(.white)
+        .foregroundColor(.white)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(Capsule().fill(.planeaSecondary))
