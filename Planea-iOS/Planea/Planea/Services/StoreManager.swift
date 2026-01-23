@@ -270,7 +270,8 @@ class StoreManager: ObservableObject {
     }
     
     var hasMealPrepAccess: Bool {
-        return hasDeveloperAccess()
+        // Public test phase: accessible to all users
+        return true
     }
     
     var monthlyProduct: Product? {
