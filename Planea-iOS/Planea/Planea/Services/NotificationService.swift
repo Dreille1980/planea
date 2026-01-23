@@ -100,9 +100,7 @@ class NotificationService {
             } else {
                 print("Weekly meal prep reminder scheduled successfully")
                 // Log to Analytics
-                AnalyticsService.shared.logEvent(name: "notification_enabled", parameters: [
-                    "type": "weekly_meal_prep"
-                ])
+                AnalyticsService.shared.logNotificationEnabled(type: "weekly_meal_prep")
             }
         }
     }
@@ -113,9 +111,7 @@ class NotificationService {
         print("Weekly meal prep reminder cancelled")
         
         // Log to Analytics
-        AnalyticsService.shared.logEvent(name: "notification_disabled", parameters: [
-            "type": "weekly_meal_prep"
-        ])
+        AnalyticsService.shared.logNotificationDisabled(type: "weekly_meal_prep")
     }
     
     /// Get a random message body key (supports multiple message variants in the future)

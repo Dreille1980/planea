@@ -230,4 +230,24 @@ class AnalyticsService {
             "app_version": version
         ])
     }
+    
+    // MARK: - Notifications
+    
+    func logNotificationEnabled(type: String) {
+        Analytics.logEvent("notification_enabled", parameters: [
+            "type": type
+        ])
+    }
+    
+    func logNotificationDisabled(type: String) {
+        Analytics.logEvent("notification_disabled", parameters: [
+            "type": type
+        ])
+    }
+    
+    func logNotificationTapped(type: String) {
+        Analytics.logEvent("notification_tapped", parameters: [
+            "type": type
+        ])
+    }
 }

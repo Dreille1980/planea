@@ -238,9 +238,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
             NotificationCenter.default.post(name: NSNotification.Name("OpenRecipesTab"), object: nil)
             
             // Log analytics
-            AnalyticsService.shared.logEvent(name: "notification_tapped", parameters: [
-                "type": "weekly_meal_prep"
-            ])
+            AnalyticsService.shared.logNotificationTapped(type: "weekly_meal_prep")
         }
         
         completionHandler()
