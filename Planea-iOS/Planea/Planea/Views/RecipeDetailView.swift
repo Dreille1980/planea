@@ -150,7 +150,7 @@ struct RecipeDetailView: View {
                         }
                     }) {
                         Image(systemName: favoritesVM.isRecipeSaved(recipe) ? "heart.fill" : "heart")
-                            .foregroundStyle(favoritesVM.isRecipeSaved(recipe) ? .planeaSecondary : .primary)
+                            .foregroundColor(favoritesVM.isRecipeSaved(recipe) ? .planeaSecondary : .primary)
                     }
                 }
             }
