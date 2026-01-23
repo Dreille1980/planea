@@ -324,7 +324,7 @@
 // Plans
 "plan.draft" = "Brouillon";
 "plan.active.badge" = "Plan de la semaine";
-"plan.activate.button" = "Sauvegarder comme plan de la semaine";
+"plan.activate.button" = "Sauvegarder plan";
 "plan.archive.alert.title" = "Créer un nouveau plan?";
 "plan.archive.alert.message" = "Votre plan actuel sera archivé dans l'historique. Continuer?";
 "plan.archive.alert.confirm" = "Archiver et créer";

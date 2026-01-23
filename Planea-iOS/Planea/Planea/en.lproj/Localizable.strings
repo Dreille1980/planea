@@ -334,7 +334,7 @@
 // Plans
 "plan.draft" = "Draft";
 "plan.active.badge" = "Weekly Plan";
-"plan.activate.button" = "Save as Weekly Plan";
+"plan.activate.button" = "Save Plan";
 "plan.archive.alert.title" = "Create New Plan?";
 "plan.archive.alert.message" = "Your current plan will be archived to history. Continue?";
 "plan.archive.alert.confirm" = "Archive and Create";

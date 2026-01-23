@@ -83,4 +83,32 @@ final class FamilyViewModel: ObservableObject {
         }
         return (Array(diet), Array(evict))
     }
+    
+    /// Extract disliked proteins from all family members to explicitly exclude them from recipes
+    func aggregatedDislikedProteins() -> [String] {
+        // Common protein keywords in both French and English
+        let commonProteins = [
+            "poulet", "chicken", "boeuf", "beef", "porc", "pork", 
+            "agneau", "lamb", "poisson", "fish", "saumon", "salmon", 
+            "thon", "tuna", "crevettes", "shrimp", "tofu", "turkey", "dinde",
+            "canard", "duck", "veau", "veal", "lapin", "rabbit"
+        ]
+        
+        var dislikedProteins = Set<String>()
+        
+        for member in members {
+            for preference in member.preferences where preference.type == .dislike {
+                let value = preference.value.lowercased().trimmingCharacters(in: .whitespaces)
+                
+                // Check if this dislike is a protein or contains a protein keyword
+                for protein in commonProteins {
+                    if value == protein || value.contains(protein) {
+                        dislikedProteins.insert(protein)
+                    }
+                }
+            }
+        }
+        
+        return Array(dislikedProteins)
+    }
 }

@@ -23,6 +23,10 @@ extension Color {
     /// Usage : Barre verticale gauche des cartes jour (4px, 100% opacité)
     static let planeaTertiary = Color(hex: "#7FA19B")
     
+    /// Rouge brique - Couleur pour les actions de suppression
+    /// Usage : Bouton supprimer, actions destructives
+    static let planeaDanger = Color(hex: "#C94A4A")
+    
     // MARK: - Neutrals
     
     /// Fond principal de l'application

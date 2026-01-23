@@ -646,6 +646,24 @@ async def generate_recipe_with_openai(
                 constraints_text += f"If an ingredient is similar (e.g., if 'nuts' is forbidden, avoid ALL nuts: almonds, hazelnuts, etc.)\n"
                 constraints_text += f"THIS RULE IS ABSOLUTE AND NON-NEGOTIABLE.\n\n"
     
+    # PRIORITY #1.5: Excluded proteins - proteins family members dislike
+    if constraints.get("excludedProteins"):
+        excluded_proteins = constraints["excludedProteins"]
+        if excluded_proteins:
+            excluded_list = ", ".join(excluded_proteins)
+            if language == "fr":
+                constraints_text += f"\n\n🥩 PROTÉINES EXCLUES PAR LA FAMILLE 🥩\n"
+                constraints_text += f"La famille n'aime PAS ces protéines:\n"
+                constraints_text += f"❌ PROTÉINES À ÉVITER: {excluded_list}\n"
+                constraints_text += f"❌ N'utilise JAMAIS ces protéines dans la recette\n"
+                constraints_text += f"✅ Utilise plutôt d'autres protéines que la famille apprécie\n\n"
+            else:
+                constraints_text += f"\n\n🥩 FAMILY EXCLUDED PROTEINS 🥩\n"
+                constraints_text += f"The family DISLIKES these proteins:\n"
+                constraints_text += f"❌ PROTEINS TO AVOID: {excluded_list}\n"
+                constraints_text += f"❌ NEVER use these proteins in the recipe\n"
+                constraints_text += f"✅ Use other proteins the family enjoys instead\n\n"
+    
     # PRIORITY #2: Diet requirements (vegetarian, vegan, halal, kosher, etc.)
     if constraints.get("diet"):
         diets = ", ".join(constraints["diet"])
@@ -1218,6 +1236,9 @@ async def ai_recipe(request: Request, req: RecipeRequest):
         if req.constraints.get("evict"):
             allergies = ", ".join(req.constraints["evict"])
             constraints_text += f"Allergies/Avoid: {allergies}. "
+        if req.constraints.get("excludedProteins"):
+            excluded_proteins = ", ".join(req.constraints["excludedProteins"])
+            constraints_text += f"🥩 Family DISLIKES these proteins (DO NOT USE): {excluded_proteins}. "
         
         unit_system = "metric (grams, ml)" if req.units == "METRIC" else "imperial (oz, cups)"
         
@@ -1277,6 +1298,9 @@ IMPORTANT: Generate at least 5-7 detailed steps with EXPLICIT preparation steps 
         if req.constraints.get("evict"):
             allergies = ", ".join(req.constraints["evict"])
             constraints_text += f"Allergies/Éviter: {allergies}. "
+        if req.constraints.get("excludedProteins"):
+            excluded_proteins = ", ".join(req.constraints["excludedProteins"])
+            constraints_text += f"🥩 La famille N'AIME PAS ces protéines (NE PAS UTILISER): {excluded_proteins}. "
         
         unit_system = "métrique (grammes, ml)" if req.units == "METRIC" else "impérial (oz, cups)"
         
@@ -1421,6 +1445,9 @@ async def ai_recipe_from_title(request: Request, req: RecipeFromTitleRequest):
         if req.constraints.get("evict"):
             allergies = ", ".join(req.constraints["evict"])
             constraints_text += f"Allergies/Avoid: {allergies}. "
+        if req.constraints.get("excludedProteins"):
+            excluded_proteins = ", ".join(req.constraints["excludedProteins"])
+            constraints_text += f"🥩 Family DISLIKES these proteins (DO NOT USE): {excluded_proteins}. "
         
         unit_system = "metric (grams, ml)" if req.units == "METRIC" else "imperial (oz, cups)"
         
@@ -1483,6 +1510,9 @@ IMPORTANT:
         if req.constraints.get("evict"):
             allergies = ", ".join(req.constraints["evict"])
             constraints_text += f"Allergies/Éviter: {allergies}. "
+        if req.constraints.get("excludedProteins"):
+            excluded_proteins = ", ".join(req.constraints["excludedProteins"])
+            constraints_text += f"🥩 La famille N'AIME PAS ces protéines (NE PAS UTILISER): {excluded_proteins}. "
         
         unit_system = "métrique (grammes, ml)" if req.units == "METRIC" else "impérial (oz, cups)"
         

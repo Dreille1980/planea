@@ -316,9 +316,11 @@ struct AdHocRecipeContentView: View {
             let service = IAService(baseURL: URL(string: Config.baseURL)!)
             let units = UnitSystem(rawValue: unitSystem) ?? .metric
             let constraints = familyVM.aggregatedConstraints()
+            let dislikedProteins = familyVM.aggregatedDislikedProteins()
             let constraintsDict: [String: Any] = [
                 "diet": constraints.diet,
-                "evict": constraints.evict
+                "evict": constraints.evict,
+                "excludedProteins": dislikedProteins
             ]
             
             let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
@@ -365,9 +367,11 @@ struct AdHocRecipeContentView: View {
             var constraintsDict: [String: Any]
             if useConstraints {
                 let constraints = familyVM.aggregatedConstraints()
+                let dislikedProteins = familyVM.aggregatedDislikedProteins()
                 constraintsDict = [
                     "diet": constraints.diet,
-                    "evict": constraints.evict
+                    "evict": constraints.evict,
+                    "excludedProteins": dislikedProteins
                 ]
                 // Add user instructions if present
                 if !photoInstructions.isEmpty {

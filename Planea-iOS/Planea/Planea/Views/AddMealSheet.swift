@@ -171,9 +171,11 @@ struct AddMealSheet: View {
             let service = IAService(baseURL: URL(string: Config.baseURL)!)
             let units = UnitSystem(rawValue: unitSystem) ?? .metric
             let constraints = familyVM.aggregatedConstraints()
+            let dislikedProteins = familyVM.aggregatedDislikedProteins()
             let constraintsDict: [String: Any] = [
                 "diet": constraints.diet,
-                "evict": constraints.evict
+                "evict": constraints.evict,
+                "excludedProteins": dislikedProteins
             ]
             
             let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
@@ -214,9 +216,11 @@ struct AddMealSheet: View {
             let service = IAService(baseURL: URL(string: Config.baseURL)!)
             let units = UnitSystem(rawValue: unitSystem) ?? .metric
             let constraints = familyVM.aggregatedConstraints()
+            let dislikedProteins = familyVM.aggregatedDislikedProteins()
             let constraintsDict: [String: Any] = [
                 "diet": constraints.diet,
-                "evict": constraints.evict
+                "evict": constraints.evict,
+                "excludedProteins": dislikedProteins
             ]
             
             let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()

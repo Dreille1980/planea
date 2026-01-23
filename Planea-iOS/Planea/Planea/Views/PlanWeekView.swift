@@ -88,7 +88,7 @@ struct PlanWeekView: View {
                                     Button(action: {
                                         showNamePlanDialog = true
                                     }) {
-                                        Label("plan.activate.button".localized, systemImage: "checkmark.circle.fill")
+                                        Text("plan.activate.button".localized)
                                             .frame(maxWidth: .infinity)
                                             .padding(.vertical, 12)
                                     }
@@ -106,7 +106,7 @@ struct PlanWeekView: View {
                                         }
                                     }
                                 }) {
-                                    Label("action.newPlan".localized, systemImage: "arrow.counterclockwise")
+                                    Text("action.newPlan".localized)
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 12)
                                 }
@@ -297,9 +297,11 @@ struct PlanWeekView: View {
             let service = IAService(baseURL: URL(string: Config.baseURL)!)
             let units = UnitSystem(rawValue: unitSystem) ?? .metric
             let constraints = familyVM.aggregatedConstraints()
+            let dislikedProteins = familyVM.aggregatedDislikedProteins()
             let constraintsDict: [String: Any] = [
                 "diet": constraints.diet,
-                "evict": constraints.evict
+                "evict": constraints.evict,
+                "excludedProteins": dislikedProteins
             ]
             
             let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
@@ -377,9 +379,11 @@ struct PlanWeekView: View {
             let service = IAService(baseURL: URL(string: Config.baseURL)!)
             let units = UnitSystem(rawValue: unitSystem) ?? .metric
             let constraints = familyVM.aggregatedConstraints()
+            let dislikedProteins = familyVM.aggregatedDislikedProteins()
             let constraintsDict: [String: Any] = [
                 "diet": constraints.diet,
-                "evict": constraints.evict
+                "evict": constraints.evict,
+                "excludedProteins": dislikedProteins
             ]
             
             let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
@@ -668,8 +672,8 @@ struct MealRowView: View {
                         }
                     }
                     .frame(width: 32, height: 32)
-                    .background(Color.blue.opacity(0.1))
-                    .foregroundStyle(.blue)
+                    .background(Color.planeaPrimary.opacity(0.1))
+                    .foregroundColor(.planeaPrimary)
                     .cornerRadius(8)
                 }
                 .disabled(isRegenerating)
@@ -678,7 +682,7 @@ struct MealRowView: View {
                 Button(action: onRemove) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 18))
-                        .foregroundStyle(.red.opacity(0.8))
+                        .foregroundColor(.planeaDanger)
                 }
             }
             .padding(12)

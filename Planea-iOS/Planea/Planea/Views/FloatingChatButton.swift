@@ -27,7 +27,7 @@ struct FloatingChatButton: View {
                 Button(action: openChat) {
                     ZStack {
                         Circle()
-                            .fill(Color.blue)
+                            .fill(Color.planeaPrimary)
                             .frame(width: 60, height: 60)
                             .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
                         
@@ -37,7 +37,7 @@ struct FloatingChatButton: View {
                     }
                 }
                 .padding(.trailing, 20)
-                .padding(.bottom, 20)
+                .padding(.bottom, 100)
             }
         }
         .sheet(isPresented: $showChatView) {
