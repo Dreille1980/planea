@@ -31,29 +31,9 @@ struct FloatingChatButton: View {
                             .frame(width: 60, height: 60)
                             .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
                         
-                        // Chat bubble with sparkles overlay
-                        ZStack {
-                            // Main chat bubble icon
-                            Image(systemName: "bubble.left.fill")
-                                .font(.system(size: 26))
-                                .foregroundColor(.white)
-                            
-                            // Sparkles positioned around the chat bubble
-                            Image(systemName: "sparkle")
-                                .font(.system(size: 12))
-                                .foregroundColor(.white)
-                                .offset(x: -14, y: -12)
-                            
-                            Image(systemName: "sparkle")
-                                .font(.system(size: 8))
-                                .foregroundColor(.white)
-                                .offset(x: 14, y: -12)
-                            
-                            Image(systemName: "sparkle")
-                                .font(.system(size: 10))
-                                .foregroundColor(.white)
-                                .offset(x: 0, y: -16)
-                        }
+                        Image(systemName: "sparkles")
+                            .font(.title2)
+                            .foregroundColor(.white)
                     }
                 }
                 .padding(.trailing, 20)
