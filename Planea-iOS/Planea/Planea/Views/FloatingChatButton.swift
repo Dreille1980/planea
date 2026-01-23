@@ -31,14 +31,14 @@ struct FloatingChatButton: View {
                             .frame(width: 60, height: 60)
                             .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
                         
-                        // Robot with sparkles overlay
+                        // Chat bubble with sparkles overlay
                         ZStack {
-                            // Main robot icon
-                            Image(systemName: "figure.wave.circle.fill")
-                                .font(.system(size: 28))
+                            // Main chat bubble icon
+                            Image(systemName: "bubble.left.fill")
+                                .font(.system(size: 26))
                                 .foregroundColor(.white)
                             
-                            // Sparkles positioned around the robot
+                            // Sparkles positioned around the chat bubble
                             Image(systemName: "sparkle")
                                 .font(.system(size: 12))
                                 .foregroundColor(.white)
