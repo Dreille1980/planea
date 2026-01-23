@@ -76,37 +76,7 @@ struct ShoppingListView: View {
                         .environment(\.editMode, shoppingVM.currentList?.sortOrder == .custom ? .constant(.active) : .constant(.inactive))
                         
                         // Export button
-                        Button(action: {
-                            if usageVM.hasFreePlanRestrictions {
-                                let generator = UINotificationFeedbackGenerator()
-                                generator.notificationOccurred(.warning)
-                                showPaywall = true
-                            } else {
-                                let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
-                                impactGenerator.impactOccurred()
-                                showingExportOptions = true
-                            }
-                        }) {
-                            HStack(spacing: 8) {
-                                Label("action.export".localized, systemImage: "square.and.arrow.up")
-                                if usageVM.hasFreePlanRestrictions {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "lock.fill")
-                                        Text("Premium")
-                                    }
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Capsule().fill(.planeaSecondary))
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.planeaPrimary)
-                        .padding()
+                        exportButton
                     }
                 } else {
                     VStack(spacing: 20) {
@@ -432,6 +402,52 @@ struct ShoppingListView: View {
         } else {
             // Show with one decimal for weight/volume
             return String(format: "%.1f", quantity)
+        }
+    }
+    
+    // MARK: - Export Button View
+    
+    private var exportButton: some View {
+        Button(action: handleExportAction) {
+            exportButtonLabel
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.planeaPrimary)
+        .padding()
+    }
+    
+    private var exportButtonLabel: some View {
+        HStack(spacing: 8) {
+            Label("action.export".localized, systemImage: "square.and.arrow.up")
+            if usageVM.hasFreePlanRestrictions {
+                premiumBadge
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+    
+    private var premiumBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "lock.fill")
+            Text("Premium")
+        }
+        .font(.caption)
+        .fontWeight(.semibold)
+        .foregroundStyle(.white)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Capsule().fill(.planeaSecondary))
+    }
+    
+    private func handleExportAction() {
+        if usageVM.hasFreePlanRestrictions {
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.warning)
+            showPaywall = true
+        } else {
+            let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
+            impactGenerator.impactOccurred()
+            showingExportOptions = true
         }
     }
 }
