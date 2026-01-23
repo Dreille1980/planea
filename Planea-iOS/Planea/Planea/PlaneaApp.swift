@@ -130,6 +130,7 @@ struct RootView: View {
                     .tabItem { Label("tab.settings".localized, systemImage: "gearshape") }
                     .tag(3)
             }
+            .tint(.planeaPrimary) // Icônes actives en bleu ardoise
         }
         .sheet(isPresented: $showOnboarding) {
             OnboardingContainerView(isPresented: $showOnboarding)

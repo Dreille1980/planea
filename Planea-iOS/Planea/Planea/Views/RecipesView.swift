@@ -18,16 +18,16 @@ struct RecipesView: View {
         ZStack {
             NavigationStack {
             VStack(spacing: 0) {
-                // Segment selector
+                // Segment selector with Planea style
                 Picker("", selection: $selectedSegment) {
                     ForEach(RecipesSegment.allCases, id: \.self) { segment in
                         Text(segment.rawValue.localized).tag(segment)
                     }
                 }
-                .pickerStyle(.segmented)
+                .planeaSegmentedStyle()
                 .padding(.horizontal)
                 .padding(.vertical, 8)
-                .background(Color(.systemGroupedBackground))
+                .background(Color.planeaBackground)
                 
                 // Segment content
                 TabView(selection: $selectedSegment) {

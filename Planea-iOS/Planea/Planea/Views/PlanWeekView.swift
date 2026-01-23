@@ -120,15 +120,25 @@ struct PlanWeekView: View {
                         // Modern slot selection UI
                         ScrollView {
                             VStack(spacing: 12) {
-                                // Header
+                                // Header with logo and styled title
                                 VStack(spacing: 4) {
-                                    Text("plan.planYourWeek".localized)
-                                        .font(.title3)
-                                        .bold()
+                                    HStack(spacing: 8) {
+                                        Image("logo new 2")
+                                            .resizable()
+                                            .renderingMode(.template)
+                                            .scaledToFit()
+                                            .frame(width: 18, height: 18)
+                                            .foregroundStyle(.planeaTextPrimary)
+                                        
+                                        // Styled title with "Planifiez" in orange
+                                        Text(attributedPlanTitle())
+                                            .font(.title3)
+                                            .bold()
+                                    }
                                     
                                     Text("plan.selectMeals".localized)
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(.planeaTextSecondary)
                                 }
                                 .padding(.top, 4)
                                 
@@ -171,14 +181,17 @@ struct PlanWeekView: View {
                                                 .tint(.white)
                                         } else {
                                             Image(systemName: "sparkles")
+                                                .foregroundStyle(.white)
                                         }
                                         Text(isGenerating ? "plan.generating".localized : "action.generatePlan".localized)
                                             .bold()
                                     }
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 16)
+                                    .background(planVM.slots.isEmpty || isGenerating ? Color.planeaPrimary.opacity(0.4) : Color.planeaPrimary)
+                                    .foregroundStyle(planVM.slots.isEmpty || isGenerating ? Color.white.opacity(0.6) : Color.white)
+                                    .cornerRadius(12)
                                 }
-                                .buttonStyle(.borderedProminent)
                                 .disabled(planVM.slots.isEmpty || isGenerating)
                                 
                                 if !planVM.slots.isEmpty {
@@ -405,6 +418,19 @@ struct PlanWeekView: View {
         
         regeneratingMealId = nil
     }
+    
+    // MARK: - Attributed Title Helper
+    private func attributedPlanTitle() -> AttributedString {
+        let fullText = "plan.planYourWeek".localized // "Planifiez votre semaine"
+        var attributed = AttributedString(fullText)
+        
+        // Color "Planifiez" in orange (first word)
+        if let range = attributed.range(of: "Planifiez") {
+            attributed[range].foregroundColor = .planeaSecondary
+        }
+        
+        return attributed
+    }
 }
 
 // MARK: - Day Selection Row
@@ -416,37 +442,44 @@ struct DaySelectionRow: View {
     let mealLabel: (MealType) -> String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(dayLabel)
-                .font(.subheadline)
-                .bold()
-                .foregroundStyle(.primary)
+        HStack(spacing: 0) {
+            // Barre verticale verte à gauche (4px, vert sauge foncé)
+            Rectangle()
+                .fill(Color.planeaTertiary)
+                .frame(width: 4)
             
-            HStack(spacing: 6) {
-                ForEach(mealTypes, id: \.self) { mealType in
-                    MealPillButton(
-                        mealType: mealType,
-                        label: mealLabel(mealType),
-                        isSelected: planVM.slots.contains(SlotSelection(weekday: day, mealType: mealType)),
-                        action: {
-                            let slot = SlotSelection(weekday: day, mealType: mealType)
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                if planVM.slots.contains(slot) {
-                                    planVM.deselect(slot)
-                                } else {
-                                    planVM.select(slot)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(dayLabel)
+                    .font(.subheadline)
+                    .bold()
+                    .foregroundStyle(.planeaTextPrimary)
+                
+                HStack(spacing: 6) {
+                    ForEach(mealTypes, id: \.self) { mealType in
+                        MealPillButton(
+                            mealType: mealType,
+                            label: mealLabel(mealType),
+                            isSelected: planVM.slots.contains(SlotSelection(weekday: day, mealType: mealType)),
+                            action: {
+                                let slot = SlotSelection(weekday: day, mealType: mealType)
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    if planVM.slots.contains(slot) {
+                                        planVM.deselect(slot)
+                                    } else {
+                                        planVM.select(slot)
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
+            .padding(12)
         }
-        .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color(.secondarySystemGroupedBackground))
-                .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
+                .fill(Color.planeaCard)
+                .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 2)
         )
     }
 }
@@ -458,24 +491,36 @@ struct MealPillButton: View {
     let isSelected: Bool
     let action: () -> Void
     
+    // Icônes contextuelles pour chaque type de repas
+    var mealIcon: String {
+        switch mealType {
+        case .breakfast: return "☀️"
+        case .lunch: return "🍽️"
+        case .dinner: return "🌙"
+        case .snack: return "🥤"
+        }
+    }
+    
     var body: some View {
         Button(action: action) {
-            Text(label)
-                .font(.caption)
-                .bold()
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isSelected ? 
-                              AnyShapeStyle(Color.accentColor.gradient) : 
-                              AnyShapeStyle(Color(.systemGray6)))
-                )
-                .foregroundStyle(isSelected ? .white : .primary)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(isSelected ? Color.clear : Color(.systemGray4), lineWidth: 1)
-                )
+            HStack(spacing: 4) {
+                if isSelected {
+                    Text(mealIcon)
+                        .font(.caption2)
+                }
+                Text(label)
+                    .font(.caption)
+                    .bold()
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? 
+                          Color.planeaSecondary.opacity(0.15) : 
+                          Color.planeaChipDefault)
+            )
+            .foregroundStyle(.planeaTextPrimary)
         }
         .buttonStyle(.plain)
     }
@@ -490,55 +535,64 @@ struct DayCardView: View {
     let onRemoveMeal: (MealItem) -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Header
-            HStack {
-                Text(day)
-                    .font(.headline)
-                    .bold()
-                
-                Spacer()
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "fork.knife")
-                        .font(.caption)
-                    Text("\(meals.count)")
-                        .font(.caption)
+        HStack(spacing: 0) {
+            // Barre verticale verte à gauche (4px, vert sauge foncé)
+            Rectangle()
+                .fill(Color.planeaTertiary)
+                .frame(width: 4)
+            
+            VStack(alignment: .leading, spacing: 12) {
+                // Header
+                HStack {
+                    Text(day)
+                        .font(.headline)
                         .bold()
+                        .foregroundStyle(.planeaTextPrimary)
+                    
+                    Spacer()
+                    
+                    HStack(spacing: 4) {
+                        Image(systemName: "fork.knife")
+                            .font(.caption)
+                        Text("\(meals.count)")
+                            .font(.caption)
+                            .bold()
+                    }
+                    .foregroundStyle(.planeaTextSecondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.planeaChipDefault)
+                    .cornerRadius(8)
                 }
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color(.systemGray5))
-                .cornerRadius(8)
-            }
-            
-            Divider()
-            
-            // Meals list
-            VStack(spacing: 12) {
-                ForEach(meals, id: \.0.id) { mealTuple in
-                    MealRowView(
-                        mealItem: mealTuple.0,
-                        mealType: mealTuple.0.mealType,
-                        mealLabel: mealTuple.1,
-                        recipeName: mealTuple.0.recipe.title,
-                        isRegenerating: regeneratingMealId == mealTuple.0.id,
-                        onRegenerate: {
-                            onRegenerateMeal(mealTuple.0)
-                        },
-                        onRemove: {
-                            onRemoveMeal(mealTuple.0)
-                        }
-                    )
+                
+                Divider()
+                    .background(Color.planeaBorder)
+                
+                // Meals list
+                VStack(spacing: 12) {
+                    ForEach(meals, id: \.0.id) { mealTuple in
+                        MealRowView(
+                            mealItem: mealTuple.0,
+                            mealType: mealTuple.0.mealType,
+                            mealLabel: mealTuple.1,
+                            recipeName: mealTuple.0.recipe.title,
+                            isRegenerating: regeneratingMealId == mealTuple.0.id,
+                            onRegenerate: {
+                                onRegenerateMeal(mealTuple.0)
+                            },
+                            onRemove: {
+                                onRemoveMeal(mealTuple.0)
+                            }
+                        )
+                    }
                 }
             }
+            .padding(12)
         }
-        .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemGroupedBackground))
-                .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
+                .fill(Color.planeaCard)
+                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 3)
         )
     }
 }
