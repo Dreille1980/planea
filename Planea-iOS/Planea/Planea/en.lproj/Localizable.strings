@@ -392,6 +392,10 @@
 "tour.favorites.description" = "Save your favorite recipes and access your history";
 "tour.flyers.title" = "Save with Deals";
 "tour.flyers.description" = "Recipes adapted to weekly promotions";
+"tour.mealprep.title" = "Smart Meal Prep";
+"tour.mealprep.description" = "Batch cook with an optimized plan and precise timeline";
+"tour.aichat.title" = "Personal AI Assistant";
+"tour.aichat.description" = "Ask cooking questions, get personalized advice";
 "tour.getstarted.title" = "Let's Set Things Up";
 "tour.getstarted.description" = "A few details about you and we're ready!";
 "tour.skip" = "Skip";

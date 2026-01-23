@@ -18,49 +18,63 @@ struct AppFeatureTourView: View {
             icon: "sparkles",
             title: "tour.welcome.title",
             description: "tour.welcome.description",
-            color: .blue,
+            color: .planeaPrimary,
             illustration: .welcome
         ),
         TourSlide(
             icon: "calendar",
             title: "tour.mealplans.title",
             description: "tour.mealplans.description",
-            color: .green,
+            color: .planeaTertiary,
             illustration: .mealPlans
+        ),
+        TourSlide(
+            icon: "calendar.badge.checkmark",
+            title: "tour.mealprep.title",
+            description: "tour.mealprep.description",
+            color: .planeaSecondary,
+            illustration: .mealPrep
         ),
         TourSlide(
             icon: "wand.and.stars",
             title: "tour.adhoc.title",
             description: "tour.adhoc.description",
-            color: .purple,
+            color: .planeaPrimary,
             illustration: .adHoc
+        ),
+        TourSlide(
+            icon: "bubble.left.and.bubble.right.fill",
+            title: "tour.aichat.title",
+            description: "tour.aichat.description",
+            color: .planeaTertiary,
+            illustration: .aiChat
         ),
         TourSlide(
             icon: "cart.fill",
             title: "tour.shopping.title",
             description: "tour.shopping.description",
-            color: .orange,
+            color: .planeaSecondary,
             illustration: .shopping
         ),
         TourSlide(
             icon: "heart.fill",
             title: "tour.favorites.title",
             description: "tour.favorites.description",
-            color: .pink,
+            color: .planeaPrimary,
             illustration: .favorites
         ),
         TourSlide(
             icon: "tag.fill",
             title: "tour.flyers.title",
             description: "tour.flyers.description",
-            color: .yellow,
+            color: .planeaSecondary,
             illustration: .flyers
         ),
         TourSlide(
             icon: "rocket.fill",
             title: "tour.getstarted.title",
             description: "tour.getstarted.description",
-            color: .indigo,
+            color: .planeaTertiary,
             illustration: .getStarted
         )
     ]
@@ -176,7 +190,7 @@ struct TourSlide {
     let illustration: IllustrationType
     
     enum IllustrationType {
-        case welcome, mealPlans, adHoc, shopping, favorites, flyers, getStarted
+        case welcome, mealPlans, mealPrep, adHoc, aiChat, shopping, favorites, flyers, getStarted
     }
 }
 
@@ -237,8 +251,12 @@ struct TourSlideView: View {
             WelcomeIllustration(isActive: isActive)
         case .mealPlans:
             MealPlansIllustration(isActive: isActive)
+        case .mealPrep:
+            MealPrepIllustration(isActive: isActive)
         case .adHoc:
             AdHocIllustration(isActive: isActive)
+        case .aiChat:
+            AIChatIllustration(isActive: isActive)
         case .shopping:
             ShoppingIllustration(isActive: isActive)
         case .favorites:
@@ -262,14 +280,14 @@ struct WelcomeIllustration: View {
             ForEach(0..<3) { i in
                 Circle()
                     .stroke(lineWidth: 2)
-                    .foregroundStyle(.blue.opacity(0.3))
+                    .foregroundStyle(Color.planeaPrimary.opacity(0.3))
                     .frame(width: CGFloat(80 + i * 30), height: CGFloat(80 + i * 30))
                     .rotationEffect(.degrees(rotation + Double(i * 120)))
             }
             
             Image(systemName: "fork.knife.circle.fill")
                 .font(.system(size: 60))
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.planeaPrimary)
         }
         .onAppear {
             withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
@@ -464,6 +482,147 @@ struct FlyersIllustration: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(Capsule().fill(.yellow.opacity(0.2)))
+        }
+    }
+}
+
+struct MealPrepIllustration: View {
+    let isActive: Bool
+    @State private var fillProgress: [CGFloat] = [0, 0, 0, 0]
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            ForEach(0..<4) { index in
+                VStack(spacing: 4) {
+                    // Container with lid
+                    ZStack(alignment: .bottom) {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.planeaSecondary.opacity(0.15))
+                            .frame(width: 50, height: 60)
+                        
+                        // Fill animation
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.planeaSecondary.opacity(0.4))
+                            .frame(width: 50, height: 60 * fillProgress[index])
+                        
+                        // Lid
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.planeaSecondary.opacity(0.6))
+                            .frame(width: 54, height: 8)
+                            .offset(y: -30)
+                    }
+                    
+                    // Day label
+                    Text(["L", "M", "M", "J"][index])
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                }
+                .scaleEffect(isActive ? 1.0 : 0.8)
+                .animation(.spring(response: 0.6).delay(Double(index) * 0.15), value: isActive)
+            }
+        }
+        .onAppear {
+            if isActive {
+                for i in 0..<4 {
+                    withAnimation(.easeInOut(duration: 0.8).delay(Double(i) * 0.2)) {
+                        fillProgress[i] = 0.7
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct AIChatIllustration: View {
+    let isActive: Bool
+    @State private var showBubbles: [Bool] = [false, false, false]
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            // User bubble (right)
+            HStack {
+                Spacer()
+                HStack(spacing: 6) {
+                    Text("...")
+                        .font(.caption)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.planeaTertiary)
+                        .cornerRadius(16)
+                        .opacity(showBubbles[0] ? 1.0 : 0)
+                        .offset(x: showBubbles[0] ? 0 : 20)
+                    
+                    Circle()
+                        .fill(Color.planeaTertiary.opacity(0.3))
+                        .frame(width: 30, height: 30)
+                        .overlay(
+                            Image(systemName: "person.fill")
+                                .font(.caption)
+                                .foregroundStyle(Color.planeaTertiary)
+                        )
+                }
+            }
+            
+            // AI bubble (left)
+            HStack {
+                Circle()
+                    .fill(Color.planeaPrimary.opacity(0.3))
+                    .frame(width: 30, height: 30)
+                    .overlay(
+                        Image(systemName: "sparkles")
+                            .font(.caption)
+                            .foregroundStyle(Color.planeaPrimary)
+                    )
+                
+                Text("...")
+                    .font(.caption)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.planeaPrimary)
+                    .cornerRadius(16)
+                    .opacity(showBubbles[1] ? 1.0 : 0)
+                    .offset(x: showBubbles[1] ? 0 : -20)
+                
+                Spacer()
+            }
+            
+            // User bubble (right)
+            HStack {
+                Spacer()
+                HStack(spacing: 6) {
+                    Text("...")
+                        .font(.caption)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.planeaTertiary)
+                        .cornerRadius(16)
+                        .opacity(showBubbles[2] ? 1.0 : 0)
+                        .offset(x: showBubbles[2] ? 0 : 20)
+                    
+                    Circle()
+                        .fill(Color.planeaTertiary.opacity(0.3))
+                        .frame(width: 30, height: 30)
+                        .overlay(
+                            Image(systemName: "person.fill")
+                                .font(.caption)
+                                .foregroundStyle(Color.planeaTertiary)
+                        )
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .onAppear {
+            if isActive {
+                for i in 0..<3 {
+                    withAnimation(.easeOut(duration: 0.4).delay(Double(i) * 0.5)) {
+                        showBubbles[i] = true
+                    }
+                }
+            }
         }
     }
 }

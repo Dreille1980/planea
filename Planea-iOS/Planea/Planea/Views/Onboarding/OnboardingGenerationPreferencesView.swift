@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct OnboardingGenerationPreferencesView: View {
-    @StateObject private var storeManager = StoreManager.shared
     @Binding var progress: OnboardingProgress
     let onContinue: () -> Void
     
@@ -133,18 +132,11 @@ struct OnboardingGenerationPreferencesView: View {
                     Label("prefs.options".localized, systemImage: "star")
                 }
                 
-                // Weekly Flyers Section (Premium) with badge
+                // Weekly Flyers Section
                 Section {
-                    HStack {
-                        Toggle("prefs.flyers.enabled".localized, isOn: $preferences.useWeeklyFlyers)
-                            .disabled(!storeManager.hasActiveSubscription)
-                        
-                        if !storeManager.hasActiveSubscription {
-                            PremiumBadge()
-                        }
-                    }
+                    Toggle("prefs.flyers.enabled".localized, isOn: $preferences.useWeeklyFlyers)
                     
-                    if preferences.useWeeklyFlyers && storeManager.hasActiveSubscription {
+                    if preferences.useWeeklyFlyers {
                         TextField("prefs.flyers.postalcode".localized, text: $preferences.postalCode)
                             .textContentType(.postalCode)
                             .autocapitalization(.allCharacters)
@@ -157,11 +149,7 @@ struct OnboardingGenerationPreferencesView: View {
                 } header: {
                     Label("prefs.flyers.title".localized, systemImage: "tag")
                 } footer: {
-                    if !storeManager.hasActiveSubscription {
-                        Text("onboarding.prefs.premium.message".localized)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    Text("prefs.flyers.footer".localized)
                 }
             }
             
@@ -185,24 +173,6 @@ struct OnboardingGenerationPreferencesView: View {
         progress.hasCompletedPreferences = true
         progress.save()
         onContinue()
-    }
-}
-
-// MARK: - Premium Badge
-
-struct PremiumBadge: View {
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "star.fill")
-                .font(.caption2)
-            Text("Premium")
-                .font(.caption2)
-                .fontWeight(.semibold)
-        }
-        .foregroundStyle(.yellow)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Capsule().fill(.yellow.opacity(0.2)))
     }
 }
 

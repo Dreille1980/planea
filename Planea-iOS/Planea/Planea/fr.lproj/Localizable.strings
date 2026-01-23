@@ -381,6 +381,10 @@
 "tour.favorites.description" = "Sauvegardez vos recettes préférées et retrouvez votre historique";
 "tour.flyers.title" = "Économisez avec les rabais";
 "tour.flyers.description" = "Recettes adaptées aux promotions de la semaine";
+"tour.mealprep.title" = "Meal Prep intelligent";
+"tour.mealprep.description" = "Cuisinez en lot avec un plan optimisé et un timeline précis";
+"tour.aichat.title" = "Assistant IA personnel";
+"tour.aichat.description" = "Posez vos questions culinaires, obtenez des conseils personnalisés";
 "tour.getstarted.title" = "Paramétrons tout ça";
 "tour.getstarted.description" = "Quelques infos sur vous et c'est parti!";
 "tour.skip" = "Passer";
