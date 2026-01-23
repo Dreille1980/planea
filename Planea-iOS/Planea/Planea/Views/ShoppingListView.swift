@@ -31,6 +31,7 @@ struct ShoppingListView: View {
                             }
                         }
                         .pickerStyle(.segmented)
+                        .planeaSegmentedStyle()
                         .padding()
                         
                         // Shopping list
@@ -98,12 +99,13 @@ struct ShoppingListView: View {
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 4)
-                                    .background(Capsule().fill(Color.yellow))
+                                    .background(Capsule().fill(.planeaSecondary))
                                 }
                             }
                             .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
+                        .tint(.planeaPrimary)
                         .padding()
                     }
                 } else {
@@ -126,6 +128,7 @@ struct ShoppingListView: View {
                                 generateShoppingList(from: plan)
                             }
                             .buttonStyle(.borderedProminent)
+                            .tint(.planeaPrimary)
                         }
                     }
                     .padding()

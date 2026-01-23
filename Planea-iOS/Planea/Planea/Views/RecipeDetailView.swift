@@ -50,7 +50,7 @@ struct RecipeDetailView: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.accentColor.opacity(0.1))
+                .background(Color.planeaPrimary.opacity(0.1))
                 .cornerRadius(12)
                 
                 // Ingredients section
@@ -105,7 +105,7 @@ struct RecipeDetailView: View {
                                     .font(.headline)
                                     .foregroundStyle(.white)
                                     .frame(width: 28, height: 28)
-                                    .background(Circle().fill(Color.accentColor))
+                                    .background(Circle().fill(Color.planeaPrimary))
                                 
                                 Text(step)
                                     .font(.body)
@@ -150,7 +150,7 @@ struct RecipeDetailView: View {
                         }
                     }) {
                         Image(systemName: favoritesVM.isRecipeSaved(recipe) ? "heart.fill" : "heart")
-                            .foregroundStyle(favoritesVM.isRecipeSaved(recipe) ? .red : .primary)
+                            .foregroundStyle(favoritesVM.isRecipeSaved(recipe) ? .planeaSecondary : .primary)
                     }
                 }
             }

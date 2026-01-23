@@ -86,7 +86,7 @@ struct SavedRecipeCard: View {
             Image(systemName: "fork.knife.circle.fill")
                 .font(.system(size: 40))
                 .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(Color.planeaPrimary)
             
             // Content
             VStack(alignment: .leading, spacing: 4) {
@@ -114,14 +114,14 @@ struct SavedRecipeCard: View {
                 Button(action: onAddToPlan) {
                     Image(systemName: "calendar.badge.plus")
                         .font(.system(size: 20))
-                        .foregroundStyle(.green)
+                        .foregroundStyle(.planeaTertiary)
                 }
                 
                 // Remove button
                 Button(action: onRemove) {
                     Image(systemName: "heart.fill")
                         .font(.system(size: 20))
-                        .foregroundStyle(.red)
+                        .foregroundStyle(.planeaSecondary)
                 }
             }
             .padding(.leading, 8)
@@ -132,8 +132,8 @@ struct SavedRecipeCard: View {
                 .foregroundStyle(.tertiary)
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color.planeaCard)
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 2)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
 }
