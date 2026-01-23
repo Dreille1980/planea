@@ -25,34 +25,35 @@ struct FloatingChatButton: View {
             HStack {
                 Spacer()
                 Button(action: openChat) {
-                    ZStack(alignment: .topTrailing) {
-                        // Main circle with agent icon
-                        ZStack {
-                            Circle()
-                                .fill(Color.planeaPrimary)
-                                .frame(width: 60, height: 60)
-                                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
-                            
-                            Image(systemName: "person.fill")
-                                .font(.title2)
-                                .foregroundColor(.white)
-                        }
+                    ZStack {
+                        Circle()
+                            .fill(Color.planeaPrimary)
+                            .frame(width: 60, height: 60)
+                            .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
                         
-                        // AI badge with sparkles
+                        // Magnifying glass with sparkles overlay
                         ZStack {
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 22, height: 22)
+                            // Main search icon
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 26, weight: .semibold))
+                                .foregroundColor(.white)
                             
-                            Circle()
-                                .fill(Color.planeaPrimary)
-                                .frame(width: 20, height: 20)
+                            // Sparkles positioned around the magnifying glass
+                            Image(systemName: "sparkle")
+                                .font(.system(size: 12))
+                                .foregroundColor(.white)
+                                .offset(x: -12, y: -10)
                             
-                            Image(systemName: "sparkles")
+                            Image(systemName: "sparkle")
+                                .font(.system(size: 8))
+                                .foregroundColor(.white)
+                                .offset(x: -8, y: -15)
+                            
+                            Image(systemName: "sparkle")
                                 .font(.system(size: 10))
                                 .foregroundColor(.white)
+                                .offset(x: 2, y: -14)
                         }
-                        .offset(x: -2, y: 2)
                     }
                 }
                 .padding(.trailing, 20)
