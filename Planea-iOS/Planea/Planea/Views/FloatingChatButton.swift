@@ -31,7 +31,7 @@ struct FloatingChatButton: View {
                             .frame(width: 60, height: 60)
                             .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
                         
-                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                        Image(systemName: "sparkles")
                             .font(.title2)
                             .foregroundColor(.white)
                     }
