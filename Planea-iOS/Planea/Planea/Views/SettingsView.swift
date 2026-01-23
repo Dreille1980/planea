@@ -142,17 +142,10 @@ struct SettingsView: View {
                     }
                 }
                 
-                // Generation Preferences Section (Premium Only)
-                if storeManager.hasActiveSubscription {
-                    Section(header: HStack {
-                        Text("prefs.generation".localized)
-                        Image(systemName: "star.fill")
-                            .font(.caption)
-                            .foregroundStyle(.yellow)
-                    }) {
-                        NavigationLink(destination: GenerationPreferencesView()) {
-                            Label("prefs.title".localized, systemImage: "slider.horizontal.3")
-                        }
+                // Generation Preferences Section
+                Section(header: Text("prefs.generation".localized)) {
+                    NavigationLink(destination: GenerationPreferencesView()) {
+                        Label("prefs.title".localized, systemImage: "slider.horizontal.3")
                     }
                 }
                 
