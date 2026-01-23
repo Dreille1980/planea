@@ -25,15 +25,34 @@ struct FloatingChatButton: View {
             HStack {
                 Spacer()
                 Button(action: openChat) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.planeaPrimary)
-                            .frame(width: 60, height: 60)
-                            .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                    ZStack(alignment: .topTrailing) {
+                        // Main circle with agent icon
+                        ZStack {
+                            Circle()
+                                .fill(Color.planeaPrimary)
+                                .frame(width: 60, height: 60)
+                                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                            
+                            Image(systemName: "person.fill")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                        }
                         
-                        Image(systemName: "sparkles")
-                            .font(.title2)
-                            .foregroundColor(.white)
+                        // AI badge with sparkles
+                        ZStack {
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 22, height: 22)
+                            
+                            Circle()
+                                .fill(Color.planeaPrimary)
+                                .frame(width: 20, height: 20)
+                            
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 10))
+                                .foregroundColor(.white)
+                        }
+                        .offset(x: -2, y: 2)
                     }
                 }
                 .padding(.trailing, 20)
