@@ -438,6 +438,256 @@ def distribute_proteins_for_plan(slots: List[Slot], preferences: dict) -> List[s
     return suggested_proteins
 
 
+async def generate_meal_prep_diversity_blueprint(
+    num_recipes: int,
+    constraints: dict,
+    language: str = "fr",
+    preferences: dict = None
+) -> List[dict]:
+    """
+    Generate a diversity blueprint for meal prep recipes before generating them.
+    Ensures maximum variety in proteins, dish types, cuisines, and cooking methods.
+    
+    Returns a list of blueprints, one for each recipe.
+    """
+    
+    print(f"\n🎨 PHASE 1: Generating meal prep diversity blueprint for {num_recipes} recipes")
+    
+    # Build constraints text
+    constraints_text = ""
+    if constraints.get("diet"):
+        diets = ", ".join(constraints["diet"])
+        constraints_text += f"Régimes alimentaires: {diets}. " if language == "fr" else f"Dietary requirements: {diets}. "
+    if constraints.get("evict"):
+        evict_items = ", ".join(constraints["evict"])
+        constraints_text += f"À éviter: {evit_items}. " if language == "fr" else f"Avoid: {evict_items}. "
+    if constraints.get("excludedProteins"):
+        excluded = ", ".join(constraints["excludedProteins"])
+        constraints_text += f"Protéines exclues: {excluded}. " if language == "fr" else f"Excluded proteins: {excluded}. "
+    
+    # Get preferred proteins if available
+    preferred_proteins_text = ""
+    if preferences and preferences.get("preferredProteins"):
+        proteins = ", ".join(preferences["preferredProteins"])
+        preferred_proteins_text = f"Protéines préférées: {proteins}. " if language == "fr" else f"Preferred proteins: {proteins}. "
+    
+    # Create AI prompt
+    if language == "fr":
+        prompt = f"""Crée un plan de diversité pour {num_recipes} recettes de meal prep avec une VARIÉTÉ MAXIMALE.
+
+{constraints_text}
+{preferred_proteins_text}
+
+🚨 RÈGLES DE DIVERSITÉ CRITIQUES (NON NÉGOCIABLES):
+
+1. **PROTÉINES**: Chaque protéine apparaît AU MAXIMUM 2 fois
+   - Protéines disponibles: poulet, boeuf, porc, saumon, thon, crevettes, tofu, dinde, agneau
+   - Minimum {max(5, num_recipes // 2)} protéines différentes pour {num_recipes} recettes
+
+2. **TYPES DE PLATS**: Chaque type apparaît AU MAXIMUM 2 fois
+   - Types variés obligatoires:
+     * Plats simples: grillés, rôtis, poêlés (protéine + légumes)
+     * Plats avec sauce: sautés asiatiques, currys, stroganoffs, fricassées
+     * Plats au four: gratins, casseroles, lasagnes, enchiladas
+     * Plats mijotés: ragoûts, chilis, braisés, tajines
+     * Plats de pâtes/riz: pasta bakes, risottos, bols de riz, paellas
+     * Salades composées: bols protéinés, salades-repas
+   - Minimum {max(6, num_recipes // 2)} types différents pour {num_recipes} recettes
+   - INTERDIT: Plus de 2 omelettes, plus de 2 gratins, plus de 2 sautés, etc.
+
+3. **CUISINES**: Varier les cuisines du monde
+   - Minimum 4 cuisines différentes
+   - Exemples: Asiatique, Méditerranéenne, Mexicaine, Indienne, Française, Italienne, Moyen-Orientale
+
+4. **TECHNIQUES DE CUISSON**: Varier les méthodes
+   - Four, poêle, mijoteuse, grill, vapeur, cru (salades)
+   - Équilibrer entre four et stovetop
+
+Retourne UNIQUEMENT un array JSON avec cette structure EXACTE:
+
+[
+  {{
+    "recipe_index": 1,
+    "cuisine": "Asiatique",
+    "protein": "poulet",
+    "dish_type": "sauté",
+    "cooking_method": "poêle",
+    "vegetable_focus": "brocoli et poivrons",
+    "description": "Sauté de poulet au brocoli style teriyaki"
+  }},
+  {{
+    "recipe_index": 2,
+    "cuisine": "Méditerranéenne",
+    "protein": "saumon",
+    "dish_type": "grillé",
+    "cooking_method": "four",
+    "vegetable_focus": "tomates et olives",
+    "description": "Saumon grillé aux herbes avec légumes rôtis"
+  }},
+  {{
+    "recipe_index": 3,
+    "cuisine": "Mexicaine",
+    "protein": "boeuf",
+    "dish_type": "mijoté",
+    "cooking_method": "mijoteuse",
+    "vegetable_focus": "haricots et poivrons",
+    "description": "Chili de boeuf mexicain"
+  }},
+  ... ({num_recipes} recettes au total)
+]
+
+IMPORTANT:
+- Génère EXACTEMENT {num_recipes} recettes
+- Compte les répétitions: chaque protéine max 2x, chaque type de plat max 2x
+- Crée des combinaisons uniques et appétissantes
+- Optimise pour meal prep (conservation, réchauffage)"""
+    
+    else:  # English
+        prompt = f"""Create a diversity plan for {num_recipes} meal prep recipes with MAXIMUM VARIETY.
+
+{constraints_text}
+{preferred_proteins_text}
+
+🚨 CRITICAL DIVERSITY RULES (NON-NEGOTIABLE):
+
+1. **PROTEINS**: Each protein appears AT MOST 2 times
+   - Available proteins: chicken, beef, pork, salmon, tuna, shrimp, tofu, turkey, lamb
+   - Minimum {max(5, num_recipes // 2)} different proteins for {num_recipes} recipes
+
+2. **DISH TYPES**: Each type appears AT MOST 2 times
+   - Required variety:
+     * Simple dishes: grilled, roasted, pan-fried (protein + vegetables)
+     * Dishes with sauce: Asian stir-fries, curries, stroganoffs, fricassees
+     * Oven dishes: gratins, casseroles, lasagnas, enchiladas
+     * Braised dishes: stews, chilis, braises, tagines
+     * Pasta/rice dishes: pasta bakes, risottos, rice bowls, paellas
+     * Composed salads: protein bowls, meal salads
+   - Minimum {max(6, num_recipes // 2)} different types for {num_recipes} recipes
+   - FORBIDDEN: More than 2 omelets, more than 2 gratins, more than 2 stir-fries, etc.
+
+3. **CUISINES**: Vary world cuisines
+   - Minimum 4 different cuisines
+   - Examples: Asian, Mediterranean, Mexican, Indian, French, Italian, Middle Eastern
+
+4. **COOKING METHODS**: Vary techniques
+   - Oven, pan, slow cooker, grill, steam, raw (salads)
+   - Balance between oven and stovetop
+
+Return ONLY a JSON array with this EXACT structure:
+
+[
+  {{
+    "recipe_index": 1,
+    "cuisine": "Asian",
+    "protein": "chicken",
+    "dish_type": "stir-fry",
+    "cooking_method": "pan",
+    "vegetable_focus": "broccoli and peppers",
+    "description": "Teriyaki chicken stir-fry with broccoli"
+  }},
+  {{
+    "recipe_index": 2,
+    "cuisine": "Mediterranean",
+    "protein": "salmon",
+    "dish_type": "grilled",
+    "cooking_method": "oven",
+    "vegetable_focus": "tomatoes and olives",
+    "description": "Herb-grilled salmon with roasted vegetables"
+  }},
+  ... ({num_recipes} recipes total)
+]
+
+IMPORTANT:
+- Generate EXACTLY {num_recipes} recipes
+- Count repetitions: each protein max 2x, each dish type max 2x
+- Create unique and appetizing combinations
+- Optimize for meal prep (storage, reheating)"""
+    
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Tu es un expert meal prep qui crée des plans de diversité maximale. Tu respectes STRICTEMENT les contraintes de répétition."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=1.0,  # Maximum creativity
+            max_tokens=2000
+        )
+        
+        content = response.choices[0].message.content.strip()
+        
+        # Extract JSON
+        if "```json" in content:
+            parts = content.split("```json")
+            if len(parts) > 1:
+                json_part = parts[1].split("```")[0]
+                content = json_part.strip()
+        elif content.startswith("```"):
+            content = content.split("```")[1]
+            if content.startswith("json"):
+                content = content[4:]
+            content = content.strip()
+        
+        # Find JSON array
+        start_idx = content.find('[')
+        end_idx = content.rfind(']')
+        if start_idx != -1 and end_idx != -1:
+            content = content[start_idx:end_idx+1]
+        
+        blueprint = json.loads(content)
+        
+        # Validate blueprint
+        if len(blueprint) != num_recipes:
+            print(f"  ⚠️ Blueprint returned {len(blueprint)} recipes instead of {num_recipes}, adjusting...")
+            # Truncate or extend as needed
+            if len(blueprint) > num_recipes:
+                blueprint = blueprint[:num_recipes]
+            else:
+                # Need more recipes - this shouldn't happen but handle it
+                print(f"  ❌ Blueprint too short, regeneration needed")
+        
+        # Log diversity stats
+        print(f"  ✅ Blueprint generated:")
+        proteins = [b["protein"] for b in blueprint]
+        dish_types = [b["dish_type"] for b in blueprint]
+        cuisines = [b["cuisine"] for b in blueprint]
+        
+        from collections import Counter
+        protein_counts = Counter(proteins)
+        dish_type_counts = Counter(dish_types)
+        
+        print(f"     Proteins: {len(set(proteins))} unique - {dict(protein_counts)}")
+        print(f"     Dish types: {len(set(dish_types))} unique - {dict(dish_type_counts)}")
+        print(f"     Cuisines: {len(set(cuisines))} unique - {set(cuisines)}")
+        
+        # Check for violations
+        violations = []
+        for protein, count in protein_counts.items():
+            if count > 2:
+                violations.append(f"Protein '{protein}' appears {count} times (max 2)")
+        for dish_type, count in dish_type_counts.items():
+            if count > 2:
+                violations.append(f"Dish type '{dish_type}' appears {count} times (max 2)")
+        
+        if violations:
+            print(f"  ⚠️ Diversity violations detected:")
+            for v in violations:
+                print(f"     - {v}")
+        
+        return blueprint
+        
+    except Exception as e:
+        print(f"  ❌ Error generating blueprint: {e}")
+        # Fallback to basic distribution
+        return []
+
+
 def distribute_proteins_for_meal_prep(num_recipes: int, preferences: dict) -> List[str]:
     """
     Distribute proteins for meal prep to ensure diversity.
@@ -558,9 +808,23 @@ async def generate_recipe_with_openai(
     flyer_deals: List[str] = None,
     weekday: str = None,
     min_shelf_life_required: int = 3,
-    selected_concept: dict = None
+    selected_concept: dict = None,
+    blueprint_recipe: dict = None
 ) -> Recipe:
-    """Generate a single recipe using OpenAI with diversity awareness (async)."""
+    """Generate a single recipe using OpenAI with diversity awareness (async).
+    
+    Args:
+        blueprint_recipe: Optional diversity blueprint with constraints like:
+            {
+                "recipe_index": 1,
+                "cuisine": "Asiatique",
+                "protein": "poulet",
+                "dish_type": "sauté",
+                "cooking_method": "poêle",
+                "vegetable_focus": "brocoli et poivrons",
+                "description": "Sauté de poulet au brocoli style teriyaki"
+            }
+    """
     
     # Determine complexity level based on weekday and time constraints
     is_weekend = weekday in ['Sat', 'Sun'] if weekday else False
@@ -4298,13 +4562,30 @@ async def generate_meal_prep_kits(request: Request, req: dict):
     time_mapping = {"1h": 60, "1h30": 90, "2h+": 120}
     max_total_time = time_mapping.get(total_prep_time, 90)
     
-    # STEP 1: Distribute proteins for meal prep to ensure diversity
-    # CRITICAL: Merge constraints into preferences dict so distribute_proteins can find preferredProteins
-    preferences_with_user_data = {
-        "constraints": constraints,  # Include constraints which contains preferredProteins
-        **req.get("preferences", {})  # Merge with any other preferences
-    }
-    suggested_proteins = distribute_proteins_for_meal_prep(num_recipes, preferences_with_user_data)
+    # STEP 1: Generate diversity blueprint BEFORE generating recipes
+    print(f"\n🎨 PHASE 1: Generating diversity blueprint...")
+    diversity_blueprint = await generate_meal_prep_diversity_blueprint(
+        num_recipes=num_recipes,
+        constraints=constraints,
+        language=language,
+        preferences=req.get("preferences", {})
+    )
+    
+    # If blueprint generation failed, fall back to old method
+    if not diversity_blueprint or len(diversity_blueprint) != num_recipes:
+        print(f"  ⚠️ Blueprint generation failed or incomplete, falling back to protein distribution only")
+        # FALLBACK: Merge constraints into preferences dict so distribute_proteins can find preferredProteins
+        preferences_with_user_data = {
+            "constraints": constraints,
+            **req.get("preferences", {})
+        }
+        suggested_proteins = distribute_proteins_for_meal_prep(num_recipes, preferences_with_user_data)
+        diversity_blueprint = None  # Mark as unavailable
+    else:
+        print(f"  ✅ Blueprint generated successfully with {len(diversity_blueprint)} recipes")
+    
+    # STEP 2: Generate recipes using blueprint constraints
+    print(f"\n🍽️ PHASE 2: Generating {num_recipes} recipes with diversity constraints...")
     
     # Generate only ONE kit
     kit_idx = 0
