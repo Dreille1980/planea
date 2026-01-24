@@ -467,9 +467,37 @@ async def generate_meal_prep_diversity_blueprint(
     
     # Get preferred proteins if available
     preferred_proteins_text = ""
+    proteins_list_for_prompt = "poulet, boeuf, porc, saumon, thon, crevettes, tofu, dinde, agneau"
+    
     if preferences and preferences.get("preferredProteins"):
-        proteins = ", ".join(preferences["preferredProteins"])
-        preferred_proteins_text = f"Protéines préférées: {proteins}. " if language == "fr" else f"Preferred proteins: {proteins}. "
+        user_proteins = preferences["preferredProteins"]
+        proteins = ", ".join(user_proteins)
+        
+        if language == "fr":
+            preferred_proteins_text = f"""
+🚨🚨🚨 PROTÉINES PRÉFÉRÉES DE L'UTILISATEUR - RÈGLE ABSOLUE 🚨🚨🚨
+
+L'utilisateur a sélectionné ces protéines UNIQUEMENT: {proteins}
+
+TU ES STRICTEMENT INTERDIT d'utiliser d'autres protéines!
+✅ AUTORISÉ: {proteins}
+❌ INTERDIT: Toute autre protéine non listée ci-dessus
+
+Cette règle est NON NÉGOCIABLE.
+"""
+        else:
+            preferred_proteins_text = f"""
+🚨🚨🚨 USER'S PREFERRED PROTEINS - ABSOLUTE RULE 🚨🚨🚨
+
+The user selected ONLY these proteins: {proteins}
+
+You are STRICTLY FORBIDDEN from using other proteins!
+✅ ALLOWED: {proteins}
+❌ FORBIDDEN: Any protein not listed above
+
+This rule is NON-NEGOTIABLE.
+"""
+        proteins_list_for_prompt = proteins
     
     # Create AI prompt
     if language == "fr":
@@ -481,7 +509,7 @@ async def generate_meal_prep_diversity_blueprint(
 🚨 RÈGLES DE DIVERSITÉ CRITIQUES (NON NÉGOCIABLES):
 
 1. **PROTÉINES**: Chaque protéine apparaît AU MAXIMUM 2 fois
-   - Protéines disponibles: poulet, boeuf, porc, saumon, thon, crevettes, tofu, dinde, agneau
+   - Protéines disponibles: {proteins_list_for_prompt}
    - Minimum {max(5, num_recipes // 2)} protéines différentes pour {num_recipes} recettes
 
 2. **TYPES DE PLATS**: Chaque type apparaît AU MAXIMUM 2 fois
