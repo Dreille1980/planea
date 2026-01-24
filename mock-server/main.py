@@ -4583,6 +4583,8 @@ async def generate_meal_prep_kits(request: Request, req: dict):
         diversity_blueprint = None  # Mark as unavailable
     else:
         print(f"  ✅ Blueprint generated successfully with {len(diversity_blueprint)} recipes")
+        # Extract proteins from blueprint for use in recipe generation
+        suggested_proteins = [bp["protein"] for bp in diversity_blueprint]
     
     # STEP 2: Generate recipes using blueprint constraints
     print(f"\n🍽️ PHASE 2: Generating {num_recipes} recipes with diversity constraints...")
