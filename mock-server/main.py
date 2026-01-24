@@ -496,11 +496,20 @@ async def generate_meal_prep_diversity_blueprint(
 
 L'utilisateur a sélectionné ces protéines UNIQUEMENT: {proteins}
 
-TU ES STRICTEMENT INTERDIT d'utiliser d'autres protéines!
-✅ AUTORISÉ: {proteins}
-❌ INTERDIT: Toute autre protéine non listée ci-dessus
+❌❌❌ INTERDICTIONS ABSOLUES ❌❌❌
+Tu NE PEUX PAS utiliser: tofu, tempeh, seitan, ou TOUTE autre protéine qui n'est PAS dans cette liste: {proteins}
 
-Cette règle est NON NÉGOCIABLE.
+Si une protéine n'est PAS listée ci-dessus, tu es INTERDIT de l'utiliser!
+
+✅ AUTORISÉ UNIQUEMENT: {proteins}
+❌ STRICTEMENT INTERDIT: Toute protéine non listée ci-dessus
+
+EXEMPLES D'INTERDICTIONS:
+- Si "tofu" n'est PAS dans la liste → ❌ INTERDIT
+- Si "tempeh" n'est PAS dans la liste → ❌ INTERDIT  
+- Si "seitan" n'est PAS dans la liste → ❌ INTERDIT
+
+Cette règle est NON NÉGOCIABLE. Si tu utilises une protéine interdite, le blueprint sera REJETÉ.
 """
         else:
             preferred_proteins_text = f"""
@@ -508,11 +517,20 @@ Cette règle est NON NÉGOCIABLE.
 
 The user selected ONLY these proteins: {proteins}
 
-You are STRICTLY FORBIDDEN from using other proteins!
-✅ ALLOWED: {proteins}
-❌ FORBIDDEN: Any protein not listed above
+❌❌❌ ABSOLUTE PROHIBITIONS ❌❌❌
+You CANNOT use: tofu, tempeh, seitan, or ANY other protein that is NOT in this list: {proteins}
 
-This rule is NON-NEGOTIABLE.
+If a protein is NOT listed above, you are FORBIDDEN from using it!
+
+✅ ALLOWED ONLY: {proteins}
+❌ STRICTLY FORBIDDEN: Any protein not listed above
+
+PROHIBITION EXAMPLES:
+- If "tofu" is NOT in the list → ❌ FORBIDDEN
+- If "tempeh" is NOT in the list → ❌ FORBIDDEN
+- If "seitan" is NOT in the list → ❌ FORBIDDEN
+
+This rule is NON-NEGOTIABLE. If you use a forbidden protein, the blueprint will be REJECTED.
 """
         proteins_list_for_prompt = proteins
     
