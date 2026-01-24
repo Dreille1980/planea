@@ -460,7 +460,7 @@ async def generate_meal_prep_diversity_blueprint(
         constraints_text += f"Régimes alimentaires: {diets}. " if language == "fr" else f"Dietary requirements: {diets}. "
     if constraints.get("evict"):
         evict_items = ", ".join(constraints["evict"])
-        constraints_text += f"À éviter: {evit_items}. " if language == "fr" else f"Avoid: {evict_items}. "
+        constraints_text += f"À éviter: {evict_items}. " if language == "fr" else f"Avoid: {evict_items}. "
     if constraints.get("excludedProteins"):
         excluded = ", ".join(constraints["excludedProteins"])
         constraints_text += f"Protéines exclues: {excluded}. " if language == "fr" else f"Excluded proteins: {excluded}. "
