@@ -453,6 +453,13 @@ async def generate_meal_prep_diversity_blueprint(
     
     print(f"\n🎨 PHASE 1: Generating meal prep diversity blueprint for {num_recipes} recipes")
     
+    # CRITICAL DEBUG: Log what we receive
+    print(f"\n🔍 DEBUG - Input data:")
+    print(f"  constraints keys: {list(constraints.keys())}")
+    print(f"  preferences keys: {list(preferences.keys()) if preferences else 'None'}")
+    print(f"  constraints.get('preferredProteins'): {constraints.get('preferredProteins')}")
+    print(f"  preferences.get('preferredProteins') if preferences: {preferences.get('preferredProteins') if preferences else 'N/A'}")
+    
     # Build constraints text
     constraints_text = ""
     if constraints.get("diet"):
@@ -465,12 +472,22 @@ async def generate_meal_prep_diversity_blueprint(
         excluded = ", ".join(constraints["excludedProteins"])
         constraints_text += f"Protéines exclues: {excluded}. " if language == "fr" else f"Excluded proteins: {excluded}. "
     
-    # Get preferred proteins if available
+    # Get preferred proteins if available - CHECK BOTH preferences AND constraints
     preferred_proteins_text = ""
     proteins_list_for_prompt = "poulet, boeuf, porc, saumon, thon, crevettes, tofu, dinde, agneau"
     
+    # CRITICAL: Check multiple locations for preferredProteins (iOS sends in different places)
+    user_proteins = None
     if preferences and preferences.get("preferredProteins"):
         user_proteins = preferences["preferredProteins"]
+        print(f"  ✅ Found preferredProteins in preferences: {user_proteins}")
+    elif constraints.get("preferredProteins"):
+        user_proteins = constraints["preferredProteins"]
+        print(f"  ✅ Found preferredProteins in constraints: {user_proteins}")
+    else:
+        print(f"  ⚠️ No preferredProteins found - will use all proteins")
+    
+    if user_proteins:
         proteins = ", ".join(user_proteins)
         
         if language == "fr":
@@ -670,7 +687,31 @@ IMPORTANT:
         
         blueprint = json.loads(content)
         
-        # Validate blueprint
+        # CRITICAL VALIDATION: Check if AI respected user's protein preferences
+        if user_proteins:
+            print(f"\n🔍 VALIDATION - Checking if blueprint respects user proteins: {user_proteins}")
+            invalid_proteins = []
+            for idx, recipe_bp in enumerate(blueprint):
+                bp_protein = recipe_bp.get("protein", "").lower()
+                # Check if this protein is in the user's list
+                is_valid = any(bp_protein == up.lower() or up.lower() in bp_protein for up in user_proteins)
+                if not is_valid:
+                    invalid_proteins.append({
+                        "index": idx + 1,
+                        "protein": recipe_bp.get("protein"),
+                        "recipe": recipe_bp.get("description")
+                    })
+                    print(f"  ❌ Recipe {idx+1} uses FORBIDDEN protein: {recipe_bp.get('protein')}")
+            
+            if invalid_proteins:
+                print(f"\n  🚨 BLUEPRINT REJECTED - {len(invalid_proteins)} recipes use forbidden proteins!")
+                print(f"  📋 Invalid proteins found: {[ip['protein'] for ip in invalid_proteins]}")
+                print(f"  ✅ Allowed proteins: {user_proteins}")
+                print(f"  ⚠️ Falling back to protein distribution method")
+                # REJECT this blueprint and fall back to basic distribution
+                return []
+        
+        # Validate blueprint length
         if len(blueprint) != num_recipes:
             print(f"  ⚠️ Blueprint returned {len(blueprint)} recipes instead of {num_recipes}, adjusting...")
             # Truncate or extend as needed
