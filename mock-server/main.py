@@ -465,15 +465,17 @@ def distribute_proteins_for_meal_prep(num_recipes: int, preferences: dict) -> Li
     
     # Filter out breakfast-specific proteins
     breakfast_only = ["eggs", "yogurt", "bacon"]
-    if preferred_proteins:
-        protein_pool = [p for p in preferred_proteins if p not in breakfast_only]
-    else:
-        protein_pool = default_proteins
     
-    # Ensure we have enough variety
-    if len(protein_pool) < 3:
-        # Add defaults if user selection is too limited
-        protein_pool = list(set(protein_pool + default_proteins[:7]))
+    # CRITICAL FIX: Only use user's selected proteins if they provided any
+    # Do NOT add default proteins if user made a selection
+    if preferred_proteins:
+        # User selected specific proteins - use ONLY those
+        protein_pool = [p for p in preferred_proteins if p not in breakfast_only]
+        print(f"  🎯 Using ONLY user-selected proteins: {protein_pool}")
+    else:
+        # No user selection - use defaults
+        protein_pool = default_proteins
+        print(f"  📋 No user selection - using default proteins: {protein_pool[:5]}...")
     
     # Calculate minimum unique proteins required
     min_unique = max(2, num_recipes - 1)
