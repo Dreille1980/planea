@@ -3724,7 +3724,7 @@ Retourne UNIQUEMENT le JSON."""
         prompt = f"""You are a meal prep expert creating SIMPLE and NARRATIVE preparation guides.
 
 RECIPES TO PREPARE TODAY:
-{json.dumps(recipe_summaries, indent=2, ensure_ascii=False)}
+{chr(10).join(recipe_list)}
 
 🎯 CREATE A "WHAT YOU DO TODAY" SECTION (~2h)
 
