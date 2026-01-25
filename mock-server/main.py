@@ -396,13 +396,16 @@ def distribute_proteins_for_plan(slots: List[Slot], preferences: dict) -> List[s
     # Get user's preferred proteins if available
     preferred_proteins = preferences.get("preferredProteins", [])
     
-    # Use preferred proteins if available, otherwise use defaults
-    protein_pool = preferred_proteins if preferred_proteins else default_proteins
-    
-    # Ensure we have enough variety
-    if len(protein_pool) < 3:
-        # If user only selected 1-2 proteins, add some defaults for variety
-        protein_pool = list(set(protein_pool + default_proteins[:5]))
+    # CRITICAL FIX: Only use user-selected proteins if they provided any
+    # Do NOT add default proteins if user made a selection
+    if preferred_proteins:
+        # User selected specific proteins - use ONLY those
+        protein_pool = preferred_proteins
+        print(f"  🎯 Using ONLY user-selected proteins: {protein_pool}")
+    else:
+        # No user selection - use defaults
+        protein_pool = default_proteins
+        print(f"  📋 No user selection - using default proteins")
     
     num_slots = len(slots)
     suggested_proteins = []
@@ -416,6 +419,12 @@ def distribute_proteins_for_plan(slots: List[Slot], preferences: dict) -> List[s
         # Special handling for breakfast - prefer lighter proteins
         if slots[i].meal_type == "BREAKFAST":
             breakfast_options = ["eggs", "turkey", "salmon", "tofu", "yogurt"]
+            # Filter to user's preferred proteins if they selected any
+            if preferred_proteins:
+                breakfast_options = [p for p in breakfast_options if p in preferred_proteins]
+                # If no breakfast-friendly options, use any from user's selection
+                if not breakfast_options:
+                    breakfast_options = preferred_proteins
             # Filter to breakfast options that haven't been used recently
             available = [p for p in breakfast_options if p not in suggested_proteins[-2:]]
             if not available:
@@ -1148,7 +1157,7 @@ Draw inspiration from this theme.
 """
     
     # Build diversity instructions with protein guidance
-    # Build diversity instructions with recipe type variety
+    # Build diversity instructions with recipe type variety  
     diversity_text = "\n\n🎯 IMPÉRATIF - DIVERSITÉ DES TYPES DE PLATS:\n"
     diversity_text += "Varie les formats pour créer un menu intéressant et équilibré:\n"
     diversity_text += "- Plats simples: grillés, poêlés, rôtis (protéine + légumes)\n"
@@ -1158,9 +1167,11 @@ Draw inspiration from this theme.
     diversity_text += "- Plats de pâtes/riz: risottos, pasta bakes, paellas, bols de riz\n"
     diversity_text += "- Plats internationaux: pad thai, butter chicken, moussaka, fajitas\n\n"
     
+    # CRITICAL: Add protein restrictions to the prompt
     if suggested_protein and other_plan_proteins:
-        diversity_text += f"PROTÉINE SUGGÉRÉE: {suggested_protein}\n"
-        diversity_text += f"INTERDICTION d'utiliser: {', '.join(other_plan_proteins)}\n\n"
+        diversity_text += f"🚨 PROTÉINE OBLIGATOIRE POUR CETTE RECETTE: {suggested_protein}\n"
+        diversity_text += f"❌ STRICTEMENT INTERDIT d'utiliser: {', '.join(other_plan_proteins)}\n"
+        diversity_text += f"✅ Tu DOIS utiliser {suggested_protein} comme protéine principale\n\n"
     
     diversity_text += "Crée une recette UNIQUE avec:\n"
     diversity_text += "- Combinaisons de saveurs créatives et intéressantes\n"
