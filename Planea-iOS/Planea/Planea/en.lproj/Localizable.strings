@@ -731,3 +731,18 @@
 "settings.notifications.weeklyReminder.footer" = "Receive a reminder every Saturday morning to plan your meals for the week";
 "notification.mealprep.title" = "Time to plan! 🍽️";
 "notification.mealprep.body.1" = "Plan your meals for the week";
+
+// Meal Prep Detail - NEW Simplified Structure
+"meal_prep.detail.today_tab" = "Today";
+"meal_prep.detail.weekly_tab" = "This week";
+"meal_prep.detail.today_title" = "What you do today";
+"meal_prep.detail.common_preps_title" = "Common preparations";
+"meal_prep.detail.recipe_preps_title" = "Preparations by recipe";
+"meal_prep.detail.no_today_prep" = "No preparation available for today";
+"meal_prep.detail.sections_completed" = "sections completed";
+"meal_prep.detail.weekly_title" = "What's left to do each evening";
+"meal_prep.detail.weekly_subtitle" = "Quick reheating and finishing for each meal";
+"meal_prep.detail.no_weekly_reheating" = "No reheating instructions available";
+"meal_prep.detail.days_completed" = "days completed";
+"meal_prep.detail.shopping_list_title" = "Ingredients shopping list";
+"meal_prep.detail.shopping_list_header" = "Ingredients to have";

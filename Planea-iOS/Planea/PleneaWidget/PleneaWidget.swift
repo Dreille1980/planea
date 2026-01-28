@@ -9,47 +9,13 @@ import WidgetKit
 import SwiftUI
 import CoreData
 
-// MARK: - Widget Models (Simplified versions for widget use only)
-struct WidgetMealItem: Identifiable {
-    let id: UUID
-    let weekday: WidgetWeekday
-    let mealType: WidgetMealType
-    let recipeTitle: String
-    let recipeServings: Int
-    let recipeTotalMinutes: Int
-}
-
-enum WidgetWeekday: String {
-    case monday = "Mon"
-    case tuesday = "Tue"
-    case wednesday = "Wed"
-    case thursday = "Thu"
-    case friday = "Fri"
-    case saturday = "Sat"
-    case sunday = "Sun"
-}
-
-enum WidgetMealType: String {
-    case breakfast = "BREAKFAST"
-    case lunch = "LUNCH"
-    case dinner = "DINNER"
-    case snack = "SNACK"
-    
-    var sortOrder: Int {
-        switch self {
-        case .breakfast: return 0
-        case .lunch: return 1
-        case .snack: return 2
-        case .dinner: return 3
-        }
-    }
-}
-
 // MARK: - Widget Entry
 struct WeeklyPlanEntry: TimelineEntry {
     let date: Date
-    let todayMeals: [WidgetMealItem]
+    let meals: [WidgetMealItem]
     let planName: String?
+    let displayDay: String
+    let isToday: Bool
 }
 
 // MARK: - Timeline Provider
@@ -57,8 +23,10 @@ struct WeeklyPlanProvider: TimelineProvider {
     func placeholder(in context: Context) -> WeeklyPlanEntry {
         WeeklyPlanEntry(
             date: Date(),
-            todayMeals: [],
-            planName: "Plan de la semaine"
+            meals: [],
+            planName: "Plan de la semaine",
+            displayDay: "Aujourd'hui",
+            isToday: true
         )
     }
     
@@ -70,12 +38,12 @@ struct WeeklyPlanProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<WeeklyPlanEntry>) -> Void) {
         let entry = loadCurrentEntry()
         
-        // Refresh widget at midnight and every 6 hours
+        // Refresh widget at midnight and every 4 hours
         let currentDate = Date()
         let nextMidnight = Calendar.current.startOfDay(for: currentDate.addingTimeInterval(86400))
         let nextUpdate = min(
             nextMidnight,
-            currentDate.addingTimeInterval(6 * 3600) // 6 hours
+            currentDate.addingTimeInterval(4 * 3600) // 4 hours
         )
         
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
@@ -83,66 +51,67 @@ struct WeeklyPlanProvider: TimelineProvider {
     }
     
     private func loadCurrentEntry() -> WeeklyPlanEntry {
-        // Get today's weekday
-        let today = Calendar.current.component(.weekday, from: Date())
-        let weekday = convertToWidgetWeekday(today)
+        print("Widget: Loading current entry...")
         
-        // Load active plan from Core Data
-        guard let activePlan = loadActivePlan() else {
-            return WeeklyPlanEntry(date: Date(), todayMeals: [], planName: nil)
-        }
-        
-        // Filter meals for today
-        let todayMeals = activePlan.meals.filter { $0.weekday == weekday }
-            .sorted { $0.mealType.sortOrder < $1.mealType.sortOrder }
-        
-        return WeeklyPlanEntry(
-            date: Date(),
-            todayMeals: todayMeals,
-            planName: activePlan.name
-        )
-    }
-    
-    private func convertToWidgetWeekday(_ calendarWeekday: Int) -> WidgetWeekday {
-        // Calendar.component(.weekday) returns: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
-        switch calendarWeekday {
-        case 1: return .sunday
-        case 2: return .monday
-        case 3: return .tuesday
-        case 4: return .wednesday
-        case 5: return .thursday
-        case 6: return .friday
-        case 7: return .saturday
-        default: return .monday
+        // Try to load meals from Core Data
+        if let result = loadMealsFromCoreData() {
+            print("Widget: Found meals for \(result.displayDay)")
+            return WeeklyPlanEntry(
+                date: Date(),
+                meals: result.meals,
+                planName: result.planName,
+                displayDay: result.displayDay,
+                isToday: result.isToday
+            )
+        } else {
+            print("Widget: No meals found")
+            return WeeklyPlanEntry(
+                date: Date(),
+                meals: [],
+                planName: nil,
+                displayDay: "Aujourd'hui",
+                isToday: true
+            )
         }
     }
     
-    private func loadActivePlan() -> (meals: [WidgetMealItem], name: String?)? {
+    private func loadMealsFromCoreData() -> (meals: [WidgetMealItem], planName: String?, displayDay: String, isToday: Bool)? {
         // Access shared Core Data store
         guard let appGroupURL = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: "group.com.dreille.planea"
         ) else {
+            print("Widget: Failed to get App Group URL")
             return nil
         }
         
         let storeURL = appGroupURL.appendingPathComponent("Planea.sqlite")
+        print("Widget: Store URL: \(storeURL.path)")
+        
+        // Check if file exists
+        if !FileManager.default.fileExists(atPath: storeURL.path) {
+            print("Widget: Store file does not exist at path")
+            return nil
+        }
         
         let container = NSPersistentContainer(name: "Planea")
         let description = NSPersistentStoreDescription(url: storeURL)
         description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+        description.setOption(true as NSNumber, forKey: NSReadOnlyPersistentStoreOption)
         container.persistentStoreDescriptions = [description]
         
-        var result: (meals: [WidgetMealItem], name: String?)?
+        var result: (meals: [WidgetMealItem], planName: String?, displayDay: String, isToday: Bool)?
         
-        let group = DispatchGroup()
-        group.enter()
+        let semaphore = DispatchSemaphore(value: 0)
         
         container.loadPersistentStores { _, error in
+            defer { semaphore.signal() }
+            
             if let error = error {
                 print("Widget: Failed to load Core Data: \(error.localizedDescription)")
-                group.leave()
                 return
             }
+            
+            print("Widget: Core Data loaded successfully")
             
             let context = container.viewContext
             let request = NSFetchRequest<NSManagedObject>(entityName: "MealPlanEntity")
@@ -151,58 +120,111 @@ struct WeeklyPlanProvider: TimelineProvider {
             
             do {
                 guard let planEntity = try context.fetch(request).first else {
-                    group.leave()
+                    print("Widget: No active plan found")
                     return
                 }
+                
+                print("Widget: Active plan found")
                 
                 // Get plan name
                 let planName = planEntity.value(forKey: "name") as? String
                 
-                // Decode items
+                // Decode items using Codable
                 guard let itemsData = planEntity.value(forKey: "itemsData") as? Data else {
-                    group.leave()
+                    print("Widget: No items data")
                     return
                 }
                 
-                // Manually decode the JSON
-                if let jsonArray = try? JSONSerialization.jsonObject(with: itemsData) as? [[String: Any]] {
-                    var meals: [WidgetMealItem] = []
+                // Define a temporary MealItem structure for decoding
+                struct TempMealItem: Codable {
+                    let id: UUID
+                    let weekday: String
+                    let mealType: String
+                    let recipe: TempRecipe
                     
-                    for item in jsonArray {
-                        guard let idString = item["id"] as? String,
-                              let id = UUID(uuidString: idString),
-                              let weekdayRaw = item["weekday"] as? String,
-                              let mealTypeRaw = item["mealType"] as? String,
-                              let recipeDict = item["recipe"] as? [String: Any],
-                              let recipeTitle = recipeDict["title"] as? String,
-                              let servings = recipeDict["servings"] as? Int,
-                              let totalMinutes = recipeDict["totalMinutes"] as? Int,
-                              let weekday = WidgetWeekday(rawValue: weekdayRaw),
-                              let mealType = WidgetMealType(rawValue: mealTypeRaw) else {
-                            continue
-                        }
-                        
-                        let meal = WidgetMealItem(
-                            id: id,
-                            weekday: weekday,
-                            mealType: mealType,
-                            recipeTitle: recipeTitle,
-                            recipeServings: servings,
-                            recipeTotalMinutes: totalMinutes
-                        )
-                        meals.append(meal)
+                    struct TempRecipe: Codable {
+                        let title: String
+                        let servings: Int
+                        let totalMinutes: Int
                     }
                     
-                    result = (meals: meals, name: planName)
+                    enum CodingKeys: String, CodingKey {
+                        case id, weekday, recipe
+                        case mealType = "meal_type"
+                    }
                 }
+                
+                guard let decodedItems = try? JSONDecoder().decode([TempMealItem].self, from: itemsData) else {
+                    print("Widget: Failed to decode items")
+                    return
+                }
+                
+                print("Widget: Decoded \(decodedItems.count) items")
+                
+                // Convert to WidgetMealItem
+                let allMeals = decodedItems.map { item in
+                    WidgetMealItem(
+                        id: item.id,
+                        weekday: item.weekday,
+                        mealType: item.mealType,
+                        recipeTitle: item.recipe.title,
+                        recipeServings: item.recipe.servings,
+                        recipeTotalMinutes: item.recipe.totalMinutes
+                    )
+                }
+                
+                // Find meals for today or next available day
+                let today = Date()
+                let todayWeekdayString = today.weekdayString
+                
+                // Try today first
+                let todayMeals = allMeals.filter { $0.weekday == todayWeekdayString }
+                    .sorted { ($0.mealTypeEnum?.sortOrder ?? 0) < ($1.mealTypeEnum?.sortOrder ?? 0) }
+                
+                if !todayMeals.isEmpty {
+                    print("Widget: Found \(todayMeals.count) meals for today")
+                    result = (
+                        meals: todayMeals,
+                        planName: planName,
+                        displayDay: "Aujourd'hui",
+                        isToday: true
+                    )
+                    return
+                }
+                
+                print("Widget: No meals for today, looking for next day with meals...")
+                
+                // Look for next day with meals (up to 7 days ahead)
+                for dayOffset in 1...7 {
+                    let futureDate = today.addingDays(dayOffset)
+                    let futureWeekdayString = futureDate.weekdayString
+                    
+                    let futureMeals = allMeals.filter { $0.weekday == futureWeekdayString }
+                        .sorted { ($0.mealTypeEnum?.sortOrder ?? 0) < ($1.mealTypeEnum?.sortOrder ?? 0) }
+                    
+                    if !futureMeals.isEmpty {
+                        let displayDay = futureDate.dayName(relativeTo: today)
+                        print("Widget: Found \(futureMeals.count) meals for \(displayDay)")
+                        result = (
+                            meals: futureMeals,
+                            planName: planName,
+                            displayDay: displayDay,
+                            isToday: false
+                        )
+                        return
+                    }
+                }
+                
+                print("Widget: No meals found for next 7 days")
+                
             } catch {
                 print("Widget: Error fetching plan: \(error.localizedDescription)")
             }
-            
-            group.leave()
         }
         
-        group.wait()
+        // Wait for Core Data to finish (with timeout)
+        _ = semaphore.wait(timeout: .now() + 2)
+        
         return result
     }
 }
@@ -236,14 +258,14 @@ struct SmallWidgetView: View {
             HStack {
                 Image(systemName: "calendar")
                     .font(.caption)
-                Text("Aujourd'hui")
+                Text(entry.displayDay)
                     .font(.caption)
                     .bold()
                 Spacer()
             }
-            .foregroundStyle(.secondary)
+            .foregroundStyle(entry.isToday ? .blue : .orange)
             
-            if entry.todayMeals.isEmpty {
+            if entry.meals.isEmpty {
                 Spacer()
                 Text("Aucun repas planifié")
                     .font(.caption)
@@ -251,12 +273,12 @@ struct SmallWidgetView: View {
                     .multilineTextAlignment(.center)
                 Spacer()
             } else {
-                ForEach(entry.todayMeals.prefix(2)) { meal in
+                ForEach(entry.meals.prefix(2)) { meal in
                     MealRow(meal: meal, compact: true)
                 }
                 
-                if entry.todayMeals.count > 2 {
-                    Text("+\(entry.todayMeals.count - 2) autre(s)")
+                if entry.meals.count > 2 {
+                    Text("+\(entry.meals.count - 2) autre(s)")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -278,7 +300,7 @@ struct MediumWidgetView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Image(systemName: "fork.knife.circle.fill")
                     .font(.title)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(entry.isToday ? .blue : .orange)
                 
                 if let planName = entry.planName {
                     Text(planName)
@@ -291,9 +313,9 @@ struct MediumWidgetView: View {
                         .bold()
                 }
                 
-                Text("Aujourd'hui")
+                Text(entry.displayDay)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(entry.isToday ? .blue : .orange)
                 
                 Spacer()
             }
@@ -303,14 +325,14 @@ struct MediumWidgetView: View {
             
             // Right side - Meals
             VStack(alignment: .leading, spacing: 8) {
-                if entry.todayMeals.isEmpty {
+                if entry.meals.isEmpty {
                     Spacer()
-                    Text("Aucun repas planifié pour aujourd'hui")
+                    Text("Aucun repas planifié")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
                 } else {
-                    ForEach(entry.todayMeals) { meal in
+                    ForEach(entry.meals) { meal in
                         MealRow(meal: meal, compact: false)
                     }
                     Spacer()
@@ -331,7 +353,7 @@ struct LargeWidgetView: View {
             HStack {
                 Image(systemName: "fork.knife.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(entry.isToday ? .blue : .orange)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     if let planName = entry.planName {
@@ -342,9 +364,9 @@ struct LargeWidgetView: View {
                             .font(.headline)
                     }
                     
-                    Text("Aujourd'hui - \(formattedDate)")
+                    Text("\(entry.displayDay) - \(formattedDate)")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(entry.isToday ? .blue : .orange)
                 }
                 
                 Spacer()
@@ -353,7 +375,7 @@ struct LargeWidgetView: View {
             Divider()
             
             // Meals list
-            if entry.todayMeals.isEmpty {
+            if entry.meals.isEmpty {
                 Spacer()
                 VStack(spacing: 8) {
                     Image(systemName: "calendar.badge.clock")
@@ -367,7 +389,7 @@ struct LargeWidgetView: View {
                 Spacer()
             } else {
                 VStack(alignment: .leading, spacing: 12) {
-                    ForEach(entry.todayMeals) { meal in
+                    ForEach(entry.meals) { meal in
                         MealRow(meal: meal, compact: false)
                     }
                 }
@@ -399,7 +421,7 @@ struct MealRow: View {
             
             VStack(alignment: .leading, spacing: 2) {
                 if !compact {
-                    Text(mealTypeLabel)
+                    Text(meal.mealTypeEnum?.displayName ?? "")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -413,29 +435,22 @@ struct MealRow: View {
     }
     
     private var iconName: String {
-        switch meal.mealType {
+        switch meal.mealTypeEnum {
         case .breakfast: return "sunrise.fill"
         case .lunch: return "sun.max.fill"
         case .dinner: return "moon.stars.fill"
         case .snack: return "cup.and.saucer.fill"
+        case .none: return "fork.knife"
         }
     }
     
     private var iconColor: Color {
-        switch meal.mealType {
+        switch meal.mealTypeEnum {
         case .breakfast: return .orange
         case .lunch: return .yellow
         case .dinner: return .indigo
         case .snack: return .green
-        }
-    }
-    
-    private var mealTypeLabel: String {
-        switch meal.mealType {
-        case .breakfast: return "Déjeuner"
-        case .lunch: return "Dîner"
-        case .dinner: return "Souper"
-        case .snack: return "Collation"
+        case .none: return .gray
         }
     }
 }
@@ -450,7 +465,7 @@ struct PlaneaWidget: Widget {
                 .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("Plan de la semaine")
-        .description("Affiche vos repas planifiés pour aujourd'hui")
+        .description("Affiche vos repas planifiés pour aujourd'hui ou les prochains à venir")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
@@ -461,24 +476,55 @@ struct PlaneaWidget: Widget {
 } timeline: {
     WeeklyPlanEntry(
         date: .now,
-        todayMeals: [
+        meals: [
             WidgetMealItem(
                 id: UUID(),
-                weekday: .monday,
-                mealType: .breakfast,
+                weekday: "Mon",
+                mealType: "BREAKFAST",
                 recipeTitle: "Omelette aux légumes",
                 recipeServings: 2,
                 recipeTotalMinutes: 15
             ),
             WidgetMealItem(
                 id: UUID(),
-                weekday: .monday,
-                mealType: .dinner,
+                weekday: "Mon",
+                mealType: "DINNER",
                 recipeTitle: "Poulet rôti et légumes",
                 recipeServings: 4,
                 recipeTotalMinutes: 45
             )
         ],
-        planName: "Semaine du 6 novembre"
+        planName: "Semaine du 6 novembre",
+        displayDay: "Aujourd'hui",
+        isToday: true
+    )
+}
+
+#Preview(as: .systemMedium) {
+    PlaneaWidget()
+} timeline: {
+    WeeklyPlanEntry(
+        date: .now,
+        meals: [
+            WidgetMealItem(
+                id: UUID(),
+                weekday: "Tue",
+                mealType: "LUNCH",
+                recipeTitle: "Salade César au poulet",
+                recipeServings: 2,
+                recipeTotalMinutes: 20
+            ),
+            WidgetMealItem(
+                id: UUID(),
+                weekday: "Tue",
+                mealType: "DINNER",
+                recipeTitle: "Spaghetti bolognaise",
+                recipeServings: 4,
+                recipeTotalMinutes: 30
+            )
+        ],
+        planName: "Semaine du 6 novembre",
+        displayDay: "Demain",
+        isToday: false
     )
 }

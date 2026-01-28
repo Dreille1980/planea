@@ -747,3 +747,18 @@
 "settings.notifications.weeklyReminder.footer" = "Recevez un rappel chaque samedi matin pour planifier vos repas de la semaine";
 "notification.mealprep.title" = "C'est l'heure de planifier! 🍽️";
 "notification.mealprep.body.1" = "Planifiez vos repas de la semaine";
+
+// Meal Prep Detail - Nouvelle structure simplifiée
+"meal_prep.detail.today_tab" = "Aujourd'hui";
+"meal_prep.detail.weekly_tab" = "Cette semaine";
+"meal_prep.detail.today_title" = "Ce que tu fais aujourd'hui";
+"meal_prep.detail.common_preps_title" = "Préparations communes";
+"meal_prep.detail.recipe_preps_title" = "Préparations par recette";
+"meal_prep.detail.no_today_prep" = "Aucune préparation disponible pour aujourd'hui";
+"meal_prep.detail.sections_completed" = "sections complétées";
+"meal_prep.detail.weekly_title" = "Ce qui reste à faire chaque soir";
+"meal_prep.detail.weekly_subtitle" = "Réchauffage et finition rapide pour chaque repas";
+"meal_prep.detail.no_weekly_reheating" = "Aucune instruction de réchauffage disponible";
+"meal_prep.detail.days_completed" = "jours complétés";
+"meal_prep.detail.shopping_list_title" = "Liste d'ingrédients à acheter";
+"meal_prep.detail.shopping_list_header" = "Ingrédients à avoir";
