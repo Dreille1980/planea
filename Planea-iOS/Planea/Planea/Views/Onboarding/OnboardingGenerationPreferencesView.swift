@@ -18,12 +18,12 @@ struct OnboardingGenerationPreferencesView: View {
             VStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(.purple.opacity(0.1))
+                        .fill(.planeaSecondary.opacity(0.1))
                         .frame(width: 100, height: 100)
                     
                     Image(systemName: "slider.horizontal.3")
                         .font(.system(size: 40))
-                        .foregroundStyle(.purple)
+                        .foregroundStyle(.planeaSecondary)
                 }
                 .padding(.top, 32)
                 
@@ -160,7 +160,7 @@ struct OnboardingGenerationPreferencesView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.purple)
+                    .background(Color.planeaSecondary)
                     .cornerRadius(12)
             }
             .padding(.horizontal)

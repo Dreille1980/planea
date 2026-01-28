@@ -15,14 +15,14 @@ struct OnboardingCompletionView: View {
             // Success Animation
             ZStack {
                 Circle()
-                    .fill(.green.opacity(0.1))
+                    .fill(.planeaTertiary.opacity(0.1))
                     .frame(width: 150, height: 150)
                     .scaleEffect(showCheckmark ? 1.2 : 0.8)
                     .opacity(showCheckmark ? 1.0 : 0.0)
                 
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 100))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(.planeaTertiary)
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
                     .opacity(showCheckmark ? 1.0 : 0.0)
             }
@@ -85,7 +85,7 @@ struct OnboardingCompletionView: View {
                     .padding()
                     .background(
                         LinearGradient(
-                            colors: [.green, .blue],
+                            colors: [.planeaTertiary, .planeaPrimary],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -128,7 +128,7 @@ struct SummaryRow: View {
         HStack {
             Image(systemName: icon)
                 .font(.title3)
-                .foregroundStyle(.blue)
+                .foregroundStyle(.planeaPrimary)
                 .frame(width: 30)
             
             Text(title)

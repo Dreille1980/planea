@@ -17,12 +17,12 @@ struct OnboardingMembersListView: View {
             VStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(.green.opacity(0.1))
+                        .fill(.planeaTertiary.opacity(0.1))
                         .frame(width: 100, height: 100)
                     
                     Image(systemName: "person.3.fill")
                         .font(.system(size: 40))
-                        .foregroundStyle(.green)
+                        .foregroundStyle(.planeaTertiary)
                 }
                 .padding(.top, 32)
                 
@@ -59,12 +59,12 @@ struct OnboardingMembersListView: View {
                             Text("onboarding.members.add".localized)
                                 .font(.headline)
                         }
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(.planeaPrimary)
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.blue, style: StrokeStyle(lineWidth: 2, dash: [5]))
+                                .stroke(Color.planeaPrimary, style: StrokeStyle(lineWidth: 2, dash: [5]))
                         )
                     }
                 }
@@ -81,7 +81,7 @@ struct OnboardingMembersListView: View {
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.green)
+                        .background(Color.planeaTertiary)
                         .cornerRadius(12)
                 }
                 .padding(.horizontal)
@@ -159,13 +159,13 @@ struct MemberCard: View {
                 // Avatar
                 ZStack {
                     Circle()
-                        .fill(isConfigured ? Color.green.opacity(0.2) : Color.gray.opacity(0.2))
+                        .fill(isConfigured ? Color.planeaTertiary.opacity(0.2) : Color.gray.opacity(0.2))
                         .frame(width: 50, height: 50)
                     
                     if isConfigured {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.title2)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(.planeaTertiary)
                     } else {
                         Image(systemName: "person.fill")
                             .font(.title3)
@@ -184,12 +184,12 @@ struct MemberCard: View {
                             if !member.diets.isEmpty {
                                 Label("\(member.diets.count)", systemImage: "leaf.fill")
                                     .font(.caption)
-                                    .foregroundStyle(.green)
+                                    .foregroundStyle(.planeaTertiary)
                             }
                             if !member.allergens.isEmpty {
                                 Label("\(member.allergens.count)", systemImage: "exclamationmark.triangle.fill")
                                     .font(.caption)
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(.planeaSecondary)
                             }
                             if !member.dislikes.isEmpty {
                                 Label("\(member.dislikes.count)", systemImage: "hand.thumbsdown.fill")

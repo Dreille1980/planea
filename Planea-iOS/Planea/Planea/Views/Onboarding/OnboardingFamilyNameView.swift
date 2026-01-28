@@ -14,12 +14,12 @@ struct OnboardingFamilyNameView: View {
             // Icon
             ZStack {
                 Circle()
-                    .fill(.blue.opacity(0.1))
+                    .fill(.planeaPrimary.opacity(0.1))
                     .frame(width: 120, height: 120)
                 
                 Image(systemName: "house.fill")
                     .font(.system(size: 50))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(.planeaPrimary)
             }
             
             // Title
@@ -66,7 +66,7 @@ struct OnboardingFamilyNameView: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(familyName.isEmpty ? Color.gray : Color.blue)
+                    .background(familyName.isEmpty ? Color.gray : Color.planeaPrimary)
                     .cornerRadius(12)
             }
             .disabled(familyName.isEmpty)
