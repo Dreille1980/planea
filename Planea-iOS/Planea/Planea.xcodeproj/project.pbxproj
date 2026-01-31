@@ -14,6 +14,7 @@
 		21B91CB62EBD72D8001CCA24 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21B91CB52EBD72D8001CCA24 /* SwiftUI.framework */; };
 		21B91CC72EBD72DA001CCA24 /* PleneaWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 21B91CB22EBD72D8001CCA24 /* PleneaWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		21D272C42E9F2CFF00B5A329 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21D272C32E9F2CFF00B5A329 /* StoreKit.framework */; };
+		4302811C2F2DA23000F69313 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 4302811B2F2DA23000F69313 /* FirebaseRemoteConfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -95,6 +96,7 @@
 				218A409C2F1EFAFC0025895A /* FirebaseAnalytics in Frameworks */,
 				218A40A02F1EFAFC0025895A /* FirebasePerformance in Frameworks */,
 				21D272C42E9F2CFF00B5A329 /* StoreKit.framework in Frameworks */,
+				4302811C2F2DA23000F69313 /* FirebaseRemoteConfig in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -166,6 +168,7 @@
 				218A409B2F1EFAFC0025895A /* FirebaseAnalytics */,
 				218A409D2F1EFAFC0025895A /* FirebaseCrashlytics */,
 				218A409F2F1EFAFC0025895A /* FirebasePerformance */,
+				4302811B2F2DA23000F69313 /* FirebaseRemoteConfig */,
 			);
 			productName = Planea;
 			productReference = 21463BD82E98922300C17D17 /* Planea.app */;
@@ -588,6 +591,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 218A409A2F1EFAFC0025895A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebasePerformance;
+		};
+		4302811B2F2DA23000F69313 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 218A409A2F1EFAFC0025895A /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

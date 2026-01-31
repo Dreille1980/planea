@@ -6,7 +6,9 @@
 //
 
 import Foundation
+import UIKit
 import FirebaseRemoteConfig
+import FirebaseAnalytics
 import Combine
 
 class ForceUpdateService: ObservableObject {
@@ -66,7 +68,8 @@ class ForceUpdateService: ObservableObject {
     private func evaluateVersion() {
         defer { isChecking = false }
         
-        let minimumVersion = remoteConfig.configValue(forKey: minimumVersionKey).stringValue ?? "0.0.0"
+        let minimumVersionValue = remoteConfig.configValue(forKey: minimumVersionKey).stringValue
+        let minimumVersion = minimumVersionValue != nil && !minimumVersionValue!.isEmpty ? minimumVersionValue! : "0.0.0"
         let currentVersion = getCurrentAppVersion()
         
         print("📱 Current app version: \(currentVersion)")
@@ -81,13 +84,10 @@ class ForceUpdateService: ObservableObject {
                 print("⚠️ UPDATE REQUIRED: App version \(currentVersion) is below minimum \(minimumVersion)")
                 
                 // Log to Analytics
-                AnalyticsService.shared.logEvent(
-                    name: "force_update_triggered",
-                    parameters: [
-                        "current_version": currentVersion,
-                        "minimum_version": minimumVersion
-                    ]
-                )
+                Analytics.logEvent("force_update_triggered", parameters: [
+                    "current_version": currentVersion,
+                    "minimum_version": minimumVersion
+                ])
             } else {
                 print("✅ App version is up to date")
             }
@@ -146,7 +146,7 @@ class ForceUpdateService: ObservableObject {
             UIApplication.shared.open(url)
             
             // Log to Analytics
-            AnalyticsService.shared.logEvent(name: "force_update_app_store_opened", parameters: nil)
+            Analytics.logEvent("force_update_app_store_opened", parameters: nil)
         }
     }
 }
