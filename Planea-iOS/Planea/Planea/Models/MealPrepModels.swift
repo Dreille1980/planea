@@ -969,7 +969,7 @@ extension MealPrepKit {
             // Consolidate items for each ingredient
             var consolidatedItems: [PrepItem] = []
             
-            for (ingredientKey, ingredientItems) in itemsByIngredient {
+            for (_, ingredientItems) in itemsByIngredient {
                 // Group by action within this ingredient
                 var itemsByAction: [String: [PrepItem]] = [:]
                 
