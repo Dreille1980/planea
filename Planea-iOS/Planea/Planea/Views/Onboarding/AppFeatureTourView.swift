@@ -279,15 +279,14 @@ struct WelcomeIllustration: View {
         ZStack {
             ForEach(0..<3) { i in
                 Circle()
-                    .stroke(lineWidth: 2)
-                    .foregroundStyle(Color.planeaPrimary.opacity(0.3))
+                    .stroke(Color.planeaPrimary.opacity(0.3), lineWidth: 2)
                     .frame(width: CGFloat(80 + i * 30), height: CGFloat(80 + i * 30))
                     .rotationEffect(.degrees(rotation + Double(i * 120)))
             }
             
             Image(systemName: "fork.knife.circle.fill")
                 .font(.system(size: 60))
-                .foregroundStyle(Color.planeaPrimary)
+                .foregroundColor(Color.planeaPrimary)
         }
         .onAppear {
             withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
@@ -305,12 +304,12 @@ struct MealPlansIllustration: View {
             ForEach(0..<3) { day in
                 VStack(spacing: 4) {
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(.planeaTertiary.opacity(0.2))
+                        .fill(Color.planeaTertiary.opacity(0.2))
                         .frame(width: 60, height: 20)
                     
                     ForEach(0..<3) { meal in
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(.planeaTertiary.opacity(0.6 - Double(meal) * 0.15))
+                            .fill(Color.planeaTertiary.opacity(0.6 - Double(meal) * 0.15))
                             .frame(width: 60, height: 40)
                     }
                 }
@@ -331,13 +330,13 @@ struct AdHocIllustration: View {
             VStack(spacing: 8) {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(lineWidth: 2)
-                    .foregroundStyle(.planeaPrimary.opacity(0.5))
+                    .foregroundStyle(Color.planeaPrimary.opacity(0.5))
                     .frame(width: 100, height: 80)
                     .overlay(
                         VStack(spacing: 4) {
                             ForEach(0..<3) { _ in
                                 RoundedRectangle(cornerRadius: 2)
-                                    .fill(.planeaPrimary.opacity(0.3))
+                                    .fill(Color.planeaPrimary.opacity(0.3))
                                     .frame(width: 80, height: 8)
                             }
                         }
@@ -355,12 +354,12 @@ struct AdHocIllustration: View {
             // Camera
             VStack(spacing: 8) {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(.planeaPrimary.opacity(0.2))
+                    .fill(Color.planeaPrimary.opacity(0.2))
                     .frame(width: 100, height: 80)
                     .overlay(
                         Image(systemName: "camera.fill")
                             .font(.largeTitle)
-                            .foregroundStyle(.planeaPrimary)
+                            .foregroundStyle(Color.planeaPrimary)
                             .scaleEffect(showCamera ? 1.0 : 0.8)
                     )
                 
@@ -390,7 +389,7 @@ struct ShoppingIllustration: View {
                         .font(.title3)
                     
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(.planeaSecondary.opacity(0.3))
+                        .fill(Color.planeaSecondary.opacity(0.3))
                         .frame(width: 150, height: 24)
                         .opacity(checkedItems.contains(index) ? 0.5 : 1.0)
                 }
@@ -416,7 +415,7 @@ struct FavoritesIllustration: View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
             ForEach(0..<6) { index in
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(.planeaSecondary.opacity(0.2))
+                    .fill(Color.planeaSecondary.opacity(0.2))
                     .frame(width: 80, height: 80)
                     .overlay(
                         VStack {
@@ -446,11 +445,11 @@ struct FlyersIllustration: View {
                 ForEach(0..<3) { index in
                     VStack(spacing: 4) {
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(.planeaSecondary.opacity(0.3))
+                            .fill(Color.planeaSecondary.opacity(0.3))
                             .frame(width: 70, height: 70)
                             .overlay(
                                 Image(systemName: "cart.fill")
-                                    .foregroundStyle(.planeaSecondary)
+                                    .foregroundStyle(Color.planeaSecondary)
                             )
                         
                         HStack(spacing: 4) {
@@ -460,10 +459,10 @@ struct FlyersIllustration: View {
                                 .font(.caption2)
                                 .fontWeight(.bold)
                         }
-                        .foregroundStyle(.planeaDanger)
+                        .foregroundStyle(Color.planeaDanger)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
-                        .background(Capsule().fill(.planeaDanger.opacity(0.1)))
+                        .background(Capsule().fill(Color.planeaDanger.opacity(0.1)))
                     }
                     .scaleEffect(isActive ? 1.0 : 0.9)
                     .animation(.spring(response: 0.6).delay(Double(index) * 0.1), value: isActive)
@@ -478,10 +477,10 @@ struct FlyersIllustration: View {
                     .font(.caption)
                     .fontWeight(.semibold)
             }
-            .foregroundStyle(.planeaSecondary)
+            .foregroundStyle(Color.planeaSecondary)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(Capsule().fill(.planeaSecondary.opacity(0.2)))
+            .background(Capsule().fill(Color.planeaSecondary.opacity(0.2)))
         }
     }
 }
@@ -636,7 +635,7 @@ struct GetStartedIllustration: View {
             ForEach(0..<3) { i in
             Image(systemName: "sparkle")
                 .font(.title)
-                .foregroundStyle(.planeaPrimary)
+                .foregroundStyle(Color.planeaPrimary)
                 .offset(
                         x: animate ? CGFloat.random(in: -40...40) : 0,
                         y: animate ? CGFloat.random(in: -40...40) : 0
@@ -646,7 +645,7 @@ struct GetStartedIllustration: View {
             
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 80))
-                .foregroundStyle(.planeaPrimary)
+                .foregroundStyle(Color.planeaPrimary)
                 .scaleEffect(animate ? 1.2 : 1.0)
         }
         .onAppear {
