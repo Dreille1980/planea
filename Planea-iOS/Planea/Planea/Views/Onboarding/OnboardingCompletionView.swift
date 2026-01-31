@@ -22,7 +22,7 @@ struct OnboardingCompletionView: View {
                 
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 100))
-                    .foregroundStyle(.planeaTertiary)
+                    .foregroundStyle(Color.planeaTertiary)
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
                     .opacity(showCheckmark ? 1.0 : 0.0)
             }
@@ -128,7 +128,7 @@ struct SummaryRow: View {
         HStack {
             Image(systemName: icon)
                 .font(.title3)
-                .foregroundStyle(.planeaPrimary)
+                .foregroundStyle(Color.planeaPrimary)
                 .frame(width: 30)
             
             Text(title)

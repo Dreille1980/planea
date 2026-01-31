@@ -17,12 +17,12 @@ struct OnboardingMembersListView: View {
             VStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(.planeaTertiary.opacity(0.1))
+                        .fill(Color.planeaTertiary.opacity(0.1))
                         .frame(width: 100, height: 100)
                     
                     Image(systemName: "person.3.fill")
                         .font(.system(size: 40))
-                        .foregroundStyle(.planeaTertiary)
+                        .foregroundStyle(Color.planeaTertiary)
                 }
                 .padding(.top, 32)
                 
@@ -59,7 +59,7 @@ struct OnboardingMembersListView: View {
                             Text("onboarding.members.add".localized)
                                 .font(.headline)
                         }
-                        .foregroundStyle(.planeaPrimary)
+                        .foregroundStyle(Color.planeaPrimary)
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(
@@ -165,7 +165,7 @@ struct MemberCard: View {
                     if isConfigured {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.title2)
-                            .foregroundStyle(.planeaTertiary)
+                            .foregroundStyle(Color.planeaTertiary)
                     } else {
                         Image(systemName: "person.fill")
                             .font(.title3)
@@ -184,12 +184,12 @@ struct MemberCard: View {
                             if !member.diets.isEmpty {
                                 Label("\(member.diets.count)", systemImage: "leaf.fill")
                                     .font(.caption)
-                                    .foregroundStyle(.planeaTertiary)
+                                    .foregroundStyle(Color.planeaTertiary)
                             }
                             if !member.allergens.isEmpty {
                                 Label("\(member.allergens.count)", systemImage: "exclamationmark.triangle.fill")
                                     .font(.caption)
-                                    .foregroundStyle(.planeaSecondary)
+                                    .foregroundStyle(Color.planeaSecondary)
                             }
                             if !member.dislikes.isEmpty {
                                 Label("\(member.dislikes.count)", systemImage: "hand.thumbsdown.fill")

@@ -18,12 +18,12 @@ struct OnboardingGenerationPreferencesView: View {
             VStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(.planeaSecondary.opacity(0.1))
+                        .fill(Color.planeaSecondary.opacity(0.1))
                         .frame(width: 100, height: 100)
                     
                     Image(systemName: "slider.horizontal.3")
                         .font(.system(size: 40))
-                        .foregroundStyle(.planeaSecondary)
+                        .foregroundStyle(Color.planeaSecondary)
                 }
                 .padding(.top, 32)
                 

@@ -14,12 +14,12 @@ struct OnboardingFamilyNameView: View {
             // Icon
             ZStack {
                 Circle()
-                    .fill(.planeaPrimary.opacity(0.1))
+                    .fill(Color.planeaPrimary.opacity(0.1))
                     .frame(width: 120, height: 120)
                 
                 Image(systemName: "house.fill")
                     .font(.system(size: 50))
-                    .foregroundStyle(.planeaPrimary)
+                    .foregroundStyle(Color.planeaPrimary)
             }
             
             // Title
