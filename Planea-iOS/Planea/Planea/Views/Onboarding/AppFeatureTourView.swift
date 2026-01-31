@@ -18,63 +18,63 @@ struct AppFeatureTourView: View {
             icon: "sparkles",
             title: "tour.welcome.title",
             description: "tour.welcome.description",
-            color: .planeaPrimary,
+            color: Color.planeaPrimary,
             illustration: .welcome
         ),
         TourSlide(
             icon: "calendar",
             title: "tour.mealplans.title",
             description: "tour.mealplans.description",
-            color: .planeaTertiary,
+            color: Color.planeaTertiary,
             illustration: .mealPlans
         ),
         TourSlide(
             icon: "calendar.badge.checkmark",
             title: "tour.mealprep.title",
             description: "tour.mealprep.description",
-            color: .planeaSecondary,
+            color: Color.planeaSecondary,
             illustration: .mealPrep
         ),
         TourSlide(
             icon: "wand.and.stars",
             title: "tour.adhoc.title",
             description: "tour.adhoc.description",
-            color: .planeaPrimary,
+            color: Color.planeaPrimary,
             illustration: .adHoc
         ),
         TourSlide(
             icon: "bubble.left.and.bubble.right.fill",
             title: "tour.aichat.title",
             description: "tour.aichat.description",
-            color: .planeaTertiary,
+            color: Color.planeaTertiary,
             illustration: .aiChat
         ),
         TourSlide(
             icon: "cart.fill",
             title: "tour.shopping.title",
             description: "tour.shopping.description",
-            color: .planeaSecondary,
+            color: Color.planeaSecondary,
             illustration: .shopping
         ),
         TourSlide(
             icon: "heart.fill",
             title: "tour.favorites.title",
             description: "tour.favorites.description",
-            color: .planeaPrimary,
+            color: Color.planeaPrimary,
             illustration: .favorites
         ),
         TourSlide(
             icon: "tag.fill",
             title: "tour.flyers.title",
             description: "tour.flyers.description",
-            color: .planeaSecondary,
+            color: Color.planeaSecondary,
             illustration: .flyers
         ),
         TourSlide(
             icon: "rocket.fill",
             title: "tour.getstarted.title",
             description: "tour.getstarted.description",
-            color: .planeaTertiary,
+            color: Color.planeaTertiary,
             illustration: .getStarted
         )
     ]
@@ -385,7 +385,7 @@ struct ShoppingIllustration: View {
             ForEach(0..<4) { index in
                 HStack {
                     Image(systemName: checkedItems.contains(index) ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(checkedItems.contains(index) ? .planeaTertiary : .gray)
+                        .foregroundStyle(checkedItems.contains(index) ? Color.planeaTertiary : .gray)
                         .font(.title3)
                     
                     RoundedRectangle(cornerRadius: 4)
@@ -423,7 +423,7 @@ struct FavoritesIllustration: View {
                             HStack {
                                 Spacer()
                                 Image(systemName: likedItems.contains(index) ? "heart.fill" : "heart")
-                                    .foregroundStyle(likedItems.contains(index) ? .planeaSecondary : .gray)
+                                    .foregroundStyle(likedItems.contains(index) ? Color.planeaSecondary : .gray)
                                     .font(.title3)
                                     .padding(8)
                             }
