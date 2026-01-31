@@ -15,7 +15,7 @@ struct OnboardingCompletionView: View {
             // Success Animation
             ZStack {
                 Circle()
-                    .fill(.planeaTertiary.opacity(0.1))
+                    .fill(Color.planeaTertiary.opacity(0.1))
                     .frame(width: 150, height: 150)
                     .scaleEffect(showCheckmark ? 1.2 : 0.8)
                     .opacity(showCheckmark ? 1.0 : 0.0)
@@ -85,7 +85,7 @@ struct OnboardingCompletionView: View {
                     .padding()
                     .background(
                         LinearGradient(
-                            colors: [.planeaTertiary, .planeaPrimary],
+                            colors: [Color.planeaTertiary, Color.planeaPrimary],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
