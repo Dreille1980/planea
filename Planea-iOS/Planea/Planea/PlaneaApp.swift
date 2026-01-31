@@ -97,6 +97,7 @@ struct RootView: View {
     @State private var showFreeTrialExpiration = false
     @State private var showWhatsNew = false
     @State private var selectedTab: Int = 0
+    @StateObject private var forceUpdateService = ForceUpdateService.shared
     
     private var hasActiveSubscription: Bool {
         storeManager.hasActiveSubscription
@@ -145,7 +146,13 @@ struct RootView: View {
             let features = WhatsNewService.shared.getWhatsNewItems(for: version)
             WhatsNewView(version: version, features: features)
         }
+        .fullScreenCover(isPresented: $forceUpdateService.needsUpdate) {
+            ForceUpdateView()
+        }
         .onAppear {
+            // Check for forced update FIRST
+            forceUpdateService.checkForUpdate()
+            
             if !hasCompletedOnboarding {
                 showOnboarding = true
             } else {
