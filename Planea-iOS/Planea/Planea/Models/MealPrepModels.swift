@@ -982,7 +982,7 @@ extension MealPrepKit {
                 }
                 
                 // If only one action type for this ingredient, consolidate quantities
-                if itemsByAction.count == 1, let (action, items) = itemsByAction.first {
+                if itemsByAction.count == 1, let (_, items) = itemsByAction.first {
                     let firstItem = items[0]
                     
                     // Try to sum numeric quantities

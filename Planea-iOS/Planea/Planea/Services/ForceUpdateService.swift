@@ -68,8 +68,8 @@ class ForceUpdateService: ObservableObject {
     private func evaluateVersion() {
         defer { isChecking = false }
         
-        let minimumVersionValue = remoteConfig.configValue(forKey: minimumVersionKey).stringValue
-        let minimumVersion = (minimumVersionValue ?? "").isEmpty ? "0.0.0" : (minimumVersionValue ?? "0.0.0")
+        let minimumVersionString = remoteConfig.configValue(forKey: minimumVersionKey).stringValue ?? ""
+        let minimumVersion = minimumVersionString.isEmpty ? "0.0.0" : minimumVersionString
         let currentVersion = getCurrentAppVersion()
         
         print("📱 Current app version: \(currentVersion)")
