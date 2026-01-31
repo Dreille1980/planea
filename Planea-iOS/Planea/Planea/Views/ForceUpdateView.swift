@@ -35,14 +35,14 @@ struct ForceUpdateView: View {
                 Text("force_update.title".localized)
                     .font(.system(size: 28, weight: .bold))
                     .multilineTextAlignment(.center)
-                    .foregroundColor(.planea3)
+                    .foregroundColor(.planeaTextPrimary)
                     .padding(.horizontal, 40)
                 
                 // Message
                 Text("force_update.message".localized)
                     .font(.system(size: 17))
                     .multilineTextAlignment(.center)
-                    .foregroundColor(.planea2)
+                    .foregroundColor(.planeaTextSecondary)
                     .padding(.horizontal, 40)
                     .lineSpacing(4)
                 
