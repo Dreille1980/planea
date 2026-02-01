@@ -1100,6 +1100,99 @@ async def generate_recipe_with_openai(
     protein_portions_text += "- Ground meat (beef, pork, chicken): 150-180g per person\n"
     protein_portions_text += "These portions ensure adequate protein intake for a satisfying meal.\n"
     
+    # Build accompaniment guidance for intelligent side dish suggestions
+    accompaniment_guidance_fr = """
+
+🍽️ ÉQUILIBRE DU REPAS (pour Dîner et Souper - Guidage Intelligent):
+
+ÉVALUE si le repas BÉNÉFICIERAIT d'un féculent/accompagnement:
+
+✅ INCLURE un féculent SI le plat en bénéficierait:
+- Protéine grillée/rôtie simple (ex: poulet grillé → ajouter riz basmati ou pommes de terre rôties)
+- Plat en sauce (ex: curry de poulet → servir avec riz basmati ou naan)
+- Sauté asiatique (ex: boeuf aux légumes → avec riz jasmin ou nouilles de riz)
+- Viande mijotée (ex: boeuf braisé → avec purée de pommes de terre ou polenta crémeuse)
+- Poisson au four (ex: saumon → avec quinoa ou riz sauvage)
+- Repas qui semble "léger" sans glucides
+
+❌ PAS NÉCESSAIRE si déjà complet:
+- Pâtes bolognaise, carbonara, etc. (les pâtes SONT le féculent)
+- Pizza, lasagne, cannelloni (déjà substantiel avec pâtes)
+- Quiche, tarte salée (pâte = glucides)
+- Bol-repas avec plusieurs composantes (ex: bowl poke avec riz déjà inclus)
+- Salade-repas copieuse avec légumineuses ou croûtons
+
+🌾 OPTIONS DE FÉCULENTS (portions par personne):
+
+CLASSIQUES (privilégier selon le type de plat):
+- Riz blanc, basmati, jasmin: 60-80g sec (180-240g cuit)
+- Riz brun: 60-75g sec (pour plats santé)
+- Pâtes (spaghetti, penne, etc.): 80-100g sec
+- Pommes de terre: 150-200g (rôties, en purée, bouillies)
+- Patates douces: 150-180g (rôties ou en purée)
+- Quinoa: 60-75g sec (pour bols santé)
+- Couscous: 60-80g sec (avec plats méditerranéens)
+- Polenta: 50-60g sec (avec plats mijotés italiens)
+
+ALTERNATIVES LOW-CARB (pour préférences diététiques):
+- Riz de chou-fleur: 150-200g (alternative au riz)
+- Courgettes spiralisées (zoodles): 200-250g (alternative aux pâtes)
+- Purée de chou-fleur: 200g (alternative à la purée)
+- Courge spaghetti: 200g (alternative aux pâtes)
+
+💡 PRINCIPE CLÉS:
+- Pense "repas complet, équilibré et satisfaisant"
+- Le féculent n'est PAS obligatoire, mais souvent recommandé
+- Adapte le choix au style du plat (riz asiatique, pâtes italiennes, pommes de terre françaises)
+- Si tu ajoutes un féculent, intègre-le naturellement dans les instructions
+"""
+
+    accompaniment_guidance_en = """
+
+🍽️ MEAL BALANCE (for Lunch and Dinner - Intelligent Guidance):
+
+EVALUATE if the meal would BENEFIT from a starch/side dish:
+
+✅ INCLUDE a starch IF it would enhance the meal:
+- Simple grilled/roasted protein (e.g., grilled chicken → add basmati rice or roasted potatoes)
+- Saucy dish (e.g., chicken curry → serve with basmati rice or naan)
+- Asian stir-fry (e.g., beef with vegetables → with jasmine rice or rice noodles)
+- Braised meat (e.g., braised beef → with mashed potatoes or creamy polenta)
+- Baked fish (e.g., salmon → with quinoa or wild rice)
+- Meal that feels "light" without carbs
+
+❌ NOT NECESSARY if already complete:
+- Pasta bolognese, carbonara, etc. (pasta IS the starch)
+- Pizza, lasagna, cannelloni (already substantial with pasta)
+- Quiche, savory tart (crust = carbs)
+- Bowl meals with multiple components (e.g., poke bowl with rice already included)
+- Hearty salad with legumes or croutons
+
+🌾 STARCH OPTIONS (portions per person):
+
+CLASSICS (choose based on dish style):
+- White, basmati, jasmine rice: 60-80g dry (180-240g cooked)
+- Brown rice: 60-75g dry (for healthy dishes)
+- Pasta (spaghetti, penne, etc.): 80-100g dry
+- Potatoes: 150-200g (roasted, mashed, boiled)
+- Sweet potatoes: 150-180g (roasted or mashed)
+- Quinoa: 60-75g dry (for healthy bowls)
+- Couscous: 60-80g dry (with Mediterranean dishes)
+- Polenta: 50-60g dry (with Italian braised dishes)
+
+LOW-CARB ALTERNATIVES (for dietary preferences):
+- Cauliflower rice: 150-200g (rice alternative)
+- Spiralized zucchini (zoodles): 200-250g (pasta alternative)
+- Cauliflower mash: 200g (mashed potato alternative)
+- Spaghetti squash: 200g (pasta alternative)
+
+💡 KEY PRINCIPLES:
+- Think "complete, balanced, and satisfying meal"
+- Starch is NOT mandatory, but often recommended
+- Match the choice to dish style (Asian rice, Italian pasta, French potatoes)
+- If you add a starch, integrate it naturally into the instructions
+"""
+    
     # Build storage instructions for meal prep with adaptive shelf life
     storage_instructions = ""
     if min_shelf_life_required > 3:
@@ -1232,7 +1325,7 @@ Draw inspiration from this theme.
         prompt = f"""Generate a {meal_type_name} recipe in English for {servings} people.
 
 {constraints_text_en}{complexity_instructions_en}
-{preferences_text}{protein_portions_text_en}{storage_instructions}{concept_instructions}{diversity_text_en}
+{preferences_text}{protein_portions_text_en}{accompaniment_guidance_en}{storage_instructions}{concept_instructions}{diversity_text_en}
 
 CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
 - First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
@@ -1280,7 +1373,7 @@ IMPORTANT: Generate at least 6-8 detailed steps with EXPLICIT preparation steps 
         prompt = f"""Génère une recette de {meal_type_fr} en français pour {servings} personnes.
 
 {constraints_text}{complexity_instructions_fr}
-{preferences_text}{protein_portions_text}{storage_instructions}{concept_instructions}{diversity_text}
+{preferences_text}{protein_portions_text}{accompaniment_guidance_fr}{storage_instructions}{concept_instructions}{diversity_text}
 
 CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
 - Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
