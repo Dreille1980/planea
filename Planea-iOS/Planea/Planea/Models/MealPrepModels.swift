@@ -203,6 +203,72 @@ struct OptimizedRecipeStep: Identifiable, Codable {
     }
 }
 
+// MARK: - Meal Prep Assignment (NEW - for portion tracking)
+
+struct MealPrepAssignment: Identifiable, Codable {
+    let id: UUID
+    let mealPrepKitId: UUID
+    let date: Date
+    let mealType: MealType
+    let portionsUsed: Int
+    
+    // Optionnel : si on veut tracker quelle recette
+    let specificRecipeId: String?
+    let specificRecipeTitle: String?
+    
+    let assignedAt: Date
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case mealPrepKitId = "meal_prep_kit_id"
+        case date
+        case mealType = "meal_type"
+        case portionsUsed = "portions_used"
+        case specificRecipeId = "specific_recipe_id"
+        case specificRecipeTitle = "specific_recipe_title"
+        case assignedAt = "assigned_at"
+    }
+    
+    init(id: UUID = UUID(), mealPrepKitId: UUID, date: Date, mealType: MealType, 
+         portionsUsed: Int, specificRecipeId: String? = nil, 
+         specificRecipeTitle: String? = nil, assignedAt: Date = Date()) {
+        self.id = id
+        self.mealPrepKitId = mealPrepKitId
+        self.date = date
+        self.mealType = mealType
+        self.portionsUsed = portionsUsed
+        self.specificRecipeId = specificRecipeId
+        self.specificRecipeTitle = specificRecipeTitle
+        self.assignedAt = assignedAt
+    }
+}
+
+// MARK: - Recipe Portion Tracker (NEW - for hybrid portion management)
+
+struct RecipePortionTracker: Identifiable, Codable {
+    let id: UUID
+    let recipeId: String
+    let recipeTitle: String
+    let totalPortions: Int
+    var remainingPortions: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case recipeId = "recipe_id"
+        case recipeTitle = "recipe_title"
+        case totalPortions = "total_portions"
+        case remainingPortions = "remaining_portions"
+    }
+    
+    init(id: UUID = UUID(), recipeId: String, recipeTitle: String, totalPortions: Int) {
+        self.id = id
+        self.recipeId = recipeId
+        self.recipeTitle = recipeTitle
+        self.totalPortions = totalPortions
+        self.remainingPortions = totalPortions
+    }
+}
+
 // MARK: - Meal Prep Kit
 
 struct MealPrepKit: Identifiable, Codable {
@@ -220,6 +286,12 @@ struct MealPrepKit: Identifiable, Codable {
     let todayPreparation: TodayPreparation?
     let weeklyReheating: WeeklyReheating?
     
+    // NEW: Portion management
+    var remainingPortions: Int  // Décrémenté lors des assignations
+    var assignments: [MealPrepAssignment]  // Historique des assignations
+    let preparedDate: Date  // Date de préparation
+    var recipePortions: [RecipePortionTracker]?  // Portions par recette (hybride)
+    
     let createdAt: Date
     
     enum CodingKeys: String, CodingKey {
@@ -234,10 +306,14 @@ struct MealPrepKit: Identifiable, Codable {
         case cookingPhases = "cooking_phases"
         case todayPreparation = "today_preparation"
         case weeklyReheating = "weekly_reheating"
+        case remainingPortions = "remaining_portions"
+        case assignments
+        case preparedDate = "prepared_date"
+        case recipePortions = "recipe_portions"
         case createdAt = "created_at"
     }
     
-    init(id: UUID = UUID(), name: String, description: String? = nil, totalPortions: Int, estimatedPrepMinutes: Int, recipes: [MealPrepRecipeRef], groupedPrepSteps: [GroupedPrepStep]? = nil, optimizedRecipeSteps: [OptimizedRecipeStep]? = nil, cookingPhases: CookingPhasesSet? = nil, todayPreparation: TodayPreparation? = nil, weeklyReheating: WeeklyReheating? = nil, createdAt: Date = Date()) {
+    init(id: UUID = UUID(), name: String, description: String? = nil, totalPortions: Int, estimatedPrepMinutes: Int, recipes: [MealPrepRecipeRef], groupedPrepSteps: [GroupedPrepStep]? = nil, optimizedRecipeSteps: [OptimizedRecipeStep]? = nil, cookingPhases: CookingPhasesSet? = nil, todayPreparation: TodayPreparation? = nil, weeklyReheating: WeeklyReheating? = nil, remainingPortions: Int? = nil, assignments: [MealPrepAssignment] = [], preparedDate: Date = Date(), recipePortions: [RecipePortionTracker]? = nil, createdAt: Date = Date()) {
         self.id = id
         self.name = name
         self.description = description
@@ -249,7 +325,16 @@ struct MealPrepKit: Identifiable, Codable {
         self.cookingPhases = cookingPhases
         self.todayPreparation = todayPreparation
         self.weeklyReheating = weeklyReheating
+        self.remainingPortions = remainingPortions ?? totalPortions
+        self.assignments = assignments
+        self.preparedDate = preparedDate
+        self.recipePortions = recipePortions
         self.createdAt = createdAt
+    }
+    
+    // Computed properties
+    var hasAvailablePortions: Bool {
+        remainingPortions > 0
     }
     
     // Custom decoding to handle ISO date strings from backend
@@ -269,6 +354,26 @@ struct MealPrepKit: Identifiable, Codable {
         // NEW: Simplified structure
         todayPreparation = try container.decodeIfPresent(TodayPreparation.self, forKey: .todayPreparation)
         weeklyReheating = try container.decodeIfPresent(WeeklyReheating.self, forKey: .weeklyReheating)
+        
+        // NEW: Portion management (with defaults for backward compatibility)
+        remainingPortions = try container.decodeIfPresent(Int.self, forKey: .remainingPortions) ?? totalPortions
+        assignments = try container.decodeIfPresent([MealPrepAssignment].self, forKey: .assignments) ?? []
+        
+        // Decode prepared date
+        if let dateString = try? container.decode(String.self, forKey: .preparedDate) {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = formatter.date(from: dateString) {
+                preparedDate = date
+            } else {
+                formatter.formatOptions = [.withInternetDateTime]
+                preparedDate = formatter.date(from: dateString) ?? Date()
+            }
+        } else {
+            preparedDate = try container.decodeIfPresent(Date.self, forKey: .preparedDate) ?? Date()
+        }
+        
+        recipePortions = try container.decodeIfPresent([RecipePortionTracker].self, forKey: .recipePortions)
         
         // Try to decode created_at as ISO string first, then fall back to Date
         if let dateString = try? container.decode(String.self, forKey: .createdAt) {
@@ -1210,5 +1315,143 @@ extension MealPrepKit {
         sections.sort { $0.actionType.sortOrder < $1.actionType.sortOrder }
         
         return sections
+    }
+}
+
+// MARK: - MealPrepKit Extension - Portion Management Logic
+
+enum MealPrepError: LocalizedError {
+    case insufficientPortions(requested: Int, available: Int)
+    case insufficientRecipePortions(recipeTitle: String, requested: Int, available: Int)
+    case assignmentNotFound
+    
+    var errorDescription: String? {
+        switch self {
+        case .insufficientPortions(let requested, let available):
+            return String(format: NSLocalizedString("mealprep.error.insufficient_portions", comment: ""), requested, available)
+        case .insufficientRecipePortions(let title, let requested, let available):
+            return String(format: NSLocalizedString("mealprep.error.insufficient_recipe_portions", comment: ""), title, requested, available)
+        case .assignmentNotFound:
+            return NSLocalizedString("mealprep.error.assignment_not_found", comment: "")
+        }
+    }
+}
+
+extension MealPrepKit {
+    /// Vérifie si on peut assigner X portions
+    func canAssign(portions: Int) -> Bool {
+        return remainingPortions >= portions
+    }
+    
+    /// Assigne des portions à un jour donné
+    mutating func assignPortions(
+        date: Date,
+        mealType: MealType,
+        portions: Int,
+        specificRecipeId: String? = nil
+    ) throws -> MealPrepAssignment {
+        // Validation
+        guard canAssign(portions: portions) else {
+            throw MealPrepError.insufficientPortions(
+                requested: portions,
+                available: remainingPortions
+            )
+        }
+        
+        // Si on spécifie une recette, vérifier ses portions
+        var specificRecipeTitle: String? = nil
+        if let recipeId = specificRecipeId {
+            if let recipeIndex = recipePortions?.firstIndex(where: { $0.recipeId == recipeId }) {
+                let tracker = recipePortions![recipeIndex]
+                guard tracker.remainingPortions >= portions else {
+                    throw MealPrepError.insufficientRecipePortions(
+                        recipeTitle: tracker.recipeTitle,
+                        requested: portions,
+                        available: tracker.remainingPortions
+                    )
+                }
+                // Décrémenter les portions de cette recette
+                recipePortions![recipeIndex].remainingPortions -= portions
+                specificRecipeTitle = tracker.recipeTitle
+            }
+        }
+        
+        // Créer l'assignment
+        let assignment = MealPrepAssignment(
+            mealPrepKitId: self.id,
+            date: date,
+            mealType: mealType,
+            portionsUsed: portions,
+            specificRecipeId: specificRecipeId,
+            specificRecipeTitle: specificRecipeTitle
+        )
+        
+        // Décrémenter les portions globales
+        remainingPortions -= portions
+        
+        // Ajouter à l'historique
+        assignments.append(assignment)
+        
+        return assignment
+    }
+    
+    /// Annule une assignation
+    mutating func unassign(_ assignmentId: UUID) throws {
+        guard let index = assignments.firstIndex(where: { $0.id == assignmentId }) else {
+            throw MealPrepError.assignmentNotFound
+        }
+        
+        let assignment = assignments[index]
+        
+        // Restituer les portions globales
+        remainingPortions += assignment.portionsUsed
+        
+        // Restituer les portions de la recette si applicable
+        if let recipeId = assignment.specificRecipeId,
+           let recipeIndex = recipePortions?.firstIndex(where: { $0.recipeId == recipeId }) {
+            recipePortions![recipeIndex].remainingPortions += assignment.portionsUsed
+        }
+        
+        // Retirer l'assignment
+        assignments.remove(at: index)
+    }
+    
+    // MARK: - Expiration Management (Bonus)
+    
+    /// Date d'expiration basée sur la recette avec le plus court shelf life
+    var expirationDate: Date? {
+        guard let minShelfLife = recipes.map({ $0.shelfLifeDays }).min() else {
+            return nil
+        }
+        return Calendar.current.date(byAdding: .day, value: minShelfLife, to: preparedDate)
+    }
+    
+    /// Est-ce que le meal prep est expiré ?
+    var isExpired: Bool {
+        guard let expirationDate = expirationDate else { return false }
+        return Date() > expirationDate
+    }
+    
+    /// Jours restants avant expiration
+    var daysUntilExpiration: Int? {
+        guard let expirationDate = expirationDate else { return nil }
+        return Calendar.current.dateComponents([.day], from: Date(), to: expirationDate).day
+    }
+    
+    /// Badge de warning si proche de l'expiration
+    var expirationWarning: String? {
+        guard let days = daysUntilExpiration else { return nil }
+        
+        if days < 0 {
+            return NSLocalizedString("mealprep.expired", comment: "")
+        } else if days == 0 {
+            return NSLocalizedString("mealprep.expires_today", comment: "")
+        } else if days == 1 {
+            return NSLocalizedString("mealprep.expires_tomorrow", comment: "")
+        } else if days <= 2 {
+            return String(format: NSLocalizedString("mealprep.expires_in_days", comment: ""), days)
+        }
+        
+        return nil
     }
 }
