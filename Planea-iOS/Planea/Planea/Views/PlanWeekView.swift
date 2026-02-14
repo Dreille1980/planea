@@ -9,7 +9,7 @@ extension Date {
         return formatter.string(from: self)
     }
     
-    /// Format short date range: "10 au 16 mars"
+    /// Format short date range: "10 au 16 mars" or "10 to 16 March"
     static func weekRange(from startDate: Date) -> String {
         let calendar = Calendar.current
         guard let endDate = calendar.date(byAdding: .day, value: 6, to: startDate) else {
@@ -24,7 +24,8 @@ extension Date {
         formatter.dateFormat = "MMMM"
         let month = formatter.string(from: endDate)
         
-        return "\(startDay) au \(endDay) \(month)"
+        let separator = "week.range.separator".localized
+        return "\(startDay) \(separator) \(endDay) \(month)"
     }
 }
 
@@ -125,6 +126,8 @@ struct PlanWeekView: View {
                                 // Activate Plan button (only if draft)
                                 if plan.status == .draft {
                                     Button(action: {
+                                        // Pre-populate plan name with week range
+                                        planName = String(format: "week.range".localized, Date.weekRange(from: plan.weekStart))
                                         showNamePlanDialog = true
                                     }) {
                                         Text("plan.activate.button".localized)
