@@ -229,10 +229,7 @@ final class PlanViewModel: ObservableObject {
         loadTemplates()
         
         // Analytics
-        AnalyticsService.shared.logEvent(
-            name: "template_created",
-            parameters: ["template_name": template.name]
-        )
+        AnalyticsService.shared.logTemplateCreated(templateName: template.name)
     }
     
     func saveCurrentPlanAsTemplate(name: String) {
@@ -261,13 +258,10 @@ final class PlanViewModel: ObservableObject {
         persistence.saveMealPlan(legacyPlan)
         
         // Analytics
-        AnalyticsService.shared.logEvent(
-            name: "template_applied",
-            parameters: [
-                "template_id": template.id.uuidString,
-                "template_name": template.name,
-                "start_date": startDate.description
-            ]
+        AnalyticsService.shared.logTemplateApplied(
+            templateID: template.id.uuidString,
+            templateName: template.name,
+            startDate: startDate.description
         )
     }
     
@@ -276,9 +270,6 @@ final class PlanViewModel: ObservableObject {
         loadTemplates()
         
         // Analytics
-        AnalyticsService.shared.logEvent(
-            name: "template_deleted",
-            parameters: ["template_id": id.uuidString]
-        )
+        AnalyticsService.shared.logTemplateDeleted(templateID: id.uuidString)
     }
 }
