@@ -24,7 +24,7 @@ enum MealType: String, Codable, CaseIterable, Identifiable {
 }
 
 enum Weekday: String, Codable, CaseIterable, Identifiable {
-    case monday = "Mon", tuesday = "Tue", wednesday = "Wed", thursday = "Thu", friday = "Fri", saturday = "Sat", sunday = "Sun"
+    case sunday = "Sun", monday = "Mon", tuesday = "Tue", wednesday = "Wed", thursday = "Thu", friday = "Fri", saturday = "Sat"
     var id: String { rawValue }
     
     var displayName: String {

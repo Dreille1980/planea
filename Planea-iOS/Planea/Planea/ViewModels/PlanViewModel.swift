@@ -8,6 +8,11 @@ final class PlanViewModel: ObservableObject {
     @Published var archivedPlans: [MealPlan] = []  // Historique des plans
     @Published var showConfirmationAlert = false
     
+    // Template support
+    @Published var templates: [TemplateWeek] = []
+    @Published var showApplyTemplateSheet = false
+    @Published var selectedTemplate: TemplateWeek?
+    
     private let persistence = PersistenceController.shared
     
     init() {
@@ -211,5 +216,69 @@ final class PlanViewModel: ObservableObject {
         )
         
         return newPlan
+    }
+    
+    // MARK: - Template Operations
+    
+    func loadTemplates() {
+        templates = persistence.loadTemplateWeeks()
+    }
+    
+    func saveTemplate(_ template: TemplateWeek) {
+        persistence.saveTemplateWeek(template)
+        loadTemplates()
+        
+        // Analytics
+        AnalyticsService.shared.logEvent(
+            name: "template_created",
+            parameters: ["template_name": template.name]
+        )
+    }
+    
+    func saveCurrentPlanAsTemplate(name: String) {
+        guard let plan = currentPlan else { return }
+        
+        // Validate the plan can be converted
+        guard MealPlanAdapter.canConvert(plan) else {
+            print("⚠️ Cannot convert plan to template: plan has invalid data")
+            return
+        }
+        
+        // Convert to template
+        let template = MealPlanAdapter.mealPlanToTemplate(plan, name: name)
+        saveTemplate(template)
+    }
+    
+    func applyTemplate(_ template: TemplateWeek, startDate: Date) {
+        // Apply template to create PlannedWeek
+        let plannedWeek = WeekDateHelper.applyTemplate(template, to: startDate)
+        
+        // Convert to legacy MealPlan for compatibility
+        let legacyPlan = MealPlanAdapter.toMealPlan(plannedWeek)
+        
+        // Save as current plan
+        currentPlan = legacyPlan
+        persistence.saveMealPlan(legacyPlan)
+        
+        // Analytics
+        AnalyticsService.shared.logEvent(
+            name: "template_applied",
+            parameters: [
+                "template_id": template.id.uuidString,
+                "template_name": template.name,
+                "start_date": startDate.description
+            ]
+        )
+    }
+    
+    func deleteTemplate(id: UUID) {
+        persistence.deleteTemplateWeek(id: id)
+        loadTemplates()
+        
+        // Analytics
+        AnalyticsService.shared.logEvent(
+            name: "template_deleted",
+            parameters: ["template_id": id.uuidString]
+        )
     }
 }

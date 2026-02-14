@@ -373,4 +373,74 @@ final class PersistenceController: ObservableObject {
             print("Error cleaning up old recent recipes: \(error.localizedDescription)")
         }
     }
+    
+    // MARK: - Template Week Operations
+    
+    func saveTemplateWeek(_ template: TemplateWeek) {
+        let context = container.viewContext
+        
+        // Check if template already exists
+        let request: NSFetchRequest<TemplateWeekEntity> = TemplateWeekEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", template.id as CVarArg)
+        
+        let entity: TemplateWeekEntity
+        if let existing = try? context.fetch(request).first {
+            entity = existing
+        } else {
+            entity = TemplateWeekEntity(context: context)
+            entity.id = template.id
+            entity.createdDate = template.createdDate
+        }
+        
+        entity.familyId = template.familyId
+        entity.name = template.name
+        entity.daysData = try? JSONEncoder().encode(template.days)
+        entity.lastModifiedDate = Date()
+        
+        save()
+    }
+    
+    func loadTemplateWeeks() -> [TemplateWeek] {
+        let context = container.viewContext
+        let request: NSFetchRequest<TemplateWeekEntity> = TemplateWeekEntity.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \TemplateWeekEntity.lastModifiedDate, ascending: false)]
+        
+        do {
+            let entities = try context.fetch(request)
+            return entities.compactMap { convertEntityToTemplate($0) }
+        } catch {
+            print("Error loading templates: \(error.localizedDescription)")
+            return []
+        }
+    }
+    
+    func deleteTemplateWeek(id: UUID) {
+        let context = container.viewContext
+        let request: NSFetchRequest<TemplateWeekEntity> = TemplateWeekEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        do {
+            if let entity = try context.fetch(request).first {
+                context.delete(entity)
+                save()
+            }
+        } catch {
+            print("Error deleting template: \(error.localizedDescription)")
+        }
+    }
+    
+    private func convertEntityToTemplate(_ entity: TemplateWeekEntity) -> TemplateWeek? {
+        guard let id = entity.id,
+              let familyId = entity.familyId,
+              let name = entity.name,
+              let daysData = entity.daysData,
+              let days = try? JSONDecoder().decode([TemplateDay].self, from: daysData),
+              let createdDate = entity.createdDate,
+              let lastModifiedDate = entity.lastModifiedDate else { return nil }
+        
+        var template = TemplateWeek(id: id, familyId: familyId, name: name, days: days)
+        template.createdDate = createdDate
+        template.lastModifiedDate = lastModifiedDate
+        return template
+    }
 }
