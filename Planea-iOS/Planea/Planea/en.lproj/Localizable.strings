@@ -23,6 +23,7 @@
 "week.friday" = "Friday";
 "week.saturday" = "Saturday";
 "week.sunday" = "Sunday";
+"week.range" = "Week of %@";
 
 "meal.breakfast" = "Breakfast";
 "meal.lunch" = "Lunch";

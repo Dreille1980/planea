@@ -632,7 +632,7 @@ struct WeekRangeHeader: View {
                 .font(.subheadline)
                 .foregroundColor(.planeaSecondary)
             
-            Text("Semaine du \(Date.weekRange(from: weekStart))")
+            Text(String(format: "week.range".localized, Date.weekRange(from: weekStart)))
                 .font(.subheadline)
                 .bold()
                 .foregroundColor(.planeaTextPrimary)
