@@ -82,9 +82,12 @@ struct TemplatesListView: View {
         }
         .sheet(isPresented: $planVM.showApplyTemplateSheet) {
             if let template = planVM.selectedTemplate {
-                ApplyTemplateSheet(template: template)
-                    .environmentObject(planVM)
-                    .presentationDetents([.height(400)])
+                ApplyTemplateSheet(template: template) { startDate in
+                    planVM.applyTemplate(template, startDate: startDate)
+                    planVM.showApplyTemplateSheet = false
+                    dismiss()
+                }
+                .presentationDetents([.height(650)])
             }
         }
     }
