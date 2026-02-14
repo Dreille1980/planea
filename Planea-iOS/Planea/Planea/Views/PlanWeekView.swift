@@ -9,7 +9,7 @@ extension Date {
         return formatter.string(from: self)
     }
     
-    /// Format short date range: "10 au 16 mars" or "10 to 16 March"
+    /// Format short date range: "14 au 20 février" (FR) or "February 14 to 20" (EN)
     static func weekRange(from startDate: Date) -> String {
         let calendar = Calendar.current
         guard let endDate = calendar.date(byAdding: .day, value: 6, to: startDate) else {
@@ -25,7 +25,18 @@ extension Date {
         let month = formatter.string(from: endDate)
         
         let separator = "week.range.separator".localized
-        return "\(startDay) \(separator) \(endDay) \(month)"
+        
+        // Different format for different languages
+        // French: "14 au 20 février"
+        // English: "February 14 to 20"
+        let currentLocale = Locale.current.language.languageCode?.identifier ?? "en"
+        
+        if currentLocale == "fr" {
+            return "\(startDay) \(separator) \(endDay) \(month)"
+        } else {
+            // English and other languages: month first
+            return "\(month) \(startDay) \(separator) \(endDay)"
+        }
     }
 }
 
