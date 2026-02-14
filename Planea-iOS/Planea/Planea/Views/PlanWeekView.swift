@@ -1,5 +1,33 @@
 import SwiftUI
 
+// MARK: - Date Formatting Extension
+extension Date {
+    /// Format date as "Lundi 10 mars" (respects locale)
+    func dayWithDate() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE d MMMM"
+        return formatter.string(from: self)
+    }
+    
+    /// Format short date range: "10 au 16 mars"
+    static func weekRange(from startDate: Date) -> String {
+        let calendar = Calendar.current
+        guard let endDate = calendar.date(byAdding: .day, value: 6, to: startDate) else {
+            return ""
+        }
+        
+        let formatter = DateFormatter()
+        let startDay = calendar.component(.day, from: startDate)
+        let endDay = calendar.component(.day, from: endDate)
+        
+        // Format month
+        formatter.dateFormat = "MMMM"
+        let month = formatter.string(from: endDate)
+        
+        return "\(startDay) au \(endDay) \(month)"
+    }
+}
+
 struct PlanWeekView: View {
     @EnvironmentObject var familyVM: FamilyViewModel
     @EnvironmentObject var planVM: PlanViewModel
@@ -32,10 +60,18 @@ struct PlanWeekView: View {
                         // Show generated plan with modern card design
                         ScrollView {
                             LazyVStack(spacing: 12) {
-                                ForEach(weekdays, id: \.self) { day in
+                                // Week range header
+                                WeekRangeHeader(weekStart: plan.weekStart)
+                                    .padding(.horizontal)
+                                
+                                // Calculate dates for each day
+                                ForEach(weekdays.indices, id: \.self) { index in
+                                    let day = weekdays[index]
                                     if let dayMeals = mealsForDay(day, in: plan) {
+                                        let dayDate = dateForWeekday(day, startingFrom: plan.weekStart)
                                         DayCardView(
                                             day: dayLabel(for: day),
+                                            date: dayDate,
                                             meals: dayMeals,
                                             regeneratingMealId: regeneratingMealId,
                                             onRegenerateMeal: { mealItem in
@@ -453,6 +489,32 @@ struct PlanWeekView: View {
         regeneratingMealId = nil
     }
     
+    // MARK: - Date Helper
+    private func dateForWeekday(_ weekday: Weekday, startingFrom weekStart: Date) -> Date {
+        let calendar = Calendar.current
+        let startWeekday = calendar.component(.weekday, from: weekStart)
+        
+        // Convert Weekday enum to calendar weekday (1=Sunday, 2=Monday, etc.)
+        let targetWeekday: Int
+        switch weekday {
+        case .sunday: targetWeekday = 1
+        case .monday: targetWeekday = 2
+        case .tuesday: targetWeekday = 3
+        case .wednesday: targetWeekday = 4
+        case .thursday: targetWeekday = 5
+        case .friday: targetWeekday = 6
+        case .saturday: targetWeekday = 7
+        }
+        
+        // Calculate days difference
+        var daysDifference = targetWeekday - startWeekday
+        if daysDifference < 0 {
+            daysDifference += 7
+        }
+        
+        return calendar.date(byAdding: .day, value: daysDifference, to: weekStart) ?? weekStart
+    }
+    
     // MARK: - Attributed Title Helper
     private func attributedPlanTitle() -> AttributedString {
         let fullText = "plan.planYourWeek".localized // "Planifiez votre semaine"
@@ -560,9 +622,39 @@ struct MealPillButton: View {
     }
 }
 
+// MARK: - Week Range Header
+struct WeekRangeHeader: View {
+    let weekStart: Date
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "calendar")
+                .font(.subheadline)
+                .foregroundColor(.planeaSecondary)
+            
+            Text("Semaine du \(Date.weekRange(from: weekStart))")
+                .font(.subheadline)
+                .bold()
+                .foregroundColor(.planeaTextPrimary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.planeaSecondary.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.planeaSecondary.opacity(0.3), lineWidth: 1)
+                )
+        )
+    }
+}
+
 // MARK: - Day Card View
 struct DayCardView: View {
     let day: String
+    let date: Date
     let meals: [(MealItem, String)]
     let regeneratingMealId: UUID?
     let onRegenerateMeal: (MealItem) -> Void
@@ -576,12 +668,14 @@ struct DayCardView: View {
                 .frame(width: 4)
             
             VStack(alignment: .leading, spacing: 12) {
-                // Header
+                // Header with date
                 HStack {
-                    Text(day)
-                        .font(.headline)
-                        .bold()
-                        .foregroundColor(.planeaTextPrimary)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(date.dayWithDate())
+                            .font(.headline)
+                            .bold()
+                            .foregroundColor(.planeaTextPrimary)
+                    }
                     
                     Spacer()
                     
