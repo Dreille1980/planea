@@ -5,7 +5,7 @@ struct MealPrepPickerSheet: View {
     let mealType: MealType
     let onSelect: (MealPrepKit) -> Void
     @Environment(\.dismiss) var dismiss
-    @StateObject private var viewModel = MealPrepViewModel(baseURL: <#URL#>)
+    @ObservedObject var viewModel: MealPrepViewModel
     
     var availableKits: [MealPrepKit] {
         viewModel.kits.filter { $0.hasAvailablePortions && !$0.isExpired }
@@ -188,9 +188,13 @@ struct MealPrepPickerSheet: View {
 // MARK: - Preview
 
 #Preview {
-    MealPrepPickerSheet(
+    // Note: Preview requires a valid backend URL
+    let viewModel = MealPrepViewModel(baseURL: URL(string: "http://localhost:8000")!)
+    
+    return MealPrepPickerSheet(
         date: Date(),
         mealType: .dinner,
-        onSelect: { _ in }
+        onSelect: { _ in },
+        viewModel: viewModel
     )
 }
