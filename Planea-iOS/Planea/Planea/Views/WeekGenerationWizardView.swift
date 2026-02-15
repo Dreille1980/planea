@@ -51,7 +51,7 @@ struct WeekGenerationWizardView: View {
             }
             .overlay {
                 if viewModel.isGenerating {
-                    GeneratingLoadingView()
+                    GeneratingLoadingView(totalItems: viewModel.selectedDaysCount)
                 }
             }
             .alert(
