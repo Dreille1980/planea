@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import FirebaseAnalytics
 
 @MainActor
 class MealPrepViewModel: ObservableObject {
@@ -294,24 +295,18 @@ class MealPrepViewModel: ObservableObject {
 
 extension AnalyticsService {
     func logMealPrepAssigned(kitID: String, kitName: String, portions: Int, date: String) {
-        logEvent(
-            "meal_prep_assigned",
-            parameters: [
-                "kit_id": kitID,
-                "kit_name": kitName,
-                "portions": portions,
-                "date": date
-            ]
-        )
+        Analytics.logEvent("meal_prep_assigned", parameters: [
+            "kit_id": kitID,
+            "kit_name": kitName,
+            "portions": portions,
+            "date": date
+        ])
     }
     
     func logMealPrepUnassigned(assignmentID: String, reason: String) {
-        logEvent(
-            "meal_prep_unassigned",
-            parameters: [
-                "assignment_id": assignmentID,
-                "reason": reason
-            ]
-        )
+        Analytics.logEvent("meal_prep_unassigned", parameters: [
+            "assignment_id": assignmentID,
+            "reason": reason
+        ])
     }
 }
