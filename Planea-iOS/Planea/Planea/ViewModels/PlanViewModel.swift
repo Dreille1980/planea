@@ -285,34 +285,21 @@ final class PlanViewModel: ObservableObject {
         // Convert config to slots for API call
         var slots: [SlotSelection] = []
         
-        for dayConfig in config.dayConfigs {
-            guard dayConfig.type != .skip else { continue }
+        for dayConfig in config.days {
+            guard dayConfig.selected else { continue }
             
             // For normal days, add breakfast, lunch, dinner
-            if dayConfig.type == .normal {
+            if dayConfig.mealType == .normal {
                 slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .breakfast))
                 slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .lunch))
                 slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .dinner))
             }
             
             // For meal prep days, add based on mealType selection
-            if dayConfig.type == .mealPrep {
-                if let mealPrepConfig = config.mealPrepConfig {
-                    switch mealPrepConfig.mealType {
-                    case .lunch:
-                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .breakfast))
-                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .lunch))
-                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .dinner))
-                    case .dinner:
-                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .breakfast))
-                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .lunch))
-                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .dinner))
-                    case .both:
-                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .breakfast))
-                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .lunch))
-                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .dinner))
-                    }
-                }
+            if dayConfig.mealType == .mealPrep {
+                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .breakfast))
+                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .lunch))
+                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .dinner))
             }
         }
         
@@ -329,18 +316,20 @@ final class PlanViewModel: ObservableObject {
         
         let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
         
-        // Calculate servings
+        // Calculate servings based on config
         let servings: Int
-        if let mealPrepConfig = config.mealPrepConfig {
-            servings = mealPrepConfig.totalPortions / mealPrepConfig.numberOfMeals
+        if config.hasMealPrep {
+            // Use meal prep portions divided by number of meal prep meals
+            let mealPrepMealsCount = config.mealPrepDays.count * config.mealPrepMealTypes.count
+            servings = mealPrepMealsCount > 0 ? config.mealPrepPortions / mealPrepMealsCount : config.familySize
         } else {
-            servings = max(1, familyVM.members.count)
+            servings = max(1, config.familySize)
         }
         
         // Generate plan using existing API
         // TODO: Later, create a new endpoint that handles meal prep specifically
         let plan = try await service.generatePlan(
-            weekStart: Date(),
+            weekStart: config.startDate,
             slots: slots,
             constraints: constraintsDict,
             servings: servings,
@@ -352,10 +341,10 @@ final class PlanViewModel: ObservableObject {
         AnalyticsService.shared.logEvent(
             name: "wizard_plan_generated",
             parameters: [
-                "total_days": config.dayConfigs.filter({ $0.type != .skip }).count,
-                "meal_prep_days": config.dayConfigs.filter({ $0.type == .mealPrep }).count,
-                "normal_days": config.dayConfigs.filter({ $0.type == .normal }).count,
-                "total_portions": config.mealPrepConfig?.totalPortions ?? 0
+                "total_days": config.selectedDays.count,
+                "meal_prep_days": config.mealPrepDays.count,
+                "normal_days": config.normalDays.count,
+                "total_portions": config.mealPrepPortions
             ]
         )
         
