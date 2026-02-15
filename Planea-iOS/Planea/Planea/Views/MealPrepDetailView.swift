@@ -3,6 +3,13 @@ import SwiftUI
 struct MealPrepDetailView: View {
     let kit: MealPrepKit
     @State private var selectedTab = 0
+    @State private var showAssignSheet = false
+    @StateObject private var viewModel: MealPrepViewModel
+    
+    init(kit: MealPrepKit) {
+        self.kit = kit
+        _viewModel = StateObject(wrappedValue: MealPrepViewModel(baseURL: Config.backendURL))
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -28,6 +35,41 @@ struct MealPrepDetailView: View {
         }
         .navigationTitle(kit.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showAssignSheet = true
+                } label: {
+                    Label(
+                        NSLocalizedString("mealprep.assign_to_plan", comment: ""),
+                        systemImage: "calendar.badge.plus"
+                    )
+                }
+                .disabled(!kit.hasAvailablePortions)
+            }
+        }
+        .sheet(isPresented: $showAssignSheet) {
+            AssignMealPrepSheet(kit: kit) { date, mealType, portions, recipeId in
+                viewModel.assignToWeek(
+                    kit: kit,
+                    date: date,
+                    mealType: mealType,
+                    portions: portions,
+                    recipeId: recipeId
+                )
+            }
+        }
+        .alert(
+            NSLocalizedString("common.error", comment: ""),
+            isPresented: .constant(viewModel.errorMessage != nil),
+            presenting: viewModel.errorMessage
+        ) { _ in
+            Button(NSLocalizedString("common.ok", comment: "")) {
+                viewModel.errorMessage = nil
+            }
+        } message: { error in
+            Text(error)
+        }
     }
     
     // MARK: - Recipes Tab
@@ -64,6 +106,52 @@ struct MealPrepDetailView: View {
                     .padding(.horizontal)
             }
             
+            // ✨ NEW - Portions availability banner
+            if kit.hasAvailablePortions {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text(String(format: NSLocalizedString("mealprep.portions_available", comment: ""), kit.remainingPortions))
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Spacer()
+                    Text("\(kit.remainingPortions)/\(kit.totalPortions)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .background(Color.green.opacity(0.1))
+                .cornerRadius(8)
+                .padding(.horizontal)
+            } else if !kit.assignments.isEmpty {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.gray)
+                    Text(LocalizedStringKey("mealprep.all_portions_assigned"))
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+                .padding()
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(8)
+                .padding(.horizontal)
+            }
+            
+            // ✨ NEW - Expiration warning
+            if let warning = kit.expirationWarning {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text(warning)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+                .padding()
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(8)
+                .padding(.horizontal)
+            }
+            
             // Statistics
             HStack(spacing: 20) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -77,7 +165,7 @@ struct MealPrepDetailView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("\(kit.totalPortions)", systemImage: "person.2")
                         .font(.headline)
-                    Text(LocalizedStringKey("meal_prep.detail.portions_count"))
+                    Text(LocalizedStringKey("meal_prep.detail.total_portions"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -95,7 +183,63 @@ struct MealPrepDetailView: View {
             .background(Color(UIColor.secondarySystemBackground))
             .cornerRadius(12)
             .padding(.horizontal)
+            
+            // ✨ NEW - Assignments list
+            if !kit.assignments.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(LocalizedStringKey("mealprep.assignments_title"))
+                        .font(.headline)
+                        .padding(.horizontal)
+                    
+                    ForEach(kit.assignments) { assignment in
+                        assignmentRow(assignment)
+                    }
+                }
+                .padding(.top, 8)
+            }
         }
+    }
+    
+    // ✨ NEW - Assignment Row
+    private func assignmentRow(_ assignment: MealPrepAssignment) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(assignment.date, style: .date)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                
+                HStack(spacing: 8) {
+                    Text(assignment.mealType.localizedName)
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.accentColor.opacity(0.1))
+                        .foregroundColor(.accentColor)
+                        .cornerRadius(6)
+                    
+                    if let recipeTitle = assignment.specificRecipeTitle {
+                        Text(recipeTitle)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            
+            Spacer()
+            
+            Text("\(assignment.portionsUsed)")
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundColor(.accentColor)
+            
+            Text(assignment.portionsUsed > 1 ? NSLocalizedString("mealprep.portions", comment: "") : NSLocalizedString("mealprep.portion", comment: ""))
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(8)
+        .padding(.horizontal)
     }
     
     private func recipeCard(_ recipeRef: MealPrepRecipeRef) -> some View {
