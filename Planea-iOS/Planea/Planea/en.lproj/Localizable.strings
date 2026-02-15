@@ -753,3 +753,53 @@
 "force_update.title" = "Update Required";
 "force_update.message" = "A new version of Planea is available. Please update to continue using the app and enjoy the latest features and improvements.";
 "force_update.button" = "Update Now";
+
+// Week Generation Wizard
+"wizard.title" = "New Week";
+"wizard.day" = "day";
+"wizard.days" = "days";
+"wizard.button.back" = "Back";
+"wizard.button.continue" = "Continue";
+"wizard.button.generate" = "Generate";
+
+// Day Types
+"wizard.day_type.normal" = "Normal";
+"wizard.day_type.mealprep" = "Meal Prep";
+"wizard.day_type.skip" = "Not selected";
+
+// Step 1
+"wizard.step1.title" = "Week Composition";
+"wizard.step1.subtitle" = "Choose days and meal type";
+"wizard.step1.summary.title" = "Summary";
+"wizard.step1.summary.normal_days" = "Normal meals";
+"wizard.step1.summary.mealprep_days" = "Meal Prep";
+"wizard.step1.summary.total" = "Total";
+
+// Step 2
+"wizard.step2.title" = "Meal Prep Configuration";
+"wizard.step2.subtitle" = "Adjust your portions and preferences";
+"wizard.step2.portions.title" = "Portions";
+"wizard.step2.portions.label" = "portions";
+"wizard.step2.portions.people" = "people";
+"wizard.step2.portions.meals" = "meals";
+"wizard.step2.portions.edit" = "Edit";
+"wizard.step2.mealtype.title" = "Meal prep type";
+"wizard.step2.mealtype.subtitle" = "Choose which meals will be meal prep";
+"wizard.step2.info.title" = "Tip";
+"wizard.step2.info.message" = "Meal prep allows you to cook once for multiple days";
+"wizard.step2.edit.title" = "Edit Portions";
+
+// Meal Prep Types
+"wizard.mealprep_type.lunch" = "Lunch";
+"wizard.mealprep_type.dinner" = "Dinner";
+"wizard.mealprep_type.both" = "Both";
+
+// Step 3
+"wizard.step3.title" = "Preferences";
+"wizard.step3.subtitle" = "Customize your recipes (optional)";
+"wizard.step3.preferences.toggle" = "View all preferences";
+"wizard.step3.summary.title" = "Current preferences";
+"wizard.step3.info" = "These preferences will be applied to all meals of the week";
+
+// Errors
+"wizard.error.invalid_config" = "Invalid configuration. Please check your selections.";
