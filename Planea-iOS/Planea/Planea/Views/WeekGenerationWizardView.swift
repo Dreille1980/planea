@@ -97,10 +97,6 @@ private struct ProgressBar: View {
                 }
             }
             .frame(height: 6)
-            
-            Text("\(currentStep + 1) / \(totalSteps)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
         }
     }
 }

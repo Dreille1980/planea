@@ -125,27 +125,19 @@ final class WeekGenerationConfigViewModel: ObservableObject {
         isGenerating = true
         errorMessage = nil
         
-        do {
-            // TODO: Call PlanViewModel to generate the week
-            // try await planViewModel.generateWeekWithConfig(config)
-            
-            // Temporary: Just show error until backend is ready
-            errorMessage = "Génération en cours de développement"
-            
-            // Analytics
-            Analytics.logEvent("week_generated_with_wizard", parameters: [
-                "meal_prep_days": mealPrepDaysCount as NSObject,
-                "normal_days": normalDaysCount as NSObject,
-                "total_portions": config.mealPrepPortions as NSObject,
-                "meal_types": config.mealPrepMealTypeSelection.rawValue as NSObject
-            ])
-            
-        } catch {
-            errorMessage = error.localizedDescription
-            Analytics.logEvent("week_generation_failed", parameters: [
-                "error": error.localizedDescription as NSObject
-            ])
-        }
+        // TODO: Call PlanViewModel to generate the week
+        // try await planViewModel.generateWeekWithConfig(config)
+        
+        // Temporary: Just show error until backend is ready
+        errorMessage = "Génération en cours de développement"
+        
+        // Analytics
+        Analytics.logEvent("week_generated_with_wizard", parameters: [
+            "meal_prep_days": mealPrepDaysCount as NSObject,
+            "normal_days": normalDaysCount as NSObject,
+            "total_portions": config.mealPrepPortions as NSObject,
+            "meal_types": config.mealPrepMealTypeSelection.rawValue as NSObject
+        ])
         
         isGenerating = false
     }
