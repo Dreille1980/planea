@@ -61,20 +61,23 @@ struct MealPlanAdapter {
     /// - Returns: A legacy MealPlan
     static func toMealPlan(_ plannedWeek: PlannedWeek) -> MealPlan {
         // Flatten PlannedDays back to MealItems (only recipes, skip meal prep items)
-        let items: [MealItem] = plannedWeek.days.flatMap { day in
+        let items: [MealItem] = plannedWeek.days.flatMap { (day: PlannedDay) -> [MealItem] in
             let weekdayIndex = WeekDateHelper.weekdayIndex(from: day.date)
             let weekday = WeekDateHelper.indexToWeekday(weekdayIndex)
             
-            return day.meals.compactMap { plannedMeal in
+            return day.meals.compactMap { (plannedMeal: PlannedMeal) -> MealItem? in
                 // Only convert meals with recipes (skip meal prep assignments)
-                guard let recipe = plannedMeal.recipe else { return nil }
-                
-                return MealItem(
-                    id: plannedMeal.id,
-                    weekday: weekday,
-                    mealType: plannedMeal.mealType,
-                    recipe: recipe
-                )
+                switch plannedMeal.source {
+                case .recipe(let recipe):
+                    return MealItem(
+                        id: plannedMeal.id,
+                        weekday: weekday,
+                        mealType: plannedMeal.mealType,
+                        recipe: recipe
+                    )
+                case .mealPrep:
+                    return nil
+                }
             }
         }
         
@@ -102,13 +105,16 @@ struct MealPlanAdapter {
             
             let templateMeals = day.meals.compactMap { plannedMeal -> TemplateMeal? in
                 // Only convert meals with recipes (skip meal prep assignments)
-                guard let recipe = plannedMeal.recipe else { return nil }
-                
-                return TemplateMeal(
-                    id: UUID(),  // Generate new ID for template
-                    mealType: plannedMeal.mealType,
-                    recipe: recipe
-                )
+                switch plannedMeal.source {
+                case .recipe(let recipe):
+                    return TemplateMeal(
+                        id: UUID(),  // Generate new ID for template
+                        mealType: plannedMeal.mealType,
+                        recipe: recipe
+                    )
+                case .mealPrep:
+                    return nil
+                }
             }
             
             return TemplateDay(
@@ -198,15 +204,18 @@ struct MealPlanAdapter {
         for day in plannedWeek.days {
             for meal in day.meals {
                 // Check if meal has a valid recipe (skip meal prep assignments)
-                if let recipe = meal.recipe {
+                switch meal.source {
+                case .recipe(let recipe):
                     if !recipe.title.isEmpty && !recipe.ingredients.isEmpty {
                         hasValidMeals = true
                     } else {
                         // Invalid recipe found
                         return false
                     }
+                case .mealPrep:
+                    // Meal prep assignments are skipped, not considered invalid
+                    continue
                 }
-                // Meal prep assignments are skipped, not considered invalid
             }
         }
         
