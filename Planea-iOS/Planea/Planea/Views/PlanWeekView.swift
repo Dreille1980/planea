@@ -58,6 +58,7 @@ struct PlanWeekView: View {
     @State private var showTemplates = false
     @State private var showSaveAsTemplateDialog = false
     @State private var templateName = ""
+    @State private var showWizard = false
     
     var weekdays: [Weekday] {
         PreferencesService.shared.loadPreferences().sortedWeekdays()
@@ -302,6 +303,16 @@ struct PlanWeekView: View {
                             }
                         }
                     }
+                } else {
+                    // Wizard button when no plan
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: {
+                            showWizard = true
+                        }) {
+                            Image(systemName: "wand.and.stars")
+                                .font(.title3)
+                        }
+                    }
                 }
             }
             .sheet(isPresented: $showAddMealSheet) {
@@ -319,6 +330,11 @@ struct PlanWeekView: View {
             }
             .sheet(isPresented: $showTemplates) {
                 TemplatesListView()
+                    .environmentObject(planVM)
+            }
+            .sheet(isPresented: $showWizard) {
+                WeekGenerationWizardView(planViewModel: planVM)
+                    .environmentObject(familyVM)
                     .environmentObject(planVM)
             }
             .alert("Sauvegarder comme template", isPresented: $showSaveAsTemplateDialog) {
