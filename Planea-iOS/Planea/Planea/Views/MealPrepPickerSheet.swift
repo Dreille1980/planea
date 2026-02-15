@@ -5,7 +5,7 @@ struct MealPrepPickerSheet: View {
     let mealType: MealType
     let onSelect: (MealPrepKit) -> Void
     @Environment(\.dismiss) var dismiss
-    @StateObject private var viewModel = MealPrepViewModel()
+    @StateObject private var viewModel = MealPrepViewModel(baseURL: <#URL#>)
     
     var availableKits: [MealPrepKit] {
         viewModel.kits.filter { $0.hasAvailablePortions && !$0.isExpired }

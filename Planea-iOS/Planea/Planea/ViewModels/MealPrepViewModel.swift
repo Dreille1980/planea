@@ -211,7 +211,7 @@ class MealPrepViewModel: ObservableObject {
             var mutableKit = history[instanceIndex].kit
             
             // Créer l'assignment
-            let assignment = try mutableKit.assignPortions(
+            _ = try mutableKit.assignPortions(
                 date: date,
                 mealType: mealType,
                 portions: portions,
