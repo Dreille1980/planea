@@ -1,5 +1,7 @@
 import Foundation
 import Combine
+import SwiftUI
+import FirebaseAnalytics
 
 @MainActor
 final class WeekGenerationConfigViewModel: ObservableObject {
@@ -14,9 +16,9 @@ final class WeekGenerationConfigViewModel: ObservableObject {
     init(planViewModel: PlanViewModel) {
         self.planViewModel = planViewModel
         
-        // Load family to get size
-        let (family, _) = persistence.loadFamily()
-        let familySize = family?.members.count ?? 4
+        // Load members to get family size
+        let (_, members) = persistence.loadFamily()
+        let familySize = members.count > 0 ? members.count : 4
         
         // Load preferences to get week start day
         let preferences = PreferencesService.shared.loadPreferences()
@@ -85,8 +87,8 @@ final class WeekGenerationConfigViewModel: ObservableObject {
     
     // MARK: - Day Configuration
     
-    func toggleDay(_ dayConfig: Binding<DayConfig>) {
-        dayConfig.wrappedValue.selected.toggle()
+    func toggleDay(_ dayConfig: inout DayConfig) {
+        dayConfig.selected.toggle()
         
         // If deselecting, auto-recalculate portions
         if config.hasMealPrep {
@@ -94,8 +96,8 @@ final class WeekGenerationConfigViewModel: ObservableObject {
         }
     }
     
-    func setDayType(_ dayConfig: Binding<DayConfig>, type: DayMealType) {
-        dayConfig.wrappedValue.mealType = type
+    func setDayType(_ dayConfig: inout DayConfig, type: DayMealType) {
+        dayConfig.mealType = type
         
         // Auto-recalculate portions when changing to/from meal prep
         config.recalculateMealPrepPortions()
@@ -124,28 +126,25 @@ final class WeekGenerationConfigViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            // Call PlanViewModel to generate the week
-            try await planViewModel.generateWeekWithConfig(config)
+            // TODO: Call PlanViewModel to generate the week
+            // try await planViewModel.generateWeekWithConfig(config)
+            
+            // Temporary: Just show error until backend is ready
+            errorMessage = "Génération en cours de développement"
             
             // Analytics
-            AnalyticsService.shared.logEvent(
-                name: "week_generated_with_wizard",
-                parameters: [
-                    "meal_prep_days": mealPrepDaysCount,
-                    "normal_days": normalDaysCount,
-                    "total_portions": config.mealPrepPortions,
-                    "meal_types": config.mealPrepMealTypeSelection.rawValue
-                ]
-            )
+            Analytics.logEvent("week_generated_with_wizard", parameters: [
+                "meal_prep_days": mealPrepDaysCount as NSObject,
+                "normal_days": normalDaysCount as NSObject,
+                "total_portions": config.mealPrepPortions as NSObject,
+                "meal_types": config.mealPrepMealTypeSelection.rawValue as NSObject
+            ])
             
         } catch {
             errorMessage = error.localizedDescription
-            AnalyticsService.shared.logEvent(
-                name: "week_generation_failed",
-                parameters: [
-                    "error": error.localizedDescription
-                ]
-            )
+            Analytics.logEvent("week_generation_failed", parameters: [
+                "error": error.localizedDescription as NSObject
+            ])
         }
         
         isGenerating = false

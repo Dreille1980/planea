@@ -24,8 +24,20 @@ struct DaySelectionStepView: View {
                 
                 // Days list
                 VStack(spacing: 12) {
-                    ForEach($viewModel.config.days) { $day in
-                        DayConfigRow(day: $day)
+                    ForEach(viewModel.config.days.indices, id: \.self) { index in
+                        DayConfigRow(
+                            day: viewModel.config.days[index],
+                            onToggle: {
+                                viewModel.config.days[index].selected.toggle()
+                                if viewModel.config.hasMealPrep {
+                                    viewModel.config.recalculateMealPrepPortions()
+                                }
+                            },
+                            onTypeChange: { newType in
+                                viewModel.config.days[index].mealType = newType
+                                viewModel.config.recalculateMealPrepPortions()
+                            }
+                        )
                     }
                 }
                 .padding(.horizontal)
@@ -44,13 +56,15 @@ struct DaySelectionStepView: View {
 // MARK: - Day Config Row
 
 private struct DayConfigRow: View {
-    @Binding var day: DayConfig
+    let day: DayConfig
+    let onToggle: () -> Void
+    let onTypeChange: (DayMealType) -> Void
     
     var body: some View {
         HStack(spacing: 12) {
             // Checkbox
             Button {
-                day.selected.toggle()
+                onToggle()
             } label: {
                 Image(systemName: day.selected ? "checkmark.square.fill" : "square")
                     .font(.title2)
@@ -67,7 +81,10 @@ private struct DayConfigRow: View {
             
             // Type picker (only if selected)
             if day.selected {
-                Picker("", selection: $day.mealType) {
+                Picker("", selection: Binding(
+                    get: { day.mealType },
+                    set: { onTypeChange($0) }
+                )) {
                     Label {
                         Text(NSLocalizedString("wizard.day_type.normal", comment: ""))
                     } icon: {
