@@ -26,12 +26,12 @@ struct MealPlanAdapter {
                 return nil
             }
             
-            // Convert MealItems to PlannedMeals
+            // Convert MealItems to PlannedMeals with MealSource
             let plannedMeals = meals.map { mealItem in
                 PlannedMeal(
                     id: mealItem.id,
                     mealType: mealItem.mealType,
-                    recipe: mealItem.recipe
+                    source: .recipe(mealItem.recipe)
                 )
             }
             
@@ -60,17 +60,20 @@ struct MealPlanAdapter {
     /// - Parameter plannedWeek: The planned week
     /// - Returns: A legacy MealPlan
     static func toMealPlan(_ plannedWeek: PlannedWeek) -> MealPlan {
-        // Flatten PlannedDays back to MealItems
+        // Flatten PlannedDays back to MealItems (only recipes, skip meal prep items)
         let items: [MealItem] = plannedWeek.days.flatMap { day in
             let weekdayIndex = WeekDateHelper.weekdayIndex(from: day.date)
             let weekday = WeekDateHelper.indexToWeekday(weekdayIndex)
             
-            return day.meals.map { plannedMeal in
-                MealItem(
+            return day.meals.compactMap { plannedMeal in
+                // Only convert meals with recipes (skip meal prep assignments)
+                guard let recipe = plannedMeal.recipe else { return nil }
+                
+                return MealItem(
                     id: plannedMeal.id,
                     weekday: weekday,
                     mealType: plannedMeal.mealType,
-                    recipe: plannedMeal.recipe
+                    recipe: recipe
                 )
             }
         }
@@ -97,11 +100,14 @@ struct MealPlanAdapter {
         let templateDays = plannedWeek.days.map { day in
             let weekdayIndex = WeekDateHelper.weekdayIndex(from: day.date)
             
-            let templateMeals = day.meals.map { plannedMeal in
-                TemplateMeal(
+            let templateMeals = day.meals.compactMap { plannedMeal -> TemplateMeal? in
+                // Only convert meals with recipes (skip meal prep assignments)
+                guard let recipe = plannedMeal.recipe else { return nil }
+                
+                return TemplateMeal(
                     id: UUID(),  // Generate new ID for template
                     mealType: plannedMeal.mealType,
-                    recipe: plannedMeal.recipe
+                    recipe: recipe
                 )
             }
             
@@ -186,19 +192,24 @@ struct MealPlanAdapter {
         // Check that we have days with meals
         guard !plannedWeek.days.isEmpty else { return false }
         
-        // Check that at least one day has meals
-        let hasAnyMeals = plannedWeek.days.contains { !$0.meals.isEmpty }
-        guard hasAnyMeals else { return false }
+        // Check that at least one day has meals with recipes
+        var hasValidMeals = false
         
-        // Check that all meals have valid recipes
         for day in plannedWeek.days {
             for meal in day.meals {
-                if meal.recipe.title.isEmpty || meal.recipe.ingredients.isEmpty {
-                    return false
+                // Check if meal has a valid recipe (skip meal prep assignments)
+                if let recipe = meal.recipe {
+                    if !recipe.title.isEmpty && !recipe.ingredients.isEmpty {
+                        hasValidMeals = true
+                    } else {
+                        // Invalid recipe found
+                        return false
+                    }
                 }
+                // Meal prep assignments are skipped, not considered invalid
             }
         }
         
-        return true
+        return hasValidMeals
     }
 }
