@@ -272,4 +272,93 @@ final class PlanViewModel: ObservableObject {
         // Analytics
         AnalyticsService.shared.logTemplateDeleted(templateID: id.uuidString)
     }
+    
+    // MARK: - Week Generation with Config
+    
+    @MainActor
+    func generateWeekWithConfig(
+        config: WeekGenerationConfig,
+        familyVM: FamilyViewModel,
+        unitSystem: String,
+        appLanguage: String
+    ) async throws -> MealPlan {
+        // Convert config to slots for API call
+        var slots: [SlotSelection] = []
+        
+        for dayConfig in config.dayConfigs {
+            guard dayConfig.type != .skip else { continue }
+            
+            // For normal days, add breakfast, lunch, dinner
+            if dayConfig.type == .normal {
+                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .breakfast))
+                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .lunch))
+                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .dinner))
+            }
+            
+            // For meal prep days, add based on mealType selection
+            if dayConfig.type == .mealPrep {
+                if let mealPrepConfig = config.mealPrepConfig {
+                    switch mealPrepConfig.mealType {
+                    case .lunch:
+                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .breakfast))
+                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .lunch))
+                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .dinner))
+                    case .dinner:
+                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .breakfast))
+                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .lunch))
+                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .dinner))
+                    case .both:
+                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .breakfast))
+                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .lunch))
+                        slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .dinner))
+                    }
+                }
+            }
+        }
+        
+        // Prepare constraints
+        let service = IAService(baseURL: URL(string: Config.baseURL)!)
+        let units = UnitSystem(rawValue: unitSystem) ?? .metric
+        let constraints = familyVM.aggregatedConstraints()
+        let dislikedProteins = familyVM.aggregatedDislikedProteins()
+        let constraintsDict: [String: Any] = [
+            "diet": constraints.diet,
+            "evict": constraints.evict,
+            "excludedProteins": dislikedProteins
+        ]
+        
+        let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
+        
+        // Calculate servings
+        let servings: Int
+        if let mealPrepConfig = config.mealPrepConfig {
+            servings = mealPrepConfig.totalPortions / mealPrepConfig.numberOfMeals
+        } else {
+            servings = max(1, familyVM.members.count)
+        }
+        
+        // Generate plan using existing API
+        // TODO: Later, create a new endpoint that handles meal prep specifically
+        let plan = try await service.generatePlan(
+            weekStart: Date(),
+            slots: slots,
+            constraints: constraintsDict,
+            servings: servings,
+            units: units,
+            language: String(language)
+        )
+        
+        // Analytics
+        AnalyticsService.shared.logEvent(
+            name: "wizard_plan_generated",
+            parameters: [
+                "total_days": config.dayConfigs.filter({ $0.type != .skip }).count,
+                "meal_prep_days": config.dayConfigs.filter({ $0.type == .mealPrep }).count,
+                "normal_days": config.dayConfigs.filter({ $0.type == .normal }).count,
+                "total_portions": config.mealPrepConfig?.totalPortions ?? 0
+            ]
+        )
+        
+        return plan
+    }
 }

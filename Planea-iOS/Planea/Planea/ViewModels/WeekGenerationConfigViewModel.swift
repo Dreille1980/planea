@@ -116,7 +116,11 @@ final class WeekGenerationConfigViewModel: ObservableObject {
     
     // MARK: - Generation
     
-    func generate() async {
+    func generate(
+        familyVM: FamilyViewModel,
+        unitSystem: String,
+        appLanguage: String
+    ) async {
         guard config.isValid else {
             errorMessage = NSLocalizedString("wizard.error.invalid_config", comment: "")
             return
@@ -125,21 +129,47 @@ final class WeekGenerationConfigViewModel: ObservableObject {
         isGenerating = true
         errorMessage = nil
         
-        // TODO: Call PlanViewModel to generate the week
-        // try await planViewModel.generateWeekWithConfig(config)
-        
-        // Temporary: Just show error until backend is ready
-        errorMessage = "Génération en cours de développement"
-        
-        // Analytics
-        Analytics.logEvent("week_generated_with_wizard", parameters: [
-            "meal_prep_days": mealPrepDaysCount as NSObject,
-            "normal_days": normalDaysCount as NSObject,
-            "total_portions": config.mealPrepPortions as NSObject,
-            "meal_types": config.mealPrepMealTypeSelection.rawValue as NSObject
-        ])
-        
-        isGenerating = false
+        do {
+            // Generate the plan using the config
+            let plan = try await planViewModel.generateWeekWithConfig(
+                config: config,
+                familyVM: familyVM,
+                unitSystem: unitSystem,
+                appLanguage: appLanguage
+            )
+            
+            // Save the plan
+            await planViewModel.savePlan(plan)
+            
+            // Analytics
+            Analytics.logEvent("week_generated_with_wizard", parameters: [
+                "meal_prep_days": mealPrepDaysCount as NSObject,
+                "normal_days": normalDaysCount as NSObject,
+                "total_portions": config.mealPrepPortions as NSObject,
+                "meal_types": config.mealPrepMealTypeSelection.rawValue as NSObject,
+                "total_meals": plan.items.count as NSObject
+            ])
+            
+            isGenerating = false
+        } catch {
+            isGenerating = false
+            
+            // Handle errors with localized messages
+            if let urlError = error as? URLError {
+                switch urlError.code {
+                case .notConnectedToInternet:
+                    errorMessage = "Aucune connexion Internet. Vérifiez votre WiFi ou données cellulaires."
+                case .timedOut:
+                    errorMessage = "Le serveur ne répond pas. Réessayez dans quelques instants."
+                case .cannotFindHost, .cannotConnectToHost:
+                    errorMessage = "Impossible de contacter le serveur. Vérifiez votre connexion."
+                default:
+                    errorMessage = "Erreur réseau: \(urlError.localizedDescription)"
+                }
+            } else {
+                errorMessage = "Erreur: \(error.localizedDescription)"
+            }
+        }
     }
     
     // MARK: - Step Labels

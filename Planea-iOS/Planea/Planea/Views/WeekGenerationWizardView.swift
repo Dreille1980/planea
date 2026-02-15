@@ -2,6 +2,9 @@ import SwiftUI
 
 struct WeekGenerationWizardView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var familyVM: FamilyViewModel
+    @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
+    @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
     @StateObject private var viewModel: WeekGenerationConfigViewModel
     
     init(planViewModel: PlanViewModel) {
@@ -104,6 +107,9 @@ private struct ProgressBar: View {
 // MARK: - Navigation Buttons
 
 private struct NavigationButtons: View {
+    @EnvironmentObject var familyVM: FamilyViewModel
+    @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
+    @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
     @ObservedObject var viewModel: WeekGenerationConfigViewModel
     let dismiss: DismissAction
     
@@ -145,7 +151,11 @@ private struct NavigationButtons: View {
             } else {
                 Button {
                     Task {
-                        await viewModel.generate()
+                        await viewModel.generate(
+                            familyVM: familyVM,
+                            unitSystem: unitSystem,
+                            appLanguage: appLanguage
+                        )
                         dismiss()
                     }
                 } label: {
