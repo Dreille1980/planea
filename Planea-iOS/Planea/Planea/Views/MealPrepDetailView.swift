@@ -8,7 +8,7 @@ struct MealPrepDetailView: View {
     
     init(kit: MealPrepKit) {
         self.kit = kit
-        _viewModel = StateObject(wrappedValue: MealPrepViewModel(baseURL: Config.backendURL))
+        _viewModel = StateObject(wrappedValue: MealPrepViewModel(baseURL: URL(string: Config.baseURL)!))
     }
     
     var body: some View {
@@ -49,15 +49,18 @@ struct MealPrepDetailView: View {
             }
         }
         .sheet(isPresented: $showAssignSheet) {
-            AssignMealPrepSheet(kit: kit) { date, mealType, portions, recipeId in
-                viewModel.assignToWeek(
-                    kit: kit,
-                    date: date,
-                    mealType: mealType,
-                    portions: portions,
-                    recipeId: recipeId
-                )
-            }
+            AssignMealPrepSheet(
+                mealPrepKit: kit,
+                onAssign: { date, mealType, portions, recipeId in
+                    viewModel.assignToWeek(
+                        kit: kit,
+                        date: date,
+                        mealType: mealType,
+                        portions: portions,
+                        recipeId: recipeId
+                    )
+                }
+            )
         }
         .alert(
             NSLocalizedString("common.error", comment: ""),
