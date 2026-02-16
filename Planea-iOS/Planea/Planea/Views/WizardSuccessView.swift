@@ -180,7 +180,7 @@ private struct MealPrepListSection: View {
                     HStack(spacing: 12) {
                         // Day indicator
                         VStack {
-                            Text(item.weekday.shortName)
+                            Text(item.weekday.rawValue)
                                 .font(.caption)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
