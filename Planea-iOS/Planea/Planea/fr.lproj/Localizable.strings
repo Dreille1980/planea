@@ -810,6 +810,12 @@
 "wizard.mealprep_type.dinner" = "Dîner";
 "wizard.mealprep_type.both" = "Les deux";
 
+// Normal Day Meal Types
+"wizard.normal_type.lunch" = "Lunch";
+"wizard.normal_type.dinner" = "Souper";
+"wizard.normal_type.both" = "Les deux";
+"wizard.day_meals.title" = "Quels repas?";
+
 // Step 3
 "wizard.step3.title" = "Préférences";
 "wizard.step3.subtitle" = "Personnalisez vos recettes (optionnel)";

@@ -37,9 +37,40 @@ struct DayConfig: Identifiable, Equatable {
     let weekday: Weekday
     var mealType: DayMealType
     var selected: Bool
+    var normalDayMealSelection: NormalDayMealTypeSelection  // Pour les jours normaux
     
     static func == (lhs: DayConfig, rhs: DayConfig) -> Bool {
         lhs.id == rhs.id
+    }
+}
+
+// MARK: - Normal Day Meal Type Selection
+
+enum NormalDayMealTypeSelection: String, CaseIterable {
+    case lunch
+    case dinner
+    case both
+    
+    var displayName: String {
+        switch self {
+        case .lunch:
+            return NSLocalizedString("wizard.normal_type.lunch", comment: "")
+        case .dinner:
+            return NSLocalizedString("wizard.normal_type.dinner", comment: "")
+        case .both:
+            return NSLocalizedString("wizard.normal_type.both", comment: "")
+        }
+    }
+    
+    var mealTypes: Set<MealType> {
+        switch self {
+        case .lunch:
+            return [.lunch]
+        case .dinner:
+            return [.dinner]
+        case .both:
+            return [.lunch, .dinner]
+        }
     }
 }
 
@@ -163,7 +194,12 @@ struct WeekGenerationConfig {
         }
         
         let days = orderedWeekdays.map { weekday in
-            DayConfig(weekday: weekday, mealType: .normal, selected: true)
+            DayConfig(
+                weekday: weekday,
+                mealType: .normal,
+                selected: true,
+                normalDayMealSelection: .both  // Default: lunch + dinner
+            )
         }
         
         let startDate = Date() // Will be adjusted based on weekStartDay

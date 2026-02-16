@@ -288,18 +288,20 @@ final class PlanViewModel: ObservableObject {
         for dayConfig in config.days {
             guard dayConfig.selected else { continue }
             
-            // For normal days, add breakfast, lunch, dinner
+            // For normal days, add only selected meals (lunch/dinner based on user choice)
             if dayConfig.mealType == .normal {
-                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .breakfast))
-                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .lunch))
-                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .dinner))
+                let selectedMealTypes = dayConfig.normalDayMealSelection.mealTypes
+                for mealType in selectedMealTypes {
+                    slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: mealType))
+                }
             }
             
-            // For meal prep days, add based on mealType selection
+            // For meal prep days, add based on mealPrepMealTypeSelection
             if dayConfig.mealType == .mealPrep {
-                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .breakfast))
-                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .lunch))
-                slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: .dinner))
+                let mealPrepTypes = config.mealPrepMealTypes
+                for mealType in mealPrepTypes {
+                    slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: mealType))
+                }
             }
         }
         

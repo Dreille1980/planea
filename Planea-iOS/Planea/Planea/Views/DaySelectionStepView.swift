@@ -36,6 +36,9 @@ struct DaySelectionStepView: View {
                             onTypeChange: { newType in
                                 viewModel.config.days[index].mealType = newType
                                 viewModel.config.recalculateMealPrepPortions()
+                            },
+                            onMealSelectionChange: { newSelection in
+                                viewModel.config.days[index].normalDayMealSelection = newSelection
                             }
                         )
                     }
@@ -59,52 +62,77 @@ private struct DayConfigRow: View {
     let day: DayConfig
     let onToggle: () -> Void
     let onTypeChange: (DayMealType) -> Void
+    let onMealSelectionChange: (NormalDayMealTypeSelection) -> Void
     
     var body: some View {
-        HStack(spacing: 12) {
-            // Checkbox
-            Button {
-                onToggle()
-            } label: {
-                Image(systemName: day.selected ? "checkmark.square.fill" : "square")
-                    .font(.title2)
-                    .foregroundColor(day.selected ? .accentColor : .secondary)
-            }
-            .buttonStyle(.plain)
-            
-            // Day name
-            Text(day.weekday.displayName)
-                .font(.headline)
-                .frame(width: 80, alignment: .leading)
-            
-            Spacer()
-            
-            // Type picker (only if selected)
-            if day.selected {
-                Picker("", selection: Binding(
-                    get: { day.mealType },
-                    set: { onTypeChange($0) }
-                )) {
-                    Label {
-                        Text(NSLocalizedString("wizard.day_type.normal", comment: ""))
-                    } icon: {
-                        Image(systemName: "fork.knife")
-                    }
-                    .tag(DayMealType.normal)
-                    
-                    Label {
-                        Text(NSLocalizedString("wizard.day_type.mealprep", comment: ""))
-                    } icon: {
-                        Image(systemName: "takeoutbag.and.cup.and.straw")
-                    }
-                    .tag(DayMealType.mealPrep)
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                // Checkbox
+                Button {
+                    onToggle()
+                } label: {
+                    Image(systemName: day.selected ? "checkmark.square.fill" : "square")
+                        .font(.title2)
+                        .foregroundColor(day.selected ? .accentColor : .secondary)
                 }
-                .pickerStyle(.segmented)
-                .frame(maxWidth: 200)
-            } else {
-                Text(NSLocalizedString("wizard.day_type.skip", comment: ""))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                .buttonStyle(.plain)
+                
+                // Day name
+                Text(day.weekday.displayName)
+                    .font(.headline)
+                    .frame(width: 80, alignment: .leading)
+                
+                Spacer()
+                
+                // Type picker (only if selected)
+                if day.selected {
+                    Picker("", selection: Binding(
+                        get: { day.mealType },
+                        set: { onTypeChange($0) }
+                    )) {
+                        Label {
+                            Text(NSLocalizedString("wizard.day_type.normal", comment: ""))
+                        } icon: {
+                            Image(systemName: "fork.knife")
+                        }
+                        .tag(DayMealType.normal)
+                        
+                        Label {
+                            Text(NSLocalizedString("wizard.day_type.mealprep", comment: ""))
+                        } icon: {
+                            Image(systemName: "takeoutbag.and.cup.and.straw")
+                        }
+                        .tag(DayMealType.mealPrep)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(maxWidth: 200)
+                } else {
+                    Text(NSLocalizedString("wizard.day_type.skip", comment: ""))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
+            // Meal selection for normal days
+            if day.selected && day.mealType == .normal {
+                Divider()
+                    .padding(.horizontal, -12)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(NSLocalizedString("wizard.day_meals.title", comment: ""))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    Picker("", selection: Binding(
+                        get: { day.normalDayMealSelection },
+                        set: { onMealSelectionChange($0) }
+                    )) {
+                        ForEach(NormalDayMealTypeSelection.allCases, id: \.self) { selection in
+                            Text(selection.displayName).tag(selection)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
             }
         }
         .padding()
