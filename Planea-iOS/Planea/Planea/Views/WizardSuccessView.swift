@@ -161,12 +161,11 @@ private struct MealPrepListSection: View {
     let config: WeekGenerationConfig
     let generatedPlan: MealPlan
     
-    private var mealPrepRecipes: [(weekday: Weekday, mealType: MealType, recipe: Recipe)] {
+    private var mealPrepRecipes: [MealItem] {
         generatedPlan.items
             .filter { item in
                 config.mealPrepDays.contains(item.weekday)
             }
-            .map { ($0.weekday, $0.mealType, $0.recipe) }
             .sorted { $0.weekday.rawValue < $1.weekday.rawValue }
     }
     
@@ -176,8 +175,7 @@ private struct MealPrepListSection: View {
                 .font(.headline)
             
             VStack(spacing: 12) {
-                ForEach(mealPrepRecipes.indices, id: \.self) { index in
-                    let item = mealPrepRecipes[index]
+                ForEach(mealPrepRecipes) { item in
                     HStack(spacing: 12) {
                         // Day indicator
                         VStack {
