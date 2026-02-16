@@ -809,3 +809,16 @@
 
 // Errors
 "wizard.error.invalid_config" = "Invalid configuration. Please check your selections.";
+
+// Success View
+"wizard.success.title" = "Success!";
+"wizard.success.subtitle" = "Your week has been generated";
+"wizard.success.total_meals" = "Total meals";
+"wizard.success.meals_generated" = "meals generated";
+"wizard.success.meal_prep_days" = "Meal Prep Days";
+"wizard.success.portions_prepared" = "portions prepared";
+"wizard.success.normal_days" = "Normal Days";
+"wizard.success.regular_meals" = "regular meals";
+"wizard.success.meal_prep_recipes" = "Meal Prep Recipes";
+"wizard.success.view_meal_preps" = "View Meal Preps";
+"wizard.success.done" = "Done";

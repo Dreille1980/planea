@@ -825,3 +825,16 @@
 
 // Errors
 "wizard.error.invalid_config" = "Configuration invalide. Veuillez vérifier vos sélections.";
+
+// Success View
+"wizard.success.title" = "Succès !";
+"wizard.success.subtitle" = "Votre semaine a été générée";
+"wizard.success.total_meals" = "Total repas";
+"wizard.success.meals_generated" = "repas générés";
+"wizard.success.meal_prep_days" = "Jours Meal Prep";
+"wizard.success.portions_prepared" = "portions préparées";
+"wizard.success.normal_days" = "Jours Normaux";
+"wizard.success.regular_meals" = "repas réguliers";
+"wizard.success.meal_prep_recipes" = "Recettes Meal Prep";
+"wizard.success.view_meal_preps" = "Voir les Meal Preps";
+"wizard.success.done" = "Terminé";

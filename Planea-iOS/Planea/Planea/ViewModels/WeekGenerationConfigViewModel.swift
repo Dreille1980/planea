@@ -9,6 +9,8 @@ final class WeekGenerationConfigViewModel: ObservableObject {
     @Published var currentStep: Int = 0
     @Published var isGenerating: Bool = false
     @Published var errorMessage: String?
+    @Published var generationSuccess: Bool = false
+    @Published var generatedPlan: MealPlan?
     
     private let planViewModel: PlanViewModel
     private let persistence = PersistenceController.shared
@@ -150,6 +152,9 @@ final class WeekGenerationConfigViewModel: ObservableObject {
                 "total_meals": plan.items.count as NSObject
             ])
             
+            // Set success state
+            generatedPlan = plan
+            generationSuccess = true
             isGenerating = false
         } catch {
             isGenerating = false
@@ -189,5 +194,12 @@ final class WeekGenerationConfigViewModel: ObservableObject {
     
     func stepNumber(for step: Int) -> String {
         "\(step + 1)/\(totalSteps)"
+    }
+    
+    // MARK: - Success State Reset
+    
+    func resetSuccessState() {
+        generationSuccess = false
+        generatedPlan = nil
     }
 }

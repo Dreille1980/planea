@@ -13,42 +13,63 @@ struct WeekGenerationWizardView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Progress indicator
-                ProgressBar(
-                    currentStep: viewModel.currentStep,
-                    totalSteps: viewModel.totalSteps
-                )
-                .padding(.horizontal)
-                .padding(.top, 8)
-                
-                // Content
-                TabView(selection: $viewModel.currentStep) {
-                    // Step 1: Day Selection
-                    DaySelectionStepView(viewModel: viewModel)
-                        .tag(0)
-                    
-                    // Step 2: Meal Prep Config (only if meal prep selected)
-                    if viewModel.config.hasMealPrep {
-                        MealPrepConfigStepView(viewModel: viewModel)
-                            .tag(1)
+            Group {
+                if viewModel.generationSuccess, let plan = viewModel.generatedPlan {
+                    // Show success view after generation
+                    WizardSuccessView(
+                        config: viewModel.config,
+                        generatedPlan: plan,
+                        onViewMealPreps: {
+                            // TODO: Navigate to MealPrepView or show meal preps
+                            // For now, just dismiss
+                            viewModel.resetSuccessState()
+                            dismiss()
+                        },
+                        onDismiss: {
+                            viewModel.resetSuccessState()
+                            dismiss()
+                        }
+                    )
+                } else {
+                    // Show wizard steps
+                    VStack(spacing: 0) {
+                        // Progress indicator
+                        ProgressBar(
+                            currentStep: viewModel.currentStep,
+                            totalSteps: viewModel.totalSteps
+                        )
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        
+                        // Content
+                        TabView(selection: $viewModel.currentStep) {
+                            // Step 1: Day Selection
+                            DaySelectionStepView(viewModel: viewModel)
+                                .tag(0)
+                            
+                            // Step 2: Meal Prep Config (only if meal prep selected)
+                            if viewModel.config.hasMealPrep {
+                                MealPrepConfigStepView(viewModel: viewModel)
+                                    .tag(1)
+                            }
+                            
+                            // Step 3: Preferences
+                            PreferencesStepView(viewModel: viewModel)
+                                .tag(2)
+                        }
+                        .tabViewStyle(.page(indexDisplayMode: .never))
+                        
+                        // Navigation buttons
+                        NavigationButtons(viewModel: viewModel, dismiss: dismiss)
                     }
-                    
-                    // Step 3: Preferences
-                    PreferencesStepView(viewModel: viewModel)
-                        .tag(2)
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                
-                // Navigation buttons
-                NavigationButtons(viewModel: viewModel, dismiss: dismiss)
-            }
-            .navigationTitle(NSLocalizedString("wizard.title", comment: ""))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(NSLocalizedString("action.cancel", comment: "")) {
-                        dismiss()
+                    .navigationTitle(NSLocalizedString("wizard.title", comment: ""))
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button(NSLocalizedString("action.cancel", comment: "")) {
+                                dismiss()
+                            }
+                        }
                     }
                 }
             }
@@ -156,7 +177,7 @@ private struct NavigationButtons: View {
                             unitSystem: unitSystem,
                             appLanguage: appLanguage
                         )
-                        dismiss()
+                        // Don't dismiss here anymore - success view will handle it
                     }
                 } label: {
                     HStack {
