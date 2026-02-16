@@ -176,7 +176,8 @@ private struct MealPrepListSection: View {
                 .font(.headline)
             
             VStack(spacing: 12) {
-                ForEach(Array(mealPrepRecipes.enumerated()), id: \.offset) { index, item in
+                ForEach(mealPrepRecipes.indices, id: \.self) { index in
+                    let item = mealPrepRecipes[index]
                     HStack(spacing: 12) {
                         // Day indicator
                         VStack {
