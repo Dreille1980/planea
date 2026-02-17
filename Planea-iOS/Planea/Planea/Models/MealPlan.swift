@@ -120,8 +120,8 @@ struct MealPrepSession: Identifiable, Codable {
     var isCompleted: Bool = false
     
     /// All unique ingredients across all meal prep items
-    var consolidatedIngredients: [Ingredient] {
-        var ingredientMap: [String: Ingredient] = [:]
+    var consolidatedIngredients: [RecipeIngredient] {
+        var ingredientMap: [String: RecipeIngredient] = [:]
         
         for item in items {
             for ingredient in item.recipe.ingredients {
@@ -145,13 +145,8 @@ struct MealPrepSession: Identifiable, Codable {
         }
     }
     
-    /// Total estimated preparation time (sum of all recipes)
-    var totalPrepTime: Int {
-        items.reduce(0) { $0 + $1.recipe.prepTime }
-    }
-    
-    /// Total estimated cooking time (sum of all recipes)
-    var totalCookTime: Int {
-        items.reduce(0) { $0 + $1.recipe.cookTime }
+    /// Total estimated time (sum of all recipes)
+    var totalMinutes: Int {
+        items.reduce(0) { $0 + $1.recipe.totalMinutes }
     }
 }
