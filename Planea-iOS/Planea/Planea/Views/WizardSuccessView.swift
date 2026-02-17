@@ -217,11 +217,9 @@ private struct MealPrepListSection: View {
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                 
-                                if let prepTime = item.recipe.prepTime {
-                                    Label("\(prepTime) min", systemImage: "clock")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
+                                Label("\(item.recipe.totalMinutes) min", systemImage: "clock")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                         
