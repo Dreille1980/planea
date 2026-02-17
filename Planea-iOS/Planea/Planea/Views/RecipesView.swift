@@ -427,35 +427,3 @@ struct AdHocRecipeContentView: View {
     }
 }
 
-// MARK: - Legacy Segments (kept for reference)
-
-enum RecipesSegment: String, CaseIterable {
-    case recipes = "recipes.segment.recipes"
-    case mealPrep = "recipes.segment.mealPrep"
-    case adHoc = "recipes.segment.adHoc"
-}
-
-// MARK: - Meal Prep Coming Soon View (kept for reference)
-
-struct MealPrepComingSoonView: View {
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Coming soon placeholder
-                VStack(spacing: 12) {
-                    Image(systemName: "calendar.badge.clock")
-                        .font(.system(size: 48))
-                        .foregroundColor(.gray)
-                    Text("Coming Soon")
-                        .font(.title3)
-                        .fontWeight(.medium)
-                    Text("Meal prep feature is being developed")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.top, 40)
-            }
-        }
-    }
-}
