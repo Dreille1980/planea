@@ -262,7 +262,7 @@ private struct MealSlotRow: View {
                 .frame(width: 24)
             
             // Meal name
-            Text(slot.mealType.displayName)
+            Text(slot.mealType.localizedName)
                 .font(.subheadline)
                 .fontWeight(.medium)
                 .foregroundStyle(slot.selected ? .primary : .secondary)
