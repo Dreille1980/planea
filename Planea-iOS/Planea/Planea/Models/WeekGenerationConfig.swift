@@ -1,6 +1,53 @@
 import Foundation
 
-// MARK: - Day Meal Type
+// MARK: - Slot Type (Simple vs Meal Prep)
+
+enum SlotType: String, Codable, CaseIterable {
+    case simple     // Recette individuelle à cuisiner le jour même
+    case mealPrep   // Fait partie du batch meal prep (préparé à l'avance)
+    
+    var displayName: String {
+        switch self {
+        case .simple:
+            return NSLocalizedString("wizard.slot_type.simple", comment: "")
+        case .mealPrep:
+            return NSLocalizedString("wizard.slot_type.mealprep", comment: "")
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .simple:
+            return "fork.knife"
+        case .mealPrep:
+            return "takeoutbag.and.cup.and.straw"
+        }
+    }
+}
+
+// MARK: - Meal Slot Configuration (granular per meal)
+
+struct MealSlotConfig: Identifiable, Equatable, Codable {
+    let id: UUID
+    let weekday: Weekday
+    let mealType: MealType  // .lunch ou .dinner
+    var slotType: SlotType  // .simple ou .mealPrep
+    var selected: Bool
+    
+    init(weekday: Weekday, mealType: MealType, slotType: SlotType = .simple, selected: Bool = true) {
+        self.id = UUID()
+        self.weekday = weekday
+        self.mealType = mealType
+        self.slotType = slotType
+        self.selected = selected
+    }
+    
+    static func == (lhs: MealSlotConfig, rhs: MealSlotConfig) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+// MARK: - Day Meal Type (Legacy - kept for compatibility)
 
 enum DayMealType: String, Codable, CaseIterable {
     case normal
@@ -30,21 +77,21 @@ enum DayMealType: String, Codable, CaseIterable {
     }
 }
 
-// MARK: - Day Configuration
+// MARK: - Day Configuration (Legacy - kept for compatibility)
 
 struct DayConfig: Identifiable, Equatable {
     let id = UUID()
     let weekday: Weekday
     var mealType: DayMealType
     var selected: Bool
-    var normalDayMealSelection: NormalDayMealTypeSelection  // Pour les jours normaux
+    var normalDayMealSelection: NormalDayMealTypeSelection
     
     static func == (lhs: DayConfig, rhs: DayConfig) -> Bool {
         lhs.id == rhs.id
     }
 }
 
-// MARK: - Normal Day Meal Type Selection
+// MARK: - Normal Day Meal Type Selection (Legacy)
 
 enum NormalDayMealTypeSelection: String, CaseIterable {
     case lunch
@@ -74,7 +121,7 @@ enum NormalDayMealTypeSelection: String, CaseIterable {
     }
 }
 
-// MARK: - Meal Prep Meal Type Selection
+// MARK: - Meal Prep Meal Type Selection (Legacy)
 
 enum MealPrepMealTypeSelection: String, CaseIterable {
     case lunch
@@ -107,6 +154,10 @@ enum MealPrepMealTypeSelection: String, CaseIterable {
 // MARK: - Week Generation Configuration
 
 struct WeekGenerationConfig {
+    // New granular meal slots
+    var mealSlots: [MealSlotConfig]
+    
+    // Legacy days (kept for compatibility)
     var days: [DayConfig]
     
     // Meal Prep config
@@ -120,7 +171,44 @@ struct WeekGenerationConfig {
     // Start date
     var startDate: Date
     
-    // MARK: - Computed Properties
+    // MARK: - Computed Properties (New - Granular)
+    
+    /// All selected meal slots
+    var selectedSlots: [MealSlotConfig] {
+        mealSlots.filter { $0.selected }
+    }
+    
+    /// Meal prep slots only
+    var mealPrepSlots: [MealSlotConfig] {
+        selectedSlots.filter { $0.slotType == .mealPrep }
+    }
+    
+    /// Simple recipe slots only
+    var simpleSlots: [MealSlotConfig] {
+        selectedSlots.filter { $0.slotType == .simple }
+    }
+    
+    /// Check if there are any meal prep slots
+    var hasMealPrepSlots: Bool {
+        !mealPrepSlots.isEmpty
+    }
+    
+    /// Count of meal prep slots
+    var mealPrepSlotsCount: Int {
+        mealPrepSlots.count
+    }
+    
+    /// Count of simple slots
+    var simpleSlotsCount: Int {
+        simpleSlots.count
+    }
+    
+    /// Total selected slots count
+    var selectedSlotsCount: Int {
+        selectedSlots.count
+    }
+    
+    // MARK: - Computed Properties (Legacy - for compatibility)
     
     var mealPrepDays: [Weekday] {
         days.filter { $0.selected && $0.mealType == .mealPrep }
@@ -138,7 +226,7 @@ struct WeekGenerationConfig {
     }
     
     var hasMealPrep: Bool {
-        !mealPrepDays.isEmpty
+        hasMealPrepSlots
     }
     
     var hasNormalDays: Bool {
@@ -149,21 +237,34 @@ struct WeekGenerationConfig {
         mealPrepMealTypeSelection.mealTypes
     }
     
+    // Legacy computed properties
+    var mealPrepDaysCount: Int {
+        mealPrepDays.count
+    }
+    
+    var normalDaysCount: Int {
+        normalDays.count
+    }
+    
+    var selectedDaysCount: Int {
+        selectedDays.count
+    }
+    
     // MARK: - Validation
     
     var isValid: Bool {
-        // Au moins un jour sélectionné
-        return !selectedDays.isEmpty
+        // Au moins un slot sélectionné
+        return !selectedSlots.isEmpty
     }
     
     func canProceedFromStep(_ step: Int) -> Bool {
         switch step {
         case 0:
-            // Step 1: Au moins un jour sélectionné
-            return !selectedDays.isEmpty
+            // Step 1: Au moins un slot sélectionné
+            return !selectedSlots.isEmpty
         case 1:
             // Step 2: Meal prep config (si applicable)
-            if hasMealPrep {
+            if hasMealPrepSlots {
                 return mealPrepPortions > 0
             }
             return true
@@ -178,9 +279,32 @@ struct WeekGenerationConfig {
     // MARK: - Auto-calculation
     
     mutating func recalculateMealPrepPortions() {
-        let daysCount = mealPrepDays.count
-        let mealsPerDay = mealPrepMealTypes.count
-        mealPrepPortions = daysCount * familySize * mealsPerDay
+        // Calculate based on meal prep slots count and family size
+        mealPrepPortions = mealPrepSlotsCount * familySize
+    }
+    
+    // MARK: - Slot Management
+    
+    mutating func toggleSlot(at index: Int) {
+        guard index < mealSlots.count else { return }
+        mealSlots[index].selected.toggle()
+        recalculateMealPrepPortions()
+    }
+    
+    mutating func setSlotType(at index: Int, to type: SlotType) {
+        guard index < mealSlots.count else { return }
+        mealSlots[index].slotType = type
+        recalculateMealPrepPortions()
+    }
+    
+    /// Get slot for specific weekday and meal type
+    func slot(for weekday: Weekday, mealType: MealType) -> MealSlotConfig? {
+        mealSlots.first { $0.weekday == weekday && $0.mealType == mealType }
+    }
+    
+    /// Get index of slot for specific weekday and meal type
+    func slotIndex(for weekday: Weekday, mealType: MealType) -> Int? {
+        mealSlots.firstIndex { $0.weekday == weekday && $0.mealType == mealType }
     }
     
     // MARK: - Factory
@@ -193,18 +317,27 @@ struct WeekGenerationConfig {
             return lhsIndex < rhsIndex
         }
         
+        // Create granular meal slots (lunch and dinner for each day)
+        var mealSlots: [MealSlotConfig] = []
+        for weekday in orderedWeekdays {
+            mealSlots.append(MealSlotConfig(weekday: weekday, mealType: .lunch, slotType: .simple, selected: true))
+            mealSlots.append(MealSlotConfig(weekday: weekday, mealType: .dinner, slotType: .simple, selected: true))
+        }
+        
+        // Legacy days
         let days = orderedWeekdays.map { weekday in
             DayConfig(
                 weekday: weekday,
                 mealType: .normal,
                 selected: true,
-                normalDayMealSelection: .both  // Default: lunch + dinner
+                normalDayMealSelection: .both
             )
         }
         
-        let startDate = Date() // Will be adjusted based on weekStartDay
+        let startDate = Date()
         
         return WeekGenerationConfig(
+            mealSlots: mealSlots,
             days: days,
             familySize: familySize,
             mealPrepPortions: 0,

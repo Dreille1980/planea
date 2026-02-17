@@ -32,7 +32,21 @@ final class WeekGenerationConfigViewModel: ObservableObject {
         )
     }
     
-    // MARK: - Computed Properties
+    // MARK: - Computed Properties (New - Granular Slots)
+    
+    var selectedSlotsCount: Int {
+        config.selectedSlotsCount
+    }
+    
+    var mealPrepSlotsCount: Int {
+        config.mealPrepSlotsCount
+    }
+    
+    var simpleSlotsCount: Int {
+        config.simpleSlotsCount
+    }
+    
+    // MARK: - Computed Properties (Legacy)
     
     var totalSteps: Int {
         config.hasMealPrep ? 3 : 2  // Step 2 (Meal Prep Config) is conditional
@@ -52,6 +66,48 @@ final class WeekGenerationConfigViewModel: ObservableObject {
     
     var selectedDaysCount: Int {
         config.selectedDays.count
+    }
+    
+    // MARK: - Slot Management (New)
+    
+    func toggleSlot(at index: Int) {
+        config.toggleSlot(at: index)
+    }
+    
+    func setSlotType(at index: Int, to type: SlotType) {
+        config.setSlotType(at: index, to: type)
+    }
+    
+    func selectAllSlots() {
+        for i in 0..<config.mealSlots.count {
+            config.mealSlots[i].selected = true
+        }
+        config.recalculateMealPrepPortions()
+    }
+    
+    func deselectAllSlots() {
+        for i in 0..<config.mealSlots.count {
+            config.mealSlots[i].selected = false
+        }
+        config.recalculateMealPrepPortions()
+    }
+    
+    func setAllSlotsToMealPrep() {
+        for i in 0..<config.mealSlots.count {
+            if config.mealSlots[i].selected {
+                config.mealSlots[i].slotType = .mealPrep
+            }
+        }
+        config.recalculateMealPrepPortions()
+    }
+    
+    func setAllSlotsToSimple() {
+        for i in 0..<config.mealSlots.count {
+            if config.mealSlots[i].selected {
+                config.mealSlots[i].slotType = .simple
+            }
+        }
+        config.recalculateMealPrepPortions()
     }
     
     // MARK: - Navigation
@@ -87,7 +143,7 @@ final class WeekGenerationConfigViewModel: ObservableObject {
         return currentStep > 0
     }
     
-    // MARK: - Day Configuration
+    // MARK: - Day Configuration (Legacy - for compatibility)
     
     func toggleDay(_ dayConfig: inout DayConfig) {
         dayConfig.selected.toggle()
@@ -145,10 +201,9 @@ final class WeekGenerationConfigViewModel: ObservableObject {
             
             // Analytics
             Analytics.logEvent("week_generated_with_wizard", parameters: [
-                "meal_prep_days": mealPrepDaysCount as NSObject,
-                "normal_days": normalDaysCount as NSObject,
+                "meal_prep_slots": mealPrepSlotsCount as NSObject,
+                "simple_slots": simpleSlotsCount as NSObject,
                 "total_portions": config.mealPrepPortions as NSObject,
-                "meal_types": config.mealPrepMealTypeSelection.rawValue as NSObject,
                 "total_meals": plan.items.count as NSObject
             ])
             
@@ -163,16 +218,16 @@ final class WeekGenerationConfigViewModel: ObservableObject {
             if let urlError = error as? URLError {
                 switch urlError.code {
                 case .notConnectedToInternet:
-                    errorMessage = "Aucune connexion Internet. Vérifiez votre WiFi ou données cellulaires."
+                    errorMessage = NSLocalizedString("wizard.error.no_internet", comment: "")
                 case .timedOut:
-                    errorMessage = "Le serveur ne répond pas. Réessayez dans quelques instants."
+                    errorMessage = NSLocalizedString("wizard.error.timeout", comment: "")
                 case .cannotFindHost, .cannotConnectToHost:
-                    errorMessage = "Impossible de contacter le serveur. Vérifiez votre connexion."
+                    errorMessage = NSLocalizedString("wizard.error.server_unreachable", comment: "")
                 default:
-                    errorMessage = "Erreur réseau: \(urlError.localizedDescription)"
+                    errorMessage = String(format: NSLocalizedString("wizard.error.network", comment: ""), urlError.localizedDescription)
                 }
             } else {
-                errorMessage = "Erreur: \(error.localizedDescription)"
+                errorMessage = String(format: NSLocalizedString("wizard.error.generic", comment: ""), error.localizedDescription)
             }
         }
     }

@@ -838,3 +838,46 @@
 "wizard.success.meal_prep_recipes" = "Recettes Meal Prep";
 "wizard.success.view_meal_preps" = "Voir les Meal Preps";
 "wizard.success.done" = "Terminé";
+
+// Recipes Hub
+"recipes.hub.title" = "Recettes";
+"recipes.hub.subtitle" = "Que voulez-vous faire aujourd'hui?";
+"recipes.hub.viewPlan.title" = "Consulter le plan";
+"recipes.hub.viewPlan.subtitle.active" = "Voir votre plan de la semaine actif";
+"recipes.hub.viewPlan.subtitle.none" = "Aucun plan actif pour le moment";
+"recipes.hub.viewPlan.badge" = "Actif";
+"recipes.hub.generatePlan.title" = "Générer un nouveau plan";
+"recipes.hub.generatePlan.subtitle" = "Créez un plan de repas personnalisé pour la semaine";
+"recipes.hub.adHoc.title" = "Recette ad hoc";
+"recipes.hub.adHoc.subtitle" = "Générez une recette instantanément";
+"recipes.hub.noPlan.title" = "Aucun plan actif";
+"recipes.hub.noPlan.message" = "Vous n'avez pas encore de plan de la semaine. Voulez-vous en créer un?";
+"recipes.hub.noPlan.create" = "Créer un plan";
+"recipes.back_to_hub" = "Menu";
+
+// Wizard - New Step 1 UI
+"wizard.step1.subtitle.new" = "Sélectionnez les repas et choisissez le type pour chacun";
+"wizard.quick_actions.title" = "Actions rapides";
+"wizard.quick_action.select_all" = "Tout";
+"wizard.quick_action.deselect_all" = "Aucun";
+"wizard.quick_action.all_mealprep" = "Meal Prep";
+"wizard.quick_action.all_simple" = "Simple";
+"wizard.badge.mealprep" = "Meal Prep";
+"wizard.slot_type.simple" = "Simple";
+"wizard.slot_type.mealprep" = "Meal Prep";
+"wizard.step1.summary.simple" = "Recettes simples";
+"wizard.step1.summary.mealprep" = "Meal Prep";
+"wizard.meal" = "repas";
+"wizard.meals" = "repas";
+
+// Wizard errors
+"wizard.error.no_internet" = "Aucune connexion Internet. Vérifiez votre WiFi ou données cellulaires.";
+"wizard.error.timeout" = "Le serveur ne répond pas. Réessayez dans quelques instants.";
+"wizard.error.server_unreachable" = "Impossible de contacter le serveur. Vérifiez votre connexion.";
+"wizard.error.network" = "Erreur réseau: %@";
+"wizard.error.generic" = "Erreur: %@";
+
+// Plan - Meal Prep indicators
+"plan.mealprep.badge" = "Meal Prep";
+"plan.mealprep.prepared" = "Préparé";
+"plan.mealprep.dayof_steps" = "Étapes du jour";

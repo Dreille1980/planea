@@ -822,3 +822,46 @@
 "wizard.success.meal_prep_recipes" = "Meal Prep Recipes";
 "wizard.success.view_meal_preps" = "View Meal Preps";
 "wizard.success.done" = "Done";
+
+// Recipes Hub
+"recipes.hub.title" = "Recipes";
+"recipes.hub.subtitle" = "What would you like to do today?";
+"recipes.hub.viewPlan.title" = "View Plan";
+"recipes.hub.viewPlan.subtitle.active" = "See your active weekly plan";
+"recipes.hub.viewPlan.subtitle.none" = "No active plan at the moment";
+"recipes.hub.viewPlan.badge" = "Active";
+"recipes.hub.generatePlan.title" = "Generate New Plan";
+"recipes.hub.generatePlan.subtitle" = "Create a personalized meal plan for the week";
+"recipes.hub.adHoc.title" = "Ad Hoc Recipe";
+"recipes.hub.adHoc.subtitle" = "Generate a recipe instantly";
+"recipes.hub.noPlan.title" = "No Active Plan";
+"recipes.hub.noPlan.message" = "You don't have a weekly plan yet. Would you like to create one?";
+"recipes.hub.noPlan.create" = "Create Plan";
+"recipes.back_to_hub" = "Menu";
+
+// Wizard - New Step 1 UI
+"wizard.step1.subtitle.new" = "Select meals and choose the type for each";
+"wizard.quick_actions.title" = "Quick actions";
+"wizard.quick_action.select_all" = "All";
+"wizard.quick_action.deselect_all" = "None";
+"wizard.quick_action.all_mealprep" = "Meal Prep";
+"wizard.quick_action.all_simple" = "Simple";
+"wizard.badge.mealprep" = "Meal Prep";
+"wizard.slot_type.simple" = "Simple";
+"wizard.slot_type.mealprep" = "Meal Prep";
+"wizard.step1.summary.simple" = "Simple recipes";
+"wizard.step1.summary.mealprep" = "Meal Prep";
+"wizard.meal" = "meal";
+"wizard.meals" = "meals";
+
+// Wizard errors
+"wizard.error.no_internet" = "No internet connection. Check your WiFi or cellular data.";
+"wizard.error.timeout" = "Server not responding. Try again in a moment.";
+"wizard.error.server_unreachable" = "Cannot reach server. Check your connection.";
+"wizard.error.network" = "Network error: %@";
+"wizard.error.generic" = "Error: %@";
+
+// Plan - Meal Prep indicators
+"plan.mealprep.badge" = "Meal Prep";
+"plan.mealprep.prepared" = "Prepared";
+"plan.mealprep.dayof_steps" = "Day-of Steps";

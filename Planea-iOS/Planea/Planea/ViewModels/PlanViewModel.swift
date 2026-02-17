@@ -13,6 +13,9 @@ final class PlanViewModel: ObservableObject {
     @Published var showApplyTemplateSheet = false
     @Published var selectedTemplate: TemplateWeek?
     
+    // Shopping list reference
+    weak var shoppingVM: ShoppingViewModel?
+    
     private let persistence = PersistenceController.shared
     
     init() {
@@ -43,7 +46,7 @@ final class PlanViewModel: ObservableObject {
         slots.remove(slot)
     }
     
-    @MainActor func savePlan(_ plan: MealPlan) {
+    @MainActor func savePlan(_ plan: MealPlan, generateShoppingList: Bool = true) {
         var mutablePlan = plan
         mutablePlan.status = .draft
         currentPlan = mutablePlan
@@ -57,6 +60,36 @@ final class PlanViewModel: ObservableObject {
         AnalyticsService.shared.logRecipeGenerated(
             type: "plan",
             recipeCount: plan.items.count
+        )
+        
+        // Auto-generate shopping list from the plan
+        if generateShoppingList {
+            generateShoppingListFromPlan(plan)
+        }
+    }
+    
+    // MARK: - Shopping List Generation
+    
+    /// Generates and replaces the shopping list from the current plan
+    func generateShoppingListFromPlan(_ plan: MealPlan) {
+        guard let shoppingVM = shoppingVM else {
+            print("⚠️ ShoppingViewModel not available - shopping list not generated")
+            return
+        }
+        
+        // Use metric as default, will be converted during display if needed
+        let units = UnitSystem.metric
+        
+        // Generate the list from all meal items (both simple and meal prep)
+        shoppingVM.generateList(from: plan.items, units: units)
+        
+        // Log to analytics
+        AnalyticsService.shared.logEvent(
+            name: "shopping_list_auto_generated",
+            parameters: [
+                "items_count": shoppingVM.currentList?.items.count ?? 0,
+                "from_plan": true
+            ]
         )
     }
     

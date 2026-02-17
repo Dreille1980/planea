@@ -1,129 +1,109 @@
 import SwiftUI
 import PhotosUI
 
-enum RecipesSegment: String, CaseIterable {
-    case recipes = "recipes.segment.recipes"
-    case mealPrep = "recipes.segment.mealPrep"
-    case adHoc = "recipes.segment.adHoc"
-}
-
 struct RecipesView: View {
+    @EnvironmentObject var familyVM: FamilyViewModel
+    @EnvironmentObject var planVM: PlanViewModel
     @EnvironmentObject var recipeHistoryVM: RecipeHistoryViewModel
     @EnvironmentObject var usageVM: UsageViewModel
     @StateObject private var storeManager = StoreManager.shared
-    @State private var selectedSegment: RecipesSegment = .recipes
+    
+    @State private var selectedAction: RecipesAction? = nil
     @State private var showRecentRecipes = false
+    @State private var showWizard = false
     
     var body: some View {
         ZStack {
             NavigationStack {
-            VStack(spacing: 0) {
-                // Segment selector with Planea style
-                Picker("", selection: $selectedSegment) {
-                    ForEach(RecipesSegment.allCases, id: \.self) { segment in
-                        Text(segment.rawValue.localized).tag(segment)
-                    }
-                }
-                .planeaSegmentedStyle()
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .background(Color.planeaBackground)
-                
-                // Segment content
-                TabView(selection: $selectedSegment) {
-                    PlanWeekView()
-                        .tag(RecipesSegment.recipes)
+                Group {
+                    switch selectedAction {
+                    case .none:
+                        // Hub d'accueil
+                        RecipesHubView(selectedAction: $selectedAction)
+                            .environmentObject(planVM)
+                            .environmentObject(familyVM)
+                            .environmentObject(usageVM)
                     
-                    // Feature flag: Show MealPrepView only for developer access
-                    if storeManager.hasMealPrepAccess {
-                        MealPrepView(baseURL: URL(string: Config.baseURL)!)
-                            .tag(RecipesSegment.mealPrep)
-                    } else {
-                        MealPrepComingSoonView()
-                            .tag(RecipesSegment.mealPrep)
-                    }
+                    case .viewPlan:
+                        // Vue du plan de la semaine
+                        PlanWeekView()
+                            .navigationBarBackButtonHidden(true)
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarLeading) {
+                                    Button {
+                                        withAnimation {
+                                            selectedAction = nil
+                                        }
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "chevron.left")
+                                            Text("recipes.back_to_hub".localized)
+                                        }
+                                    }
+                                }
+                            }
                     
-                    AdHocRecipeContentView()
-                        .tag(RecipesSegment.adHoc)
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-            }
-            .navigationTitle("tab.recipes".localized)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if selectedSegment == .adHoc && !recipeHistoryVM.recentRecipes.isEmpty {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            showRecentRecipes = true
-                        } label: {
-                            Image(systemName: "clock")
-                                .font(.title3)
-                        }
+                    case .generatePlan:
+                        // Wizard de génération
+                        WeekGenerationWizardView(planViewModel: planVM)
+                            .environmentObject(familyVM)
+                            .environmentObject(planVM)
+                            .onDisappear {
+                                // Après le wizard, aller voir le plan si généré
+                                if planVM.currentPlan != nil {
+                                    selectedAction = .viewPlan
+                                } else {
+                                    selectedAction = nil
+                                }
+                            }
+                    
+                    case .adHoc:
+                        // Vue Ad Hoc
+                        AdHocRecipeContentView()
+                            .navigationBarBackButtonHidden(true)
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarLeading) {
+                                    Button {
+                                        withAnimation {
+                                            selectedAction = nil
+                                        }
+                                    } label: {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "chevron.left")
+                                            Text("recipes.back_to_hub".localized)
+                                        }
+                                    }
+                                }
+                                
+                                if !recipeHistoryVM.recentRecipes.isEmpty {
+                                    ToolbarItem(placement: .navigationBarTrailing) {
+                                        Button {
+                                            showRecentRecipes = true
+                                        } label: {
+                                            Image(systemName: "clock")
+                                                .font(.title3)
+                                        }
+                                    }
+                                }
+                            }
                     }
                 }
+                .navigationTitle("tab.recipes".localized)
+                .navigationBarTitleDisplayMode(.inline)
             }
             .sheet(isPresented: $showRecentRecipes) {
                 RecentRecipesView()
             }
-            }
             
+            // Bouton flottant de chat
             FloatingChatButton()
                 .environmentObject(usageVM)
         }
     }
 }
 
-// MARK: - Meal Prep Content View (Placeholder)
-struct MealPrepContentView: View {
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Header
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("mealprep.title".localized)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    Text("mealprep.subtitle".localized)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-                
-                // CTA Button
-                Button {
-                    // TODO: Open wizard
-                } label: {
-                    Text("mealprep.cta".localized)
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.accentColor)
-                        .cornerRadius(12)
-                }
-                .padding(.horizontal)
-                
-                // Coming soon placeholder
-                VStack(spacing: 12) {
-                    Image(systemName: "calendar.badge.clock")
-                        .font(.system(size: 48))
-                        .foregroundColor(.gray)
-                    Text("Coming Soon")
-                        .font(.title3)
-                        .fontWeight(.medium)
-                    Text("Meal prep feature is being developed")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(.top, 40)
-            }
-        }
-    }
-}
-
 // MARK: - Ad Hoc Content View
+
 struct AdHocRecipeContentView: View {
     @EnvironmentObject var familyVM: FamilyViewModel
     @EnvironmentObject var recipeVM: RecipeViewModel
@@ -444,5 +424,38 @@ struct AdHocRecipeContentView: View {
         }
         
         isGenerating = false
+    }
+}
+
+// MARK: - Legacy Segments (kept for reference)
+
+enum RecipesSegment: String, CaseIterable {
+    case recipes = "recipes.segment.recipes"
+    case mealPrep = "recipes.segment.mealPrep"
+    case adHoc = "recipes.segment.adHoc"
+}
+
+// MARK: - Meal Prep Coming Soon View (kept for reference)
+
+struct MealPrepComingSoonView: View {
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Coming soon placeholder
+                VStack(spacing: 12) {
+                    Image(systemName: "calendar.badge.clock")
+                        .font(.system(size: 48))
+                        .foregroundColor(.gray)
+                    Text("Coming Soon")
+                        .font(.title3)
+                        .fontWeight(.medium)
+                    Text("Meal prep feature is being developed")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 40)
+            }
+        }
     }
 }
