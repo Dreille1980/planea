@@ -161,12 +161,28 @@ private struct MealPrepListSection: View {
     let config: WeekGenerationConfig
     let generatedPlan: MealPlan
     
+    private func mealTypeIcon(_ type: MealType) -> String {
+        switch type {
+        case .breakfast: return "sun.horizon"
+        case .lunch: return "fork.knife"
+        case .dinner: return "moon.stars"
+        case .snack: return "leaf"
+        }
+    }
+    
     private var mealPrepRecipes: [MealItem] {
         generatedPlan.items
             .filter { item in
                 config.mealPrepDays.contains(item.weekday)
             }
-            .sorted { $0.weekday.rawValue < $1.weekday.rawValue }
+            .sorted { first, second in
+                let allDays = Weekday.allCases
+                guard let firstIndex = allDays.firstIndex(of: first.weekday),
+                      let secondIndex = allDays.firstIndex(of: second.weekday) else {
+                    return false
+                }
+                return firstIndex < secondIndex
+            }
     }
     
     var body: some View {
@@ -197,7 +213,7 @@ private struct MealPrepListSection: View {
                                 .fontWeight(.medium)
                             
                             HStack(spacing: 8) {
-                                Label(item.mealType.displayName, systemImage: item.mealType.icon)
+                                Label(item.mealType.localizedName, systemImage: mealTypeIcon(item.mealType))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                 
