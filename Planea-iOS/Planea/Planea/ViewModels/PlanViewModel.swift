@@ -315,27 +315,11 @@ final class PlanViewModel: ObservableObject {
         unitSystem: String,
         appLanguage: String
     ) async throws -> MealPlan {
-        // Convert config to slots for API call
+        // Use new slot-based system instead of legacy days
         var slots: [SlotSelection] = []
         
-        for dayConfig in config.days {
-            guard dayConfig.selected else { continue }
-            
-            // For normal days, add only selected meals (lunch/dinner based on user choice)
-            if dayConfig.mealType == .normal {
-                let selectedMealTypes = dayConfig.normalDayMealSelection.mealTypes
-                for mealType in selectedMealTypes {
-                    slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: mealType))
-                }
-            }
-            
-            // For meal prep days, add based on mealPrepMealTypeSelection
-            if dayConfig.mealType == .mealPrep {
-                let mealPrepTypes = config.mealPrepMealTypes
-                for mealType in mealPrepTypes {
-                    slots.append(SlotSelection(weekday: dayConfig.weekday, mealType: mealType))
-                }
-            }
+        for mealSlot in config.selectedSlots {
+            slots.append(SlotSelection(weekday: mealSlot.weekday, mealType: mealSlot.mealType))
         }
         
         // Prepare constraints
