@@ -298,33 +298,31 @@ struct MealTypeSelector: View {
             // Simple / Meal Prep toggle (only if selected)
             if let currentSlot = slot {
                 HStack(spacing: 6) {
-                    Button(action: { 
-                        setMealType(isMealPrep: false)
-                    }) {
-                        Text("plan.simple".localized)
-                            .font(.caption)
-                            .bold()
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(!currentSlot.isMealPrep ? Color.planeaPrimary.opacity(0.15) : Color.planeaChipDefault)
-                            .foregroundColor(!currentSlot.isMealPrep ? .planeaPrimary : .planeaTextSecondary)
-                            .cornerRadius(8)
-                    }
-                    .buttonStyle(.plain)
+                    Text("plan.simple".localized)
+                        .font(.caption)
+                        .bold()
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(!currentSlot.isMealPrep ? Color.planeaPrimary.opacity(0.15) : Color.planeaChipDefault)
+                        .foregroundColor(!currentSlot.isMealPrep ? .planeaPrimary : .planeaTextSecondary)
+                        .cornerRadius(8)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            setMealType(isMealPrep: false)
+                        }
                     
-                    Button(action: { 
-                        setMealType(isMealPrep: true)
-                    }) {
-                        Text("plan.mealPrep".localized)
-                            .font(.caption)
-                            .bold()
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(currentSlot.isMealPrep ? Color.orange.opacity(0.15) : Color.planeaChipDefault)
-                            .foregroundColor(currentSlot.isMealPrep ? .orange : .planeaTextSecondary)
-                            .cornerRadius(8)
-                    }
-                    .buttonStyle(.plain)
+                    Text("plan.mealPrep".localized)
+                        .font(.caption)
+                        .bold()
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(currentSlot.isMealPrep ? Color.orange.opacity(0.15) : Color.planeaChipDefault)
+                        .foregroundColor(currentSlot.isMealPrep ? .orange : .planeaTextSecondary)
+                        .cornerRadius(8)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            setMealType(isMealPrep: true)
+                        }
                 }
             }
         }
