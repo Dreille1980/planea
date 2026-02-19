@@ -49,6 +49,10 @@ final class PlanViewModel: ObservableObject {
         currentPlan = mutablePlan
         persistence.saveMealPlan(mutablePlan)
         
+        // Automatically activate the plan so it appears in WeekOverviewView
+        persistence.activatePlan(id: mutablePlan.id)
+        loadPlans()
+        
         // Record that 1 generation was used (1 plan = 1 generation)
         let usageVM = UsageViewModel()
         usageVM.recordGenerations(count: 1)
