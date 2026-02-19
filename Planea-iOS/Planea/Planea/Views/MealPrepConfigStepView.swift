@@ -30,10 +30,6 @@ struct MealPrepConfigStepView: View {
                 )
                 .padding(.horizontal)
                 
-                // Meal Type Section
-                MealTypeSection(viewModel: viewModel)
-                    .padding(.horizontal)
-                
                 // Info Card
                 InfoCard()
                     .padding(.horizontal)
@@ -110,11 +106,11 @@ private struct PortionsSection: View {
     }
     
     private var portionsCalculation: String {
-        let days = viewModel.mealPrepDaysCount
-        let meals = viewModel.config.mealPrepMealTypes.count
+        // Use new slot-based system instead of legacy days
+        let mealPrepSlots = viewModel.mealPrepSlotsCount
         let people = viewModel.config.familySize
         
-        return "\(days) \(NSLocalizedString("wizard.days", comment: "")) × \(meals) \(NSLocalizedString("wizard.step2.portions.meals", comment: "")) × \(people) \(NSLocalizedString("wizard.step2.portions.people", comment: ""))"
+        return "\(mealPrepSlots) \(NSLocalizedString("wizard.step2.portions.meals", comment: "")) × \(people) \(NSLocalizedString("wizard.step2.portions.people", comment: ""))"
     }
 }
 
