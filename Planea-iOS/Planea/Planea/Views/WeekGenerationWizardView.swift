@@ -38,7 +38,7 @@ struct WeekGenerationWizardView: View {
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 
                 // Navigation buttons
-                NavigationButtons(viewModel: viewModel, dismiss: dismiss)
+                NavigationButtons(viewModel: viewModel)
             }
             .navigationTitle(NSLocalizedString("wizard.title", comment: ""))
             .navigationBarTitleDisplayMode(.inline)
@@ -117,11 +117,11 @@ private struct ProgressBar: View {
 // MARK: - Navigation Buttons
 
 private struct NavigationButtons: View {
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var familyVM: FamilyViewModel
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
     @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
     @ObservedObject var viewModel: WeekGenerationConfigViewModel
-    let dismiss: DismissAction
     
     var body: some View {
         HStack(spacing: 16) {
