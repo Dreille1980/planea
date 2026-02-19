@@ -527,9 +527,9 @@ struct MealPrepStepsCard: View {
                 .foregroundColor(.planeaTextSecondary)
             
             // Instructions would come from meal prep data
-            if !recipe.instructions.isEmpty {
+            if !recipe.steps.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    ForEach(Array(recipe.instructions.prefix(3).enumerated()), id: \.offset) { index, instruction in
+                    ForEach(Array(recipe.steps.prefix(3).enumerated()), id: \.offset) { index, instruction in
                         HStack(alignment: .top, spacing: 8) {
                             Text("\(index + 1).")
                                 .font(.caption)
@@ -542,7 +542,7 @@ struct MealPrepStepsCard: View {
                         }
                     }
                     
-                    if recipe.instructions.count > 3 {
+                    if recipe.steps.count > 3 {
                         NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
                             Text("plan.mealPrepSteps.viewAll".localized)
                                 .font(.caption)
