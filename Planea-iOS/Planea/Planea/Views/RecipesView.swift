@@ -34,7 +34,7 @@ struct RecipesView: View {
                     WeekOverviewView()
                         .tag(RecipesSegment.viewWeek)
                     
-                    GenerateMealPlanView()
+                    GenerateMealPlanView(selectedSegment: $selectedSegment)
                         .tag(RecipesSegment.generatePlan)
                     
                     AdHocRecipeContentView()

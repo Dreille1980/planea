@@ -6,6 +6,7 @@ struct GenerateMealPlanView: View {
     @EnvironmentObject var usageVM: UsageViewModel
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
     @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
+    @Binding var selectedSegment: RecipesSegment
     
     @State private var selectedSlots: [SlotSelection] = []
     @State private var mealPrepGroupId: UUID = UUID()
@@ -176,6 +177,11 @@ struct GenerateMealPlanView: View {
             
             // Clear selections after successful generation
             selectedSlots.removeAll()
+            
+            // Switch to view week tab
+            withAnimation {
+                selectedSegment = .viewWeek
+            }
         } catch {
             // Provide more helpful error messages
             if let urlError = error as? URLError {
@@ -270,7 +276,9 @@ struct MealTypeSelector: View {
     var body: some View {
         HStack(spacing: 12) {
             // Checkbox + Label
-            Button(action: toggleSelection) {
+            Button(action: {
+                toggleSelection()
+            }) {
                 HStack(spacing: 8) {
                     Image(systemName: isSelected ? "checkmark.square.fill" : "square")
                         .foregroundColor(isSelected ? .planeaPrimary : .gray)
@@ -290,7 +298,9 @@ struct MealTypeSelector: View {
             // Simple / Meal Prep toggle (only if selected)
             if let currentSlot = slot {
                 HStack(spacing: 6) {
-                    Button(action: { setMealType(isMealPrep: false) }) {
+                    Button(action: { 
+                        setMealType(isMealPrep: false)
+                    }) {
                         Text("plan.simple".localized)
                             .font(.caption)
                             .bold()
@@ -300,8 +310,11 @@ struct MealTypeSelector: View {
                             .foregroundColor(!currentSlot.isMealPrep ? .planeaPrimary : .planeaTextSecondary)
                             .cornerRadius(8)
                     }
+                    .buttonStyle(.plain)
                     
-                    Button(action: { setMealType(isMealPrep: true) }) {
+                    Button(action: { 
+                        setMealType(isMealPrep: true)
+                    }) {
                         Text("plan.mealPrep".localized)
                             .font(.caption)
                             .bold()
@@ -311,6 +324,7 @@ struct MealTypeSelector: View {
                             .foregroundColor(currentSlot.isMealPrep ? .orange : .planeaTextSecondary)
                             .cornerRadius(8)
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
