@@ -65,11 +65,17 @@ struct WeekGenerationWizardView: View {
             } message: { error in
                 Text(error)
             }
-            .onChange(of: viewModel.generationSuccess) { success in
+            .onChange(of: viewModel.generationSuccess) { oldValue, newValue in
                 // Auto-dismiss wizard when generation succeeds
-                if success {
-                    viewModel.resetSuccessState()
-                    dismiss()
+                if newValue {
+                    // Use a small delay to ensure the save completes
+                    Task {
+                        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
+                        await MainActor.run {
+                            viewModel.resetSuccessState()
+                            dismiss()
+                        }
+                    }
                 }
             }
         }
