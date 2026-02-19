@@ -166,7 +166,10 @@ private struct NavigationButtons: View {
                             unitSystem: unitSystem,
                             appLanguage: appLanguage
                         )
-                        // Don't dismiss here anymore - success view will handle it
+                        // Dismiss after successful generation
+                        if viewModel.generationSuccess {
+                            dismiss()
+                        }
                     }
                 } label: {
                     HStack {
