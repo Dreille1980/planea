@@ -256,12 +256,12 @@ struct MealTypeSelector: View {
     @Binding var selectedSlots: [SlotSelection]
     let mealPrepGroupId: UUID
     
-    private var slot: SlotSelection? {
-        selectedSlots.first { $0.weekday == weekday && $0.mealType == mealType }
+    private var isSelected: Bool {
+        selectedSlots.contains { $0.weekday == weekday && $0.mealType == mealType }
     }
     
-    private var isSelected: Bool {
-        slot != nil
+    private var isMealPrep: Bool {
+        selectedSlots.first { $0.weekday == weekday && $0.mealType == mealType }?.isMealPrep ?? false
     }
     
     private var mealIcon: String {
@@ -276,35 +276,34 @@ struct MealTypeSelector: View {
     var body: some View {
         HStack(spacing: 12) {
             // Checkbox + Label
-            Button(action: {
-                toggleSelection()
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: isSelected ? "checkmark.square.fill" : "square")
-                        .foregroundColor(isSelected ? .planeaPrimary : .gray)
-                    
-                    HStack(spacing: 4) {
-                        Text(mealIcon)
-                            .font(.caption)
-                        Text(mealType.localizedName)
-                            .font(.subheadline)
-                    }
+            HStack(spacing: 8) {
+                Image(systemName: isSelected ? "checkmark.square.fill" : "square")
+                    .foregroundColor(isSelected ? .planeaPrimary : .gray)
+                
+                HStack(spacing: 4) {
+                    Text(mealIcon)
+                        .font(.caption)
+                    Text(mealType.localizedName)
+                        .font(.subheadline)
                 }
             }
-            .buttonStyle(.plain)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                toggleSelection()
+            }
             
             Spacer()
             
             // Simple / Meal Prep toggle (only if selected)
-            if let currentSlot = slot {
+            if isSelected {
                 HStack(spacing: 6) {
                     Text("plan.simple".localized)
                         .font(.caption)
                         .bold()
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(!currentSlot.isMealPrep ? Color.planeaPrimary.opacity(0.15) : Color.planeaChipDefault)
-                        .foregroundColor(!currentSlot.isMealPrep ? .planeaPrimary : .planeaTextSecondary)
+                        .background(!isMealPrep ? Color.planeaPrimary.opacity(0.15) : Color.planeaChipDefault)
+                        .foregroundColor(!isMealPrep ? .planeaPrimary : .planeaTextSecondary)
                         .cornerRadius(8)
                         .contentShape(Rectangle())
                         .onTapGesture {
@@ -316,8 +315,8 @@ struct MealTypeSelector: View {
                         .bold()
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(currentSlot.isMealPrep ? Color.orange.opacity(0.15) : Color.planeaChipDefault)
-                        .foregroundColor(currentSlot.isMealPrep ? .orange : .planeaTextSecondary)
+                        .background(isMealPrep ? Color.orange.opacity(0.15) : Color.planeaChipDefault)
+                        .foregroundColor(isMealPrep ? .orange : .planeaTextSecondary)
                         .cornerRadius(8)
                         .contentShape(Rectangle())
                         .onTapGesture {
