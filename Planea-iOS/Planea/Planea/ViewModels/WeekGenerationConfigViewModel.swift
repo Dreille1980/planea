@@ -203,8 +203,10 @@ final class WeekGenerationConfigViewModel: ObservableObject {
             
             // Set success state
             generatedPlan = plan
-            generationSuccess = true
             isGenerating = false
+            generationSuccess = true  // Set this last to trigger onChange
+            
+            print("✅ Generation completed successfully - generationSuccess = \(generationSuccess)")
         } catch {
             isGenerating = false
             

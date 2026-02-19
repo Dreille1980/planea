@@ -167,8 +167,12 @@ private struct NavigationButtons: View {
                             appLanguage: appLanguage
                         )
                         // Dismiss after successful generation
+                        print("🔍 After generation - generationSuccess: \(viewModel.generationSuccess)")
                         if viewModel.generationSuccess {
+                            print("🚪 Calling dismiss() from button")
                             dismiss()
+                        } else {
+                            print("⚠️ generationSuccess is false, not dismissing")
                         }
                     }
                 } label: {
