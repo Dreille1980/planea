@@ -1,6 +1,6 @@
 "tab.onboarding" = "Famille";
 "tab.plan" = "Plan";
-"tab.recipes" = "Repas";
+"tab.recipes" = "Recettes";
 "tab.shopping" = "Épicerie";
 "tab.favorites" = "Favoris";
 "tab.settings" = "Réglages";
@@ -123,7 +123,6 @@
 "shopping.accessDenied" = "Accès aux rappels refusé. Veuillez autoriser l'accès dans les Réglages.";
 "shopping.errorSaving" = "Erreur lors de la sauvegarde";
 "shopping.copied" = "Liste copiée dans le presse-papiers";
-"shopping.viewWeek" = "Voir ma semaine";
 
 "adhoc.recipeIdea" = "Idée de recette";
 "adhoc.servings" = "Portions";
@@ -771,114 +770,26 @@
 "force_update.message" = "Une nouvelle version de Planea est disponible. Veuillez mettre à jour pour continuer à utiliser l'app et profiter des dernières fonctionnalités et améliorations.";
 "force_update.button" = "Mettre à jour maintenant";
 
-// Week Generation Wizard
-"wizard.title" = "Nouvelle Semaine";
-"wizard.day" = "jour";
-"wizard.days" = "jours";
-"wizard.button.back" = "Retour";
-"wizard.button.continue" = "Continuer";
-"wizard.button.generate" = "Générer";
+// Nouveaux segments de l'onglet Recettes
+"recipes.segment.viewWeek" = "Voir semaine";
+"recipes.segment.generatePlan" = "Générer un plan";
 
-// Day Types
-"wizard.day_type.normal" = "Normal";
-"wizard.day_type.mealprep" = "Meal Prep";
-"wizard.day_type.skip" = "Non sélectionné";
+// Pas de semaine active
+"plan.noActiveWeek.title" = "Aucune semaine active";
+"plan.noActiveWeek.message" = "Vous n'avez pas encore de plan de repas pour cette semaine. Créez-en un pour commencer!";
+"plan.noActiveWeek.button" = "Générer un plan";
 
-// Step 1
-"wizard.step1.title" = "Composition de la semaine";
-"wizard.step1.subtitle" = "Choisissez les jours et le type de repas";
-"wizard.step1.summary.title" = "Résumé";
-"wizard.step1.summary.normal_days" = "Repas normaux";
-"wizard.step1.summary.mealprep_days" = "Meal Prep";
-"wizard.step1.summary.total" = "Total";
+// Simple vs Meal Prep
+"plan.simple" = "Simple";
+"plan.mealPrep" = "Meal Prep";
 
-// Step 2
-"wizard.step2.title" = "Configuration Meal Prep";
-"wizard.step2.subtitle" = "Ajustez vos portions et préférences";
-"wizard.step2.portions.title" = "Portions";
-"wizard.step2.portions.label" = "portions";
-"wizard.step2.portions.people" = "personnes";
-"wizard.step2.portions.meals" = "repas";
-"wizard.step2.portions.edit" = "Modifier";
-"wizard.step2.mealtype.title" = "Type de repas meal prep";
-"wizard.step2.mealtype.subtitle" = "Choisissez quels repas seront en meal prep";
-"wizard.step2.info.title" = "Astuce";
-"wizard.step2.info.message" = "Le meal prep permet de cuisiner une fois pour plusieurs jours";
-"wizard.step2.edit.title" = "Modifier les portions";
+// Sections de la vue semaine
+"plan.simpleRecipes.title" = "Recettes simples";
+"plan.mealPrepRecipes.title" = "Recettes Meal Prep";
+"plan.mealPrepSteps.title" = "Étapes Meal Prep";
+"plan.mealPrepSteps.description" = "Préparez ces recettes à l'avance pour gagner du temps durant la semaine";
+"plan.mealPrepSteps.covers" = "Couvre";
+"plan.mealPrepSteps.viewAll" = "Voir toutes les étapes";
 
-// Meal Prep Types
-"wizard.mealprep_type.lunch" = "Lunch";
-"wizard.mealprep_type.dinner" = "Dîner";
-"wizard.mealprep_type.both" = "Les deux";
-
-// Normal Day Meal Types
-"wizard.normal_type.lunch" = "Lunch";
-"wizard.normal_type.dinner" = "Souper";
-"wizard.normal_type.both" = "Les deux";
-"wizard.day_meals.title" = "Quels repas?";
-
-// Step 3
-"wizard.step3.title" = "Préférences";
-"wizard.step3.subtitle" = "Personnalisez vos recettes (optionnel)";
-"wizard.step3.preferences.toggle" = "Voir toutes les préférences";
-"wizard.step3.summary.title" = "Préférences actuelles";
-"wizard.step3.info" = "Ces préférences seront appliquées à tous les repas de la semaine";
-
-// Errors
-"wizard.error.invalid_config" = "Configuration invalide. Veuillez vérifier vos sélections.";
-
-// Success View
-"wizard.success.title" = "Succès !";
-"wizard.success.subtitle" = "Votre semaine a été générée";
-"wizard.success.total_meals" = "Total repas";
-"wizard.success.meals_generated" = "repas générés";
-"wizard.success.meal_prep_days" = "Jours Meal Prep";
-"wizard.success.portions_prepared" = "portions préparées";
-"wizard.success.normal_days" = "Jours Normaux";
-"wizard.success.regular_meals" = "repas réguliers";
-"wizard.success.meal_prep_recipes" = "Recettes Meal Prep";
-"wizard.success.view_meal_preps" = "Voir les Meal Preps";
-"wizard.success.done" = "Terminé";
-
-// Recipes Hub
-"recipes.hub.title" = "Recettes";
-"recipes.hub.subtitle" = "Que voulez-vous faire aujourd'hui?";
-"recipes.hub.viewPlan.title" = "Consulter le plan";
-"recipes.hub.viewPlan.subtitle.active" = "Voir votre plan de la semaine actif";
-"recipes.hub.viewPlan.subtitle.none" = "Aucun plan actif pour le moment";
-"recipes.hub.viewPlan.badge" = "Actif";
-"recipes.hub.generatePlan.title" = "Générer un nouveau plan";
-"recipes.hub.generatePlan.subtitle" = "Créez un plan de repas personnalisé pour la semaine";
-"recipes.hub.adHoc.title" = "Recette ad hoc";
-"recipes.hub.adHoc.subtitle" = "Générez une recette instantanément";
-"recipes.hub.noPlan.title" = "Aucun plan actif";
-"recipes.hub.noPlan.message" = "Vous n'avez pas encore de plan de la semaine. Voulez-vous en créer un?";
-"recipes.hub.noPlan.create" = "Créer un plan";
-"recipes.back_to_hub" = "Menu";
-
-// Wizard - New Step 1 UI
-"wizard.step1.subtitle.new" = "Sélectionnez les repas et choisissez le type pour chacun";
-"wizard.quick_actions.title" = "Actions rapides";
-"wizard.quick_action.select_all" = "Tout";
-"wizard.quick_action.deselect_all" = "Aucun";
-"wizard.quick_action.all_mealprep" = "Meal Prep";
-"wizard.quick_action.all_simple" = "Simple";
-"wizard.badge.mealprep" = "Meal Prep";
-"wizard.slot_type.simple" = "Simple";
-"wizard.slot_type.mealprep" = "Meal Prep";
-"wizard.step1.summary.simple" = "Recettes simples";
-"wizard.step1.summary.mealprep" = "Meal Prep";
-"wizard.meal" = "repas";
-"wizard.meals" = "repas";
-
-// Wizard errors
-"wizard.error.no_internet" = "Aucune connexion Internet. Vérifiez votre WiFi ou données cellulaires.";
-"wizard.error.timeout" = "Le serveur ne répond pas. Réessayez dans quelques instants.";
-"wizard.error.server_unreachable" = "Impossible de contacter le serveur. Vérifiez votre connexion.";
-"wizard.error.network" = "Erreur réseau: %@";
-"wizard.error.generic" = "Erreur: %@";
-
-// Plan - Meal Prep indicators
-"plan.mealprep.badge" = "Meal Prep";
-"plan.mealprep.prepared" = "Préparé";
-"plan.mealprep.dayof_steps" = "Étapes du jour";
+// Hint pour la sélection
+"plan.selectMealsHint" = "Cochez les cases et choisissez entre recette simple ou meal prep pour chaque repas";

@@ -48,19 +48,6 @@ class MealPrepStorageService {
         }
     }
     
-    /// Update an existing meal prep instance in history
-    func updateMealPrepInstance(_ instance: MealPrepInstance) {
-        var history = loadMealPrepHistory()
-        
-        if let index = history.firstIndex(where: { $0.id == instance.id }) {
-            history[index] = instance
-            saveMealPrepHistory(history)
-        } else {
-            // If not found, add it as new
-            saveMealPrepInstance(instance)
-        }
-    }
-    
     /// Delete a meal prep instance from history
     func deleteMealPrepInstance(id: UUID) {
         var history = loadMealPrepHistory()

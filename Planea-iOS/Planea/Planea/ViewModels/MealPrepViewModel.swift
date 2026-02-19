@@ -1,12 +1,10 @@
 import Foundation
 import SwiftUI
-import FirebaseAnalytics
 
 @MainActor
 class MealPrepViewModel: ObservableObject {
     @Published var history: [MealPrepInstance] = []
     @Published var generatedKits: [MealPrepKit] = []
-    @Published var kits: [MealPrepKit] = []  // ✨ NEW - All saved kits
     @Published var isGenerating = false
     @Published var errorMessage: String?
     
@@ -30,13 +28,6 @@ class MealPrepViewModel: ObservableObject {
     
     func loadHistory() {
         history = storageService.loadMealPrepHistory()
-        // Also update kits from history
-        kits = history.map { $0.kit }
-    }
-    
-    // ✨ NEW - Load meal preps for picker
-    func loadMealPreps() {
-        loadHistory()
     }
     
     func deleteHistoryItem(id: UUID) {
@@ -189,124 +180,5 @@ class MealPrepViewModel: ObservableObject {
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
         return formatter.string(from: date)
-    }
-    
-    // MARK: - ✨ NEW - Portion Assignment (Phase 2)
-    
-    /// Assigne un MealPrep à une journée du plan
-    func assignToWeek(
-        kit: MealPrepKit,
-        date: Date,
-        mealType: MealType,
-        portions: Int,
-        recipeId: String? = nil
-    ) {
-        do {
-            // Find the kit in history
-            guard let instanceIndex = history.firstIndex(where: { $0.kit.id == kit.id }) else {
-                errorMessage = NSLocalizedString("mealprep.error.kit_not_found", comment: "")
-                return
-            }
-            
-            var mutableKit = history[instanceIndex].kit
-            
-            // Créer l'assignment
-            _ = try mutableKit.assignPortions(
-                date: date,
-                mealType: mealType,
-                portions: portions,
-                specificRecipeId: recipeId
-            )
-            
-            // Mettre à jour le kit dans l'historique
-            var updatedInstance = history[instanceIndex]
-            updatedInstance = MealPrepInstance(
-                id: updatedInstance.id,
-                kit: mutableKit,
-                appliedWeekStart: updatedInstance.appliedWeekStart,
-                createdAt: updatedInstance.createdAt
-            )
-            
-            // Sauvegarder
-            storageService.updateMealPrepInstance(updatedInstance)
-            loadHistory()
-            
-            // Analytics
-            AnalyticsService.shared.logMealPrepAssigned(
-                kitID: kit.id.uuidString,
-                kitName: kit.name,
-                portions: portions,
-                date: date.description
-            )
-            
-            print("✅ Assigned \(portions) portions of \(kit.name) to \(date)")
-            
-        } catch let error as MealPrepError {
-            errorMessage = error.localizedDescription
-            print("❌ Error assigning meal prep: \(error)")
-        } catch {
-            errorMessage = error.localizedDescription
-            print("❌ Unexpected error: \(error)")
-        }
-    }
-    
-    /// Retire une assignation
-    func unassignFromWeek(assignment: MealPrepAssignment) {
-        do {
-            // Find the kit containing this assignment
-            guard let instanceIndex = history.firstIndex(where: { instance in
-                instance.kit.assignments.contains(where: { $0.id == assignment.id })
-            }) else {
-                errorMessage = NSLocalizedString("mealprep.error.assignment_not_found", comment: "")
-                return
-            }
-            
-            var mutableKit = history[instanceIndex].kit
-            try mutableKit.unassign(assignment.id)
-            
-            // Mettre à jour
-            var updatedInstance = history[instanceIndex]
-            updatedInstance = MealPrepInstance(
-                id: updatedInstance.id,
-                kit: mutableKit,
-                appliedWeekStart: updatedInstance.appliedWeekStart,
-                createdAt: updatedInstance.createdAt
-            )
-            
-            storageService.updateMealPrepInstance(updatedInstance)
-            loadHistory()
-            
-            // Analytics
-            AnalyticsService.shared.logMealPrepUnassigned(
-                assignmentID: assignment.id.uuidString,
-                reason: "user_action"
-            )
-            
-            print("✅ Unassigned \(assignment.portionsUsed) portions")
-            
-        } catch {
-            errorMessage = error.localizedDescription
-            print("❌ Error unassigning: \(error)")
-        }
-    }
-}
-
-// MARK: - ✨ NEW - Analytics Extension
-
-extension AnalyticsService {
-    func logMealPrepAssigned(kitID: String, kitName: String, portions: Int, date: String) {
-        Analytics.logEvent("meal_prep_assigned", parameters: [
-            "kit_id": kitID,
-            "kit_name": kitName,
-            "portions": portions,
-            "date": date
-        ])
-    }
-    
-    func logMealPrepUnassigned(assignmentID: String, reason: String) {
-        Analytics.logEvent("meal_prep_unassigned", parameters: [
-            "assignment_id": assignmentID,
-            "reason": reason
-        ])
     }
 }

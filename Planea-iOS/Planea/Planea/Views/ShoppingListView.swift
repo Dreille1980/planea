@@ -5,7 +5,6 @@ struct ShoppingListView: View {
     @EnvironmentObject var planVM: PlanViewModel
     @EnvironmentObject var shoppingVM: ShoppingViewModel
     @EnvironmentObject var usageVM: UsageViewModel
-    @Binding var selectedTab: Int
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
     @State private var showingSortOptions = false
     @State private var showingExportOptions = false
@@ -108,25 +107,9 @@ struct ShoppingListView: View {
             .navigationTitle("shopping.title".localized)
             .toolbar {
                 if shoppingVM.currentList != nil {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button {
-                            // Switch to Recipes tab and navigate to plan view
-                            selectedTab = 0
-                            // Post notification to open meal plan view
-                            NotificationCenter.default.post(name: NSNotification.Name("OpenMealPlanView"), object: nil)
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "calendar")
-                                Text("shopping.viewWeek".localized)
-                            }
-                        }
-                    }
-                    
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("action.refresh".localized) {
-                            if let plan = planVM.currentPlan {
-                                generateShoppingList(from: plan)
-                            }
+                    Button("action.refresh".localized) {
+                        if let plan = planVM.currentPlan {
+                            generateShoppingList(from: plan)
                         }
                     }
                 }

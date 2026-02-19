@@ -58,7 +58,6 @@ struct PlanWeekView: View {
     @State private var showTemplates = false
     @State private var showSaveAsTemplateDialog = false
     @State private var templateName = ""
-    @State private var showWizard = false
     
     var weekdays: [Weekday] {
         PreferencesService.shared.loadPreferences().sortedWeekdays()
@@ -303,16 +302,6 @@ struct PlanWeekView: View {
                             }
                         }
                     }
-                } else {
-                    // Wizard button when no plan
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button(action: {
-                            showWizard = true
-                        }) {
-                            Image(systemName: "wand.and.stars")
-                                .font(.title3)
-                        }
-                    }
                 }
             }
             .sheet(isPresented: $showAddMealSheet) {
@@ -330,11 +319,6 @@ struct PlanWeekView: View {
             }
             .sheet(isPresented: $showTemplates) {
                 TemplatesListView()
-                    .environmentObject(planVM)
-            }
-            .sheet(isPresented: $showWizard) {
-                WeekGenerationWizardView(planViewModel: planVM)
-                    .environmentObject(familyVM)
                     .environmentObject(planVM)
             }
             .alert("Sauvegarder comme template", isPresented: $showSaveAsTemplateDialog) {
@@ -766,10 +750,6 @@ struct MealRowView: View {
     let onRemove: () -> Void
     
     var iconName: String {
-        // Use meal prep icon if it's a meal prep
-        if mealItem.isMealPrep {
-            return "takeoutbag.and.cup.and.straw.fill"
-        }
         switch mealType {
         case .breakfast: return "sunrise.fill"
         case .lunch: return "sun.max.fill"
@@ -779,10 +759,6 @@ struct MealRowView: View {
     }
     
     var iconColor: Color {
-        // Use orange for meal prep
-        if mealItem.isMealPrep {
-            return .orange
-        }
         switch mealType {
         case .breakfast: return .orange
         case .lunch: return .yellow
@@ -793,57 +769,39 @@ struct MealRowView: View {
     
     var body: some View {
         NavigationLink(destination: RecipeDetailView(recipe: mealItem.recipe)) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 12) {
-                    // Icon
-                    Image(systemName: iconName)
-                        .font(.title3)
-                        .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(iconColor)
-                        .frame(width: 32, height: 32)
-                        .background(iconColor.opacity(0.15))
-                        .cornerRadius(8)
-                    
-                    // Content
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 6) {
-                            Text(mealLabel)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            
-                            // Meal Prep badge
-                            if mealItem.isMealPrep {
-                                MealPrepBadge(isPrepared: mealItem.isPrepared)
-                            }
-                        }
-                        
-                        Text(recipeName)
-                            .font(.subheadline)
-                            .bold()
-                            .foregroundStyle(.primary)
-                    }
-                    
-                    Spacer()
-                    
-                    // Navigate icon
-                    Image(systemName: "chevron.right")
+            HStack(spacing: 12) {
+                // Icon
+                Image(systemName: iconName)
+                    .font(.title3)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(iconColor)
+                    .frame(width: 32, height: 32)
+                    .background(iconColor.opacity(0.15))
+                    .cornerRadius(8)
+                
+                // Content
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(mealLabel)
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .frame(width: 20)
+                        .foregroundStyle(.secondary)
+                    
+                    Text(recipeName)
+                        .font(.subheadline)
+                        .bold()
+                        .foregroundStyle(.primary)
                 }
                 
-                // Day-of steps for meal preps
-                if mealItem.isMealPrep, let steps = mealItem.dayOfSteps, !steps.isEmpty {
-                    DayOfStepsView(steps: steps)
-                }
+                Spacer()
+                
+                // Navigate icon
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                    .frame(width: 20)
             }
             .padding(12)
-            .background(mealItem.isMealPrep ? Color.orange.opacity(0.05) : Color(.systemGray6))
+            .background(Color(.systemGray6))
             .cornerRadius(10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(mealItem.isMealPrep ? Color.orange.opacity(0.3) : Color.clear, lineWidth: 1)
-            )
         }
         .buttonStyle(.plain)
         .overlay(alignment: .topTrailing) {
@@ -876,59 +834,5 @@ struct MealRowView: View {
             }
             .padding(12)
         }
-    }
-}
-
-// MARK: - Meal Prep Badge
-struct MealPrepBadge: View {
-    let isPrepared: Bool
-    
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: isPrepared ? "checkmark.circle.fill" : "clock.fill")
-                .font(.system(size: 10))
-            Text(isPrepared ? "plan.mealprep.prepared".localized : "plan.mealprep.badge".localized)
-                .font(.caption2)
-                .fontWeight(.semibold)
-        }
-        .foregroundStyle(isPrepared ? .green : .orange)
-        .padding(.horizontal, 6)
-        .padding(.vertical, 3)
-        .background(isPrepared ? Color.green.opacity(0.15) : Color.orange.opacity(0.15))
-        .cornerRadius(6)
-    }
-}
-
-// MARK: - Day Of Steps View
-struct DayOfStepsView: View {
-    let steps: [String]
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 4) {
-                Image(systemName: "clock.badge.checkmark")
-                    .font(.caption2)
-                Text("plan.mealprep.dayof_steps".localized)
-                    .font(.caption2)
-                    .fontWeight(.medium)
-            }
-            .foregroundStyle(.orange)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                ForEach(steps.indices, id: \.self) { index in
-                    HStack(alignment: .top, spacing: 6) {
-                        Text("•")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        Text(steps[index])
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-        }
-        .padding(8)
-        .background(Color.orange.opacity(0.08))
-        .cornerRadius(8)
     }
 }

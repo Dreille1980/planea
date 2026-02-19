@@ -1,6 +1,6 @@
 "tab.onboarding" = "Family";
 "tab.plan" = "Plan";
-"tab.recipes" = "Meals";
+"tab.recipes" = "Recipes";
 "tab.shopping" = "Groceries";
 "tab.favorites" = "Favorites";
 "tab.settings" = "Settings";
@@ -123,7 +123,6 @@
 "shopping.accessDenied" = "Access to reminders denied. Please allow access in Settings.";
 "shopping.errorSaving" = "Error saving";
 "shopping.copied" = "List copied to clipboard";
-"shopping.viewWeek" = "View Week";
 
 "adhoc.recipeIdea" = "Recipe Idea";
 "adhoc.servings" = "Servings";
@@ -755,114 +754,26 @@
 "force_update.message" = "A new version of Planea is available. Please update to continue using the app and enjoy the latest features and improvements.";
 "force_update.button" = "Update Now";
 
-// Week Generation Wizard
-"wizard.title" = "New Week";
-"wizard.day" = "day";
-"wizard.days" = "days";
-"wizard.button.back" = "Back";
-"wizard.button.continue" = "Continue";
-"wizard.button.generate" = "Generate";
+// New Recipe Segments
+"recipes.segment.viewWeek" = "View Week";
+"recipes.segment.generatePlan" = "Generate Plan";
 
-// Day Types
-"wizard.day_type.normal" = "Normal";
-"wizard.day_type.mealprep" = "Meal Prep";
-"wizard.day_type.skip" = "Not selected";
+// No Active Week
+"plan.noActiveWeek.title" = "No Active Week";
+"plan.noActiveWeek.message" = "You don't have a meal plan for this week yet. Create one to get started!";
+"plan.noActiveWeek.button" = "Generate a Plan";
 
-// Step 1
-"wizard.step1.title" = "Week Composition";
-"wizard.step1.subtitle" = "Choose days and meal type";
-"wizard.step1.summary.title" = "Summary";
-"wizard.step1.summary.normal_days" = "Normal meals";
-"wizard.step1.summary.mealprep_days" = "Meal Prep";
-"wizard.step1.summary.total" = "Total";
+// Simple vs Meal Prep
+"plan.simple" = "Simple";
+"plan.mealPrep" = "Meal Prep";
 
-// Step 2
-"wizard.step2.title" = "Meal Prep Configuration";
-"wizard.step2.subtitle" = "Adjust your portions and preferences";
-"wizard.step2.portions.title" = "Portions";
-"wizard.step2.portions.label" = "portions";
-"wizard.step2.portions.people" = "people";
-"wizard.step2.portions.meals" = "meals";
-"wizard.step2.portions.edit" = "Edit";
-"wizard.step2.mealtype.title" = "Meal prep type";
-"wizard.step2.mealtype.subtitle" = "Choose which meals will be meal prep";
-"wizard.step2.info.title" = "Tip";
-"wizard.step2.info.message" = "Meal prep allows you to cook once for multiple days";
-"wizard.step2.edit.title" = "Edit Portions";
+// Week View Sections
+"plan.simpleRecipes.title" = "Simple Recipes";
+"plan.mealPrepRecipes.title" = "Meal Prep Recipes";
+"plan.mealPrepSteps.title" = "Meal Prep Steps";
+"plan.mealPrepSteps.description" = "Prepare these recipes in advance to save time during the week";
+"plan.mealPrepSteps.covers" = "Covers";
+"plan.mealPrepSteps.viewAll" = "View all steps";
 
-// Meal Prep Types
-"wizard.mealprep_type.lunch" = "Lunch";
-"wizard.mealprep_type.dinner" = "Dinner";
-"wizard.mealprep_type.both" = "Both";
-
-// Normal Day Meal Types
-"wizard.normal_type.lunch" = "Lunch";
-"wizard.normal_type.dinner" = "Dinner";
-"wizard.normal_type.both" = "Both";
-"wizard.day_meals.title" = "Which meals?";
-
-// Step 3
-"wizard.step3.title" = "Preferences";
-"wizard.step3.subtitle" = "Customize your recipes (optional)";
-"wizard.step3.preferences.toggle" = "View all preferences";
-"wizard.step3.summary.title" = "Current preferences";
-"wizard.step3.info" = "These preferences will be applied to all meals of the week";
-
-// Errors
-"wizard.error.invalid_config" = "Invalid configuration. Please check your selections.";
-
-// Success View
-"wizard.success.title" = "Success!";
-"wizard.success.subtitle" = "Your week has been generated";
-"wizard.success.total_meals" = "Total meals";
-"wizard.success.meals_generated" = "meals generated";
-"wizard.success.meal_prep_days" = "Meal Prep Days";
-"wizard.success.portions_prepared" = "portions prepared";
-"wizard.success.normal_days" = "Normal Days";
-"wizard.success.regular_meals" = "regular meals";
-"wizard.success.meal_prep_recipes" = "Meal Prep Recipes";
-"wizard.success.view_meal_preps" = "View Meal Preps";
-"wizard.success.done" = "Done";
-
-// Recipes Hub
-"recipes.hub.title" = "Recipes";
-"recipes.hub.subtitle" = "What would you like to do today?";
-"recipes.hub.viewPlan.title" = "View Plan";
-"recipes.hub.viewPlan.subtitle.active" = "See your active weekly plan";
-"recipes.hub.viewPlan.subtitle.none" = "No active plan at the moment";
-"recipes.hub.viewPlan.badge" = "Active";
-"recipes.hub.generatePlan.title" = "Generate New Plan";
-"recipes.hub.generatePlan.subtitle" = "Create a personalized meal plan for the week";
-"recipes.hub.adHoc.title" = "Ad Hoc Recipe";
-"recipes.hub.adHoc.subtitle" = "Generate a recipe instantly";
-"recipes.hub.noPlan.title" = "No Active Plan";
-"recipes.hub.noPlan.message" = "You don't have a weekly plan yet. Would you like to create one?";
-"recipes.hub.noPlan.create" = "Create Plan";
-"recipes.back_to_hub" = "Menu";
-
-// Wizard - New Step 1 UI
-"wizard.step1.subtitle.new" = "Select meals and choose the type for each";
-"wizard.quick_actions.title" = "Quick actions";
-"wizard.quick_action.select_all" = "All";
-"wizard.quick_action.deselect_all" = "None";
-"wizard.quick_action.all_mealprep" = "Meal Prep";
-"wizard.quick_action.all_simple" = "Simple";
-"wizard.badge.mealprep" = "Meal Prep";
-"wizard.slot_type.simple" = "Simple";
-"wizard.slot_type.mealprep" = "Meal Prep";
-"wizard.step1.summary.simple" = "Simple recipes";
-"wizard.step1.summary.mealprep" = "Meal Prep";
-"wizard.meal" = "meal";
-"wizard.meals" = "meals";
-
-// Wizard errors
-"wizard.error.no_internet" = "No internet connection. Check your WiFi or cellular data.";
-"wizard.error.timeout" = "Server not responding. Try again in a moment.";
-"wizard.error.server_unreachable" = "Cannot reach server. Check your connection.";
-"wizard.error.network" = "Network error: %@";
-"wizard.error.generic" = "Error: %@";
-
-// Plan - Meal Prep indicators
-"plan.mealprep.badge" = "Meal Prep";
-"plan.mealprep.prepared" = "Prepared";
-"plan.mealprep.dayof_steps" = "Day-of Steps";
+// Selection Hint
+"plan.selectMealsHint" = "Check the boxes and choose between simple recipe or meal prep for each meal";

@@ -13,9 +13,6 @@ final class PlanViewModel: ObservableObject {
     @Published var showApplyTemplateSheet = false
     @Published var selectedTemplate: TemplateWeek?
     
-    // Shopping list reference
-    weak var shoppingVM: ShoppingViewModel?
-    
     private let persistence = PersistenceController.shared
     
     init() {
@@ -46,7 +43,7 @@ final class PlanViewModel: ObservableObject {
         slots.remove(slot)
     }
     
-    @MainActor func savePlan(_ plan: MealPlan, generateShoppingList: Bool = true) {
+    @MainActor func savePlan(_ plan: MealPlan) {
         var mutablePlan = plan
         mutablePlan.status = .draft
         currentPlan = mutablePlan
@@ -60,36 +57,6 @@ final class PlanViewModel: ObservableObject {
         AnalyticsService.shared.logRecipeGenerated(
             type: "plan",
             recipeCount: plan.items.count
-        )
-        
-        // Auto-generate shopping list from the plan
-        if generateShoppingList {
-            generateShoppingListFromPlan(plan)
-        }
-    }
-    
-    // MARK: - Shopping List Generation
-    
-    /// Generates and replaces the shopping list from the current plan
-    func generateShoppingListFromPlan(_ plan: MealPlan) {
-        guard let shoppingVM = shoppingVM else {
-            print("⚠️ ShoppingViewModel not available - shopping list not generated")
-            return
-        }
-        
-        // Use metric as default, will be converted during display if needed
-        let units = UnitSystem.metric
-        
-        // Generate the list from all meal items (both simple and meal prep)
-        shoppingVM.generateList(from: plan.items, units: units)
-        
-        // Log to analytics
-        AnalyticsService.shared.logEvent(
-            name: "shopping_list_auto_generated",
-            parameters: [
-                "items_count": shoppingVM.currentList?.items.count ?? 0,
-                "from_plan": true
-            ]
         )
     }
     
@@ -304,69 +271,5 @@ final class PlanViewModel: ObservableObject {
         
         // Analytics
         AnalyticsService.shared.logTemplateDeleted(templateID: id.uuidString)
-    }
-    
-    // MARK: - Week Generation with Config
-    
-    @MainActor
-    func generateWeekWithConfig(
-        config: WeekGenerationConfig,
-        familyVM: FamilyViewModel,
-        unitSystem: String,
-        appLanguage: String
-    ) async throws -> MealPlan {
-        // Use new slot-based system instead of legacy days
-        var slots: [SlotSelection] = []
-        
-        for mealSlot in config.selectedSlots {
-            slots.append(SlotSelection(weekday: mealSlot.weekday, mealType: mealSlot.mealType))
-        }
-        
-        // Prepare constraints
-        let service = IAService(baseURL: URL(string: Config.baseURL)!)
-        let units = UnitSystem(rawValue: unitSystem) ?? .metric
-        let constraints = familyVM.aggregatedConstraints()
-        let dislikedProteins = familyVM.aggregatedDislikedProteins()
-        let constraintsDict: [String: Any] = [
-            "diet": constraints.diet,
-            "evict": constraints.evict,
-            "excludedProteins": dislikedProteins
-        ]
-        
-        let language = AppLanguage.currentLocale(appLanguage).prefix(2).lowercased()
-        
-        // Calculate servings based on config
-        let servings: Int
-        if config.hasMealPrep {
-            // Use meal prep portions divided by number of meal prep meals
-            let mealPrepMealsCount = config.mealPrepDays.count * config.mealPrepMealTypes.count
-            servings = mealPrepMealsCount > 0 ? config.mealPrepPortions / mealPrepMealsCount : config.familySize
-        } else {
-            servings = max(1, config.familySize)
-        }
-        
-        // Generate plan using existing API
-        // TODO: Later, create a new endpoint that handles meal prep specifically
-        let plan = try await service.generatePlan(
-            weekStart: config.startDate,
-            slots: slots,
-            constraints: constraintsDict,
-            servings: servings,
-            units: units,
-            language: String(language)
-        )
-        
-        // Analytics
-        AnalyticsService.shared.logEvent(
-            name: "wizard_plan_generated",
-            parameters: [
-                "total_days": config.selectedDays.count,
-                "meal_prep_days": config.mealPrepDays.count,
-                "normal_days": config.normalDays.count,
-                "total_portions": config.mealPrepPortions
-            ]
-        )
-        
-        return plan
     }
 }

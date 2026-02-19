@@ -17,12 +17,6 @@ class AnalyticsService {
         Analytics.setUserID(userID)
     }
     
-    // MARK: - Generic Event Logging
-    
-    func logEvent(name: String, parameters: [String: Any]? = nil) {
-        Analytics.logEvent(name, parameters: parameters)
-    }
-    
     // MARK: - Navigation & Engagement
     
     func logScreenView(screenName: String, screenClass: String? = nil) {
