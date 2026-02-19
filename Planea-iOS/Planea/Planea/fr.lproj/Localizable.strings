@@ -1,6 +1,6 @@
 "tab.onboarding" = "Famille";
 "tab.plan" = "Plan";
-"tab.recipes" = "Recettes";
+"tab.recipes" = "Repas";
 "tab.shopping" = "Épicerie";
 "tab.favorites" = "Favoris";
 "tab.settings" = "Réglages";
@@ -123,6 +123,7 @@
 "shopping.accessDenied" = "Accès aux rappels refusé. Veuillez autoriser l'accès dans les Réglages.";
 "shopping.errorSaving" = "Erreur lors de la sauvegarde";
 "shopping.copied" = "Liste copiée dans le presse-papiers";
+"shopping.viewWeek" = "Voir ma semaine";
 
 "adhoc.recipeIdea" = "Idée de recette";
 "adhoc.servings" = "Portions";

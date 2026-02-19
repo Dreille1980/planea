@@ -7,6 +7,7 @@ struct RecipesView: View {
     @EnvironmentObject var recipeHistoryVM: RecipeHistoryViewModel
     @EnvironmentObject var usageVM: UsageViewModel
     @StateObject private var storeManager = StoreManager.shared
+    @Binding var selectedTab: Int
     
     @State private var selectedAction: RecipesAction? = nil
     @State private var showRecentRecipes = false
@@ -98,6 +99,21 @@ struct RecipesView: View {
             // Bouton flottant de chat
             FloatingChatButton()
                 .environmentObject(usageVM)
+        }
+        .onAppear {
+            // Reset to hub when tab appears
+            selectedAction = nil
+            
+            // Setup notification observer for direct navigation to plan
+            NotificationCenter.default.addObserver(
+                forName: NSNotification.Name("OpenMealPlanView"),
+                object: nil,
+                queue: .main
+            ) { _ in
+                if planVM.activePlan != nil {
+                    selectedAction = .viewPlan
+                }
+            }
         }
     }
 }

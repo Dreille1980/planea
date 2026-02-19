@@ -49,7 +49,9 @@ final class WeekGenerationConfigViewModel: ObservableObject {
     // MARK: - Computed Properties (Legacy)
     
     var totalSteps: Int {
-        config.hasMealPrep ? 3 : 2  // Step 2 (Meal Prep Config) is conditional
+        // Simplified: Only 2 steps maximum (Day Selection + Optional Meal Prep Config)
+        // Preferences step removed - using saved preferences
+        config.hasMealPrep ? 2 : 1
     }
     
     var canProceed: Bool {
@@ -115,12 +117,8 @@ final class WeekGenerationConfigViewModel: ObservableObject {
     func nextStep() {
         guard currentStep < totalSteps - 1 else { return }
         
-        // If moving from step 1 and no meal prep, skip step 2
-        if currentStep == 0 && !config.hasMealPrep {
-            currentStep = 2  // Skip to preferences
-        } else {
-            currentStep += 1
-        }
+        // Simplified navigation: just move to next step
+        currentStep += 1
         
         // Recalculate portions when entering meal prep config
         if currentStep == 1 && config.hasMealPrep {
@@ -131,12 +129,8 @@ final class WeekGenerationConfigViewModel: ObservableObject {
     func previousStep() {
         guard currentStep > 0 else { return }
         
-        // If moving back from step 2 (preferences) and no meal prep, skip step 1
-        if currentStep == 2 && !config.hasMealPrep {
-            currentStep = 0  // Skip back to day selection
-        } else {
-            currentStep -= 1
-        }
+        // Simplified navigation: just move to previous step
+        currentStep -= 1
     }
     
     func canGoBack() -> Bool {

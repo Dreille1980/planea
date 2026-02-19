@@ -1,6 +1,6 @@
 "tab.onboarding" = "Family";
 "tab.plan" = "Plan";
-"tab.recipes" = "Recipes";
+"tab.recipes" = "Meals";
 "tab.shopping" = "Groceries";
 "tab.favorites" = "Favorites";
 "tab.settings" = "Settings";
@@ -123,6 +123,7 @@
 "shopping.accessDenied" = "Access to reminders denied. Please allow access in Settings.";
 "shopping.errorSaving" = "Error saving";
 "shopping.copied" = "List copied to clipboard";
+"shopping.viewWeek" = "View Week";
 
 "adhoc.recipeIdea" = "Recipe Idea";
 "adhoc.servings" = "Servings";

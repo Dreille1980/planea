@@ -112,12 +112,12 @@ struct RootView: View {
             
             TabView(selection: $selectedTab) {
                 // Recipes tab - combines Plan and Ad hoc generation
-                RecipesView()
-                    .tabItem { Label("tab.recipes".localized, systemImage: "fork.knife") }
+                RecipesView(selectedTab: $selectedTab)
+                    .tabItem { Label("tab.recipes".localized, systemImage: "calendar.badge.clock") }
                     .tag(0)
                 
                 // Shopping tab - freemium access with export restrictions
-                ShoppingListView()
+                ShoppingListView(selectedTab: $selectedTab)
                     .tabItem { Label("tab.shopping".localized, systemImage: "cart") }
                     .tag(1)
                 

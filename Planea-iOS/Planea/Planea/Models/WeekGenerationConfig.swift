@@ -268,9 +268,6 @@ struct WeekGenerationConfig {
                 return mealPrepPortions > 0
             }
             return true
-        case 2:
-            // Step 3: Preferences (toujours OK)
-            return true
         default:
             return false
         }
