@@ -1365,26 +1365,28 @@ SPECIAL INSTRUCTIONS:
 - Generous sauce to maintain moisture
 - Bold seasoning (diminishes over time)
 """
-
-        diversity_text_en = "\n\nCRITICAL - MAXIMUM DIVERSITY:\n"
-        if suggested_protein and other_plan_proteins:
-            diversity_text_en += f"- SUGGESTED PROTEIN for this recipe: {suggested_protein}\n"
-            diversity_text_en += f"- FORBIDDEN to use these proteins (already in plan): {', '.join(other_plan_proteins)}\n"
-            diversity_text_en += f"- You MUST use {suggested_protein} or a DIFFERENT alternative from the forbidden proteins\n"
-        diversity_text_en += "- Create a COMPLETELY UNIQUE and DIFFERENT recipe\n"
-        diversity_text_en += "- Freely vary: world cuisines, vegetables, spices, techniques\n"
-        diversity_text_en += "- Explore creative and unexpected combinations\n"
-        diversity_text_en += "- Each recipe must be distinct from others\n"
-        diversity_text_en += "- Use maximum creativity without limitations\n"
+    
+    # Build diversity text for suggested proteins
+    diversity_text = ""
+    if suggested_protein and other_plan_proteins:
+        diversity_text = "\n\nCRITICAL - MAXIMUM DIVERSITY:\n"
+        diversity_text += f"- SUGGESTED PROTEIN for this recipe: {suggested_protein}\n"
+        diversity_text += f"- FORBIDDEN to use these proteins (already in plan): {', '.join(other_plan_proteins)}\n"
+        diversity_text += f"- You MUST use {suggested_protein} or a DIFFERENT alternative from the forbidden proteins\n"
+        diversity_text += "- Create a COMPLETELY UNIQUE and DIFFERENT recipe\n"
+        diversity_text += "- Freely vary: world cuisines, vegetables, spices, techniques\n"
+        diversity_text += "- Explore creative and unexpected combinations\n"
+        diversity_text += "- Each recipe must be distinct from others\n"
+        diversity_text += "- Use maximum creativity without limitations\n"
+    
+    # Build the prompt based on language (OUTSIDE the if is_meal_prep block)
+    if language == "en":
+        unit_system_text = "metric (grams, ml)" if units == "METRIC" else "imperial (oz, cups)"
         
-        # After meal prep instructions, build the prompt based on language
-        if language == "en":
-            unit_system_text = "metric (grams, ml)" if units == "METRIC" else "imperial (oz, cups)"
-            
-            prompt = f"""Generate a {meal_type_name} recipe in English for {servings} people.
+        prompt = f"""Generate a {meal_type_name} recipe in English for {servings} people.
 
 {constraints_text}{complexity_instructions_en}
-{preferences_text}{protein_portions_text}{accompaniment_guidance_en}{storage_instructions}{meal_prep_instructions}{diversity_text_en}
+{preferences_text}{protein_portions_text}{accompaniment_guidance_en}{storage_instructions}{meal_prep_instructions}{diversity_text}
 
 CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
 - First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
@@ -1427,13 +1429,13 @@ Use the {unit_system_text} system.
 Possible ingredient categories: vegetables, fruits, meats, fish, dairy, dry goods, condiments, canned goods.
 
 IMPORTANT: Generate at least 6-8 detailed steps with EXPLICIT preparation steps at the beginning."""
-        else:  # French
-            unit_system_text = "métrique (grammes, ml)" if units == "METRIC" else "impérial (oz, cups)"
-            
-            prompt = f"""Génère une recette de {meal_type_name} en français pour {servings} personnes.
+    else:  # French
+        unit_system_text = "métrique (grammes, ml)" if units == "METRIC" else "impérial (oz, cups)"
+        
+        prompt = f"""Génère une recette de {meal_type_name} en français pour {servings} personnes.
 
-{constraints_text}{complexity_instructions_en}
-{preferences_text}{protein_portions_text}{accompaniment_guidance_fr}{storage_instructions}{meal_prep_instructions}{diversity_text_en}
+{constraints_text}{complexity_instructions_fr}
+{preferences_text}{protein_portions_text}{accompaniment_guidance_fr}{storage_instructions}{meal_prep_instructions}{diversity_text}
 
 CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
 - Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
