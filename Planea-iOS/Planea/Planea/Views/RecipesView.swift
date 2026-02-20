@@ -31,7 +31,7 @@ struct RecipesView: View {
                 
                 // Segment content
                 TabView(selection: $selectedSegment) {
-                    WeekOverviewView()
+                    WeekOverviewView(selectedSegment: $selectedSegment)
                         .tag(RecipesSegment.viewWeek)
                     
                     GenerateMealPlanView(selectedSegment: $selectedSegment)

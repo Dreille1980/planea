@@ -162,18 +162,20 @@ struct IAService {
         req.httpMethod = "POST"
         req.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // Format date as YYYY-MM-DD only (Python expects date, not datetime)
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
-        dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+        // Format date as YYYY-MM-DD using Calendar to avoid timezone issues
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day], from: weekStart)
+        let weekStartString = String(format: "%04d-%02d-%02d", 
+                                    components.year ?? 2024, 
+                                    components.month ?? 1, 
+                                    components.day ?? 1)
         
         // Load preferences if Premium user
         let hasPremium = StoreManager.shared.hasActiveSubscription
         let preferencesDict = preferencesToDict(hasPremium: hasPremium)
         
         let payload: [String: Any] = [
-            "week_start": dateFormatter.string(from: weekStart),
+            "week_start": weekStartString,
             "units": units.rawValue,
             "slots": slots.map { slot in
                 var slotDict: [String: Any] = [

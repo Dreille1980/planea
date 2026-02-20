@@ -4,7 +4,7 @@ struct WeekOverviewView: View {
     @EnvironmentObject var planVM: PlanViewModel
     @EnvironmentObject var familyVM: FamilyViewModel
     @EnvironmentObject var usageVM: UsageViewModel
-    @State private var selectedSegment: Int = 0
+    @Binding var selectedSegment: RecipesSegment
     @State private var regeneratingMealId: UUID?
     @State private var showUsageLimitReached = false
     @State private var showAddMealSheet = false
@@ -75,7 +75,9 @@ struct WeekOverviewView: View {
             }
             
             Button(action: {
-                // Switch to generate plan tab would need to be handled by parent
+                withAnimation {
+                    selectedSegment = .generatePlan
+                }
             }) {
                 HStack {
                     Image(systemName: "sparkles")
