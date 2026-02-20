@@ -1483,7 +1483,7 @@ Calcule les valeurs nutritionnelles approximatives par portion en utilisant tes 
 - fat_per_serving: Lipides en grammes par portion (entier)
 Base les calculs sur les ingrédients et quantités réels de la recette.
 
-Utilise le système {unit_system}.
+Utilise le système {unit_system_text}.
 Catégories d'ingrédients possibles: légumes, fruits, viandes, poissons, produits laitiers, sec, condiments, conserves.
 
 IMPORTANT: Génère au moins 6-8 étapes détaillées avec des étapes de préparation EXPLICITES au début."""
