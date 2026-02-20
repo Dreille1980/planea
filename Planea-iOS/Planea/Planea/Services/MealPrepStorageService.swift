@@ -10,7 +10,7 @@ class MealPrepStorageService {
     
     private init() {  // Private to enforce singleton
         encoder.dateEncodingStrategy = .iso8601
-        decoder.dateEncodingStrategy = .iso8601
+        decoder.dateDecodingStrategy = .iso8601
     }
     
     // MARK: - History Management

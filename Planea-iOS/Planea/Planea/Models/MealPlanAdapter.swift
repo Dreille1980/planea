@@ -212,7 +212,7 @@ struct MealPlanAdapter {
     }
     
     /// Parse meal prep steps from backend stored kit
-    static func parseMealPrepSteps(groupId: UUID) -> (todayPreparation: MealPrepTodayPreparation?, weeklyReheating: MealPrepWeeklyReheating?) {
+    static func parseMealPrepSteps(groupId: UUID) -> (todayPreparation: TodayPreparation?, weeklyReheating: WeeklyReheating?) {
         print("🔍 parseMealPrepSteps called for group: \(groupId.uuidString)")
         
         // Load kit from storage
@@ -223,18 +223,28 @@ struct MealPlanAdapter {
         
         print("  ✅ Found kit data in storage")
         
-        // Parse today_preparation
-        var todayPrep: MealPrepTodayPreparation? = nil
-        if let todayData = kitData["today_preparation"] as? [String: Any] {
-            todayPrep = MealPrepTodayPreparation(backendData: todayData)
-            print("  ✅ Parsed today_preparation")
+        // Parse today_preparation - try Codable decoding
+        var todayPrep: TodayPreparation? = nil
+        if let todayData = kitData["today_preparation"] as? [String: Any],
+           let jsonData = try? JSONSerialization.data(withJSONObject: todayData) {
+            todayPrep = try? JSONDecoder().decode(TodayPreparation.self, from: jsonData)
+            if todayPrep != nil {
+                print("  ✅ Parsed today_preparation")
+            } else {
+                print("  ❌ Failed to decode today_preparation")
+            }
         }
         
-        // Parse weekly_reheating
-        var weeklyReheating: MealPrepWeeklyReheating? = nil
-        if let weeklyData = kitData["weekly_reheating"] as? [String: Any] {
-            weeklyReheating = MealPrepWeeklyReheating(backendData: weeklyData)
-            print("  ✅ Parsed weekly_reheating")
+        // Parse weekly_reheating - try Codable decoding
+        var weeklyReheating: WeeklyReheating? = nil
+        if let weeklyData = kitData["weekly_reheating"] as? [String: Any],
+           let jsonData = try? JSONSerialization.data(withJSONObject: weeklyData) {
+            weeklyReheating = try? JSONDecoder().decode(WeeklyReheating.self, from: jsonData)
+            if weeklyReheating != nil {
+                print("  ✅ Parsed weekly_reheating")
+            } else {
+                print("  ❌ Failed to decode weekly_reheating")
+            }
         }
         
         return (todayPrep, weeklyReheating)
