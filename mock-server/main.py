@@ -1382,7 +1382,7 @@ SPECIAL INSTRUCTIONS:
         prompt = f"""Generate a {meal_type_name} recipe in English for {servings} people.
 
 {constraints_text}{complexity_instructions_en}
-{preferences_text}{protein_portions_text}{accompaniment_guidance_en}{storage_instructions}{concept_instructions}{meal_prep_instructions}{diversity_text_en}
+{preferences_text}{protein_portions_text}{accompaniment_guidance_en}{storage_instructions}{meal_prep_instructions}{diversity_text_en}
 
 CRITICAL - PREPARATION STEPS: The recipe MUST start with detailed preparation steps:
 - First steps should describe ALL ingredient preparations (cutting, dicing, chopping, grating, etc.)
