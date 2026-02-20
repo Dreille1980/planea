@@ -189,8 +189,8 @@ struct MealPlanAdapter {
             )
         }
         
-        // Parse steps to create TodayPreparation and WeeklyReheating
-        let (todayPrep, weeklyReheating) = parseMealPrepSteps(groupItems)
+        // Parse steps from stored kit data (NOT from recipe steps)
+        let (todayPrep, weeklyReheating) = parseMealPrepSteps(groupId: groupId)
         
         // Calculate totals
         let totalPortions = groupItems.reduce(0) { $0 + $1.recipe.servings }
