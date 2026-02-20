@@ -220,6 +220,8 @@ class PlanItem(BaseModel):
     weekday: Weekday
     meal_type: MealType
     recipe: Recipe
+    is_meal_prep: bool = False
+    meal_prep_group_id: Optional[str] = None
 
 class PlanResponse(BaseModel):
     items: List[PlanItem]
@@ -1660,12 +1662,14 @@ async def ai_plan(request: Request, req: PlanRequest):
         recipe.is_meal_prep = slot.is_meal_prep
         recipe.meal_prep_group_id = slot.meal_prep_group_id
     
-    # Build response
+    # Build response with meal prep properties
     items = [
         PlanItem(
             weekday=slot.weekday,
             meal_type=slot.meal_type,
-            recipe=recipe
+            recipe=recipe,
+            is_meal_prep=slot.is_meal_prep,
+            meal_prep_group_id=slot.meal_prep_group_id
         )
         for slot, recipe in zip(req.slots, recipes)
     ]
