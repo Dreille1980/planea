@@ -793,3 +793,9 @@
 
 // Hint pour la sélection
 "plan.selectMealsHint" = "Cochez les cases et choisissez entre recette simple ou meal prep pour chaque repas";
+
+// Meal Prep dans la vue de la semaine - NEW
+"plan.mealPrepCount.singular" = "%d repas en meal prep";
+"plan.mealPrepCount.plural" = "%d repas en meal prep";
+"plan.mealPrep.viewDayPrep" = "Voir la préparation du jour";
+"plan.mealPrep.weekReheatingPlan" = "+ Plan de réchauffage de la semaine";

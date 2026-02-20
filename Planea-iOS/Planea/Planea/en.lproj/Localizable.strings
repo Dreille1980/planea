@@ -777,3 +777,9 @@
 
 // Selection Hint
 "plan.selectMealsHint" = "Check the boxes and choose between simple recipe or meal prep for each meal";
+
+// Meal Prep in Week View - NEW
+"plan.mealPrepCount.singular" = "%d meal in meal prep";
+"plan.mealPrepCount.plural" = "%d meals in meal prep";
+"plan.mealPrep.viewDayPrep" = "View day preparation";
+"plan.mealPrep.weekReheatingPlan" = "+ Weekly reheating plan";

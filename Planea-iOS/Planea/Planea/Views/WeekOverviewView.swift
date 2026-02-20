@@ -250,7 +250,8 @@ struct WeekOverviewView: View {
             
             // Summary card
             VStack(alignment: .leading, spacing: 12) {
-                Text("\(items.count) repas en meal prep")
+                let countKey = items.count == 1 ? "plan.mealPrepCount.singular" : "plan.mealPrepCount.plural"
+                Text(String(format: countKey.localized, items.count))
                     .font(.subheadline)
                     .foregroundColor(.planeaTextSecondary)
                 
@@ -262,7 +263,7 @@ struct WeekOverviewView: View {
                                 HStack(spacing: 8) {
                                     Image(systemName: "calendar")
                                         .foregroundColor(.orange)
-                                    Text("📅 Voir la préparation du jour")
+                                    Text("📅 " + "plan.mealPrep.viewDayPrep".localized)
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
                                         .foregroundColor(.orange)
@@ -272,7 +273,7 @@ struct WeekOverviewView: View {
                                     Image(systemName: "list.clipboard")
                                         .foregroundColor(.secondary)
                                         .font(.caption)
-                                    Text("🌙 + Plan de réchauffage de la semaine")
+                                    Text("🌙 " + "plan.mealPrep.weekReheatingPlan".localized)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
