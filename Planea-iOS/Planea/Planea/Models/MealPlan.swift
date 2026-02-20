@@ -16,6 +16,13 @@ struct SlotSelection: Codable, Identifiable, Hashable {
         "\(weekday.rawValue)-\(mealType.rawValue)"
     }
     
+    enum CodingKeys: String, CodingKey {
+        case weekday
+        case mealType = "meal_type"
+        case isMealPrep = "is_meal_prep"
+        case mealPrepGroupId = "meal_prep_group_id"
+    }
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(weekday)
         hasher.combine(mealType)
