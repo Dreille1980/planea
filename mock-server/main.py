@@ -178,6 +178,8 @@ Weekday = Literal["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 class Slot(BaseModel):
     weekday: Weekday
     meal_type: MealType
+    is_meal_prep: bool = False
+    meal_prep_group_id: Optional[str] = None
 
 class PlanRequest(BaseModel):
     week_start: date

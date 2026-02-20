@@ -9,11 +9,15 @@ private struct PlanItemResponse: Codable {
     let weekday: Weekday
     let mealType: MealType
     let recipe: Recipe
+    let isMealPrep: Bool?
+    let mealPrepGroupId: String?
     
     enum CodingKeys: String, CodingKey {
         case weekday
         case mealType = "meal_type"
         case recipe
+        case isMealPrep = "is_meal_prep"
+        case mealPrepGroupId = "meal_prep_group_id"
     }
 }
 
@@ -115,7 +119,17 @@ struct IAService {
         let payload: [String: Any] = [
             "week_start": dateFormatter.string(from: weekStart),
             "units": units.rawValue,
-            "slots": slots.map { ["weekday": $0.weekday.rawValue, "meal_type": $0.mealType.rawValue] },
+            "slots": slots.map { slot in
+                var slotDict: [String: Any] = [
+                    "weekday": slot.weekday.rawValue,
+                    "meal_type": slot.mealType.rawValue,
+                    "is_meal_prep": slot.isMealPrep
+                ]
+                if let groupId = slot.mealPrepGroupId {
+                    slotDict["meal_prep_group_id"] = groupId.uuidString
+                }
+                return slotDict
+            },
             "constraints": constraints,
             "servings": servings,
             "language": language,

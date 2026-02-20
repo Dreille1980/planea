@@ -348,9 +348,14 @@ struct MealTypeSelector: View {
     
     private func setMealType(isMealPrep: Bool) {
         if let index = selectedSlots.firstIndex(where: { $0.weekday == weekday && $0.mealType == mealType }) {
+            // Force immediate UI update by using objectWillChange
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                selectedSlots[index].isMealPrep = isMealPrep
-                selectedSlots[index].mealPrepGroupId = isMealPrep ? mealPrepGroupId : nil
+                selectedSlots[index] = SlotSelection(
+                    weekday: selectedSlots[index].weekday,
+                    mealType: selectedSlots[index].mealType,
+                    isMealPrep: isMealPrep,
+                    mealPrepGroupId: isMealPrep ? mealPrepGroupId : nil
+                )
             }
         }
     }
