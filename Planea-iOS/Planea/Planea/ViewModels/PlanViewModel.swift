@@ -118,6 +118,9 @@ final class PlanViewModel: ObservableObject {
             plan.items[index] = updatedItem
             currentPlan = plan
             persistence.saveMealPlan(plan)
+            
+            // Reload plans to sync activePlan with currentPlan
+            loadPlans()
         }
     }
     
@@ -133,6 +136,9 @@ final class PlanViewModel: ObservableObject {
         } else {
             currentPlan = plan
             persistence.saveMealPlan(plan)
+            
+            // Reload plans to sync activePlan with currentPlan
+            loadPlans()
         }
     }
     
@@ -143,6 +149,9 @@ final class PlanViewModel: ObservableObject {
         plan.items.append(mealItem)
         currentPlan = plan
         persistence.saveMealPlan(plan)
+        
+        // Reload plans to sync activePlan with currentPlan
+        loadPlans()
         
         // Record that 1 generation was used for adding a meal
         let usageVM = UsageViewModel()
