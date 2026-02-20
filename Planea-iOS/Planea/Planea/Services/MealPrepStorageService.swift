@@ -1,13 +1,16 @@
 import Foundation
 
 class MealPrepStorageService {
+    static let shared = MealPrepStorageService()
+    
     private let historyKey = "mealPrepHistory"
+    private let kitsKey = "mealPrepKits"  // NEW: Storage for raw backend kits
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
     
-    init() {
+    private init() {  // Private to enforce singleton
         encoder.dateEncodingStrategy = .iso8601
-        decoder.dateDecodingStrategy = .iso8601
+        decoder.dateEncodingStrategy = .iso8601
     }
     
     // MARK: - History Management
@@ -58,6 +61,40 @@ class MealPrepStorageService {
     /// Clear all meal prep history
     func clearHistory() {
         UserDefaults.standard.removeObject(forKey: historyKey)
+    }
+    
+    // MARK: - Raw Kit Storage (from backend)
+    
+    /// Save a raw meal prep kit from backend
+    func saveMealPrepKit(groupId: String, kitData: [String: Any]) {
+        var allKits = loadAllMealPrepKits()
+        allKits[groupId] = kitData
+        
+        // Save to UserDefaults
+        if let data = try? JSONSerialization.data(withJSONObject: allKits) {
+            UserDefaults.standard.set(data, forKey: kitsKey)
+            print("✅ Saved kit for group: \(groupId)")
+        }
+    }
+    
+    /// Load a specific meal prep kit by group ID
+    func loadMealPrepKit(groupId: String) -> [String: Any]? {
+        let allKits = loadAllMealPrepKits()
+        return allKits[groupId]
+    }
+    
+    /// Load all meal prep kits
+    func loadAllMealPrepKits() -> [String: [String: Any]] {
+        guard let data = UserDefaults.standard.data(forKey: kitsKey),
+              let kits = try? JSONSerialization.jsonObject(with: data) as? [String: [String: Any]] else {
+            return [:]
+        }
+        return kits
+    }
+    
+    /// Clear all stored kits
+    func clearAllKits() {
+        UserDefaults.standard.removeObject(forKey: kitsKey)
     }
     
     // MARK: - Kit Mapping Logic

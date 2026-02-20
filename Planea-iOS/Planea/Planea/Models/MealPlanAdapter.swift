@@ -211,6 +211,35 @@ struct MealPlanAdapter {
         )
     }
     
+    /// Parse meal prep steps from backend stored kit
+    static func parseMealPrepSteps(groupId: UUID) -> (todayPreparation: MealPrepTodayPreparation?, weeklyReheating: MealPrepWeeklyReheating?) {
+        print("🔍 parseMealPrepSteps called for group: \(groupId.uuidString)")
+        
+        // Load kit from storage
+        guard let kitData = MealPrepStorageService.shared.loadMealPrepKit(groupId: groupId.uuidString) else {
+            print("  ❌ No kit found in storage for group: \(groupId.uuidString)")
+            return (nil, nil)
+        }
+        
+        print("  ✅ Found kit data in storage")
+        
+        // Parse today_preparation
+        var todayPrep: MealPrepTodayPreparation? = nil
+        if let todayData = kitData["today_preparation"] as? [String: Any] {
+            todayPrep = MealPrepTodayPreparation(backendData: todayData)
+            print("  ✅ Parsed today_preparation")
+        }
+        
+        // Parse weekly_reheating
+        var weeklyReheating: MealPrepWeeklyReheating? = nil
+        if let weeklyData = kitData["weekly_reheating"] as? [String: Any] {
+            weeklyReheating = MealPrepWeeklyReheating(backendData: weeklyData)
+            print("  ✅ Parsed weekly_reheating")
+        }
+        
+        return (todayPrep, weeklyReheating)
+    }
+    
     /// Parse recipe steps to extract TODAY and TONIGHT sections
     private static func parseMealPrepSteps(_ items: [MealItem]) -> (TodayPreparation?, WeeklyReheating?) {
         let commonPreps: [CommonPrepStep] = []  // Empty for now, could be populated later
