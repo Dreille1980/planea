@@ -1376,6 +1376,9 @@ SPECIAL INSTRUCTIONS:
         
         unit_system_text = "metric (grams, ml)" if units == "METRIC" else "imperial (oz, cups)"
         
+        # Map meal_type to English name
+        meal_type_name = {"BREAKFAST": "breakfast", "LUNCH": "lunch", "DINNER": "dinner"}.get(meal_type, meal_type.lower())
+        
         prompt = f"""Generate a {meal_type_name} recipe in English for {servings} people.
 
 {constraints_text_en}{complexity_instructions_en}
