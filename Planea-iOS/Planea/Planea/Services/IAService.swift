@@ -158,12 +158,20 @@ struct IAService {
         
         // Convert to MealPlan
         let mealItems = planResponse.items.map { item in
-            MealItem(
+            var mealItem = MealItem(
                 id: UUID(),
                 weekday: item.weekday,
                 mealType: item.mealType,
                 recipe: item.recipe
             )
+            
+            // Transfer meal prep properties from backend response
+            mealItem.isMealPrep = item.isMealPrep ?? false
+            if let groupIdString = item.mealPrepGroupId, let groupId = UUID(uuidString: groupIdString) {
+                mealItem.mealPrepGroupId = groupId
+            }
+            
+            return mealItem
         }
         
         print("✅ Successfully generated plan with \(mealItems.count) items")

@@ -140,18 +140,10 @@ struct WeekOverviewView: View {
                 )
             }
             
-            // Meal prep section
+            // Meal prep section with prominent button
             let mealPrepRecipes = plan.items.filter { $0.isMealPrep }
             if !mealPrepRecipes.isEmpty {
-                recipeSection(
-                    title: "plan.mealPrepRecipes.title".localized,
-                    icon: "takeoutbag.and.cup.and.straw",
-                    color: .orange,
-                    items: mealPrepRecipes
-                )
-                
-                // Meal prep steps
-                mealPrepStepsSection(items: mealPrepRecipes)
+                mealPrepMainSection(plan: plan, items: mealPrepRecipes)
             }
         }
     }
@@ -206,6 +198,114 @@ struct WeekOverviewView: View {
                         .cornerRadius(10)
                     }
                     .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Meal Prep Main Section (NEW)
+    
+    private func mealPrepMainSection(plan: MealPlan, items: [MealItem]) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Section header
+            HStack {
+                Image(systemName: "takeoutbag.and.cup.and.straw.fill")
+                    .foregroundColor(.orange)
+                Text("plan.mealPrepRecipes.title".localized)
+                    .font(.headline)
+                    .bold()
+            }
+            
+            // Summary card
+            VStack(alignment: .leading, spacing: 12) {
+                Text("\(items.count) repas en meal prep")
+                    .font(.subheadline)
+                    .foregroundColor(.planeaTextSecondary)
+                
+                // Call-to-action button
+                if let mealPrepKit = MealPlanAdapter.toMealPrepKit(plan) {
+                    NavigationLink(destination: MealPrepDetailView(kit: mealPrepKit)) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "calendar")
+                                        .foregroundColor(.orange)
+                                    Text("📅 Voir la préparation du jour")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.orange)
+                                }
+                                
+                                HStack(spacing: 8) {
+                                    Image(systemName: "list.clipboard")
+                                        .foregroundColor(.secondary)
+                                        .font(.caption)
+                                    Text("🌙 + Plan de réchauffage de la semaine")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.orange)
+                                .font(.title3)
+                                .bold()
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.orange.opacity(0.15))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.orange, lineWidth: 2)
+                                )
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+                
+                // Recipe list
+                VStack(spacing: 8) {
+                    ForEach(items) { item in
+                        NavigationLink(destination: RecipeDetailView(recipe: item.recipe)) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(item.recipe.title)
+                                        .font(.subheadline)
+                                        .bold()
+                                        .foregroundColor(.planeaTextPrimary)
+                                    
+                                    HStack(spacing: 8) {
+                                        Text(dayLabel(for: item.weekday))
+                                            .font(.caption)
+                                            .foregroundColor(.planeaTextSecondary)
+                                        
+                                        Text("•")
+                                            .foregroundColor(.planeaTextSecondary)
+                                        
+                                        Text(label(for: item.mealType))
+                                            .font(.caption)
+                                            .foregroundColor(.planeaTextSecondary)
+                                    }
+                                }
+                                
+                                Spacer()
+                                
+                                Text("🥡")
+                                    .font(.title3)
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundColor(.planeaTextSecondary)
+                            }
+                            .padding()
+                            .background(Color.planeaCard)
+                            .cornerRadius(10)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
         }

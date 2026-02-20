@@ -160,6 +160,141 @@ struct MealPlanAdapter {
         )
     }
     
+    // MARK: - MealPlan → MealPrepKit
+    
+    /// Convert MealPlan meal prep items to MealPrepKit
+    /// - Parameter mealPlan: The meal plan containing meal prep items
+    /// - Returns: A MealPrepKit if there are meal prep items, nil otherwise
+    static func toMealPrepKit(_ mealPlan: MealPlan) -> MealPrepKit? {
+        let mealPrepItems = mealPlan.items.filter { $0.isMealPrep }
+        guard !mealPrepItems.isEmpty else { return nil }
+        
+        // Group by mealPrepGroupId
+        let grouped = Dictionary(grouping: mealPrepItems) { $0.mealPrepGroupId }
+        
+        // For now, take the first group (in future could handle multiple kits)
+        guard let groupId = grouped.keys.compactMap({ $0 }).first,
+              let groupItems = grouped[groupId] else { return nil }
+        
+        // Create recipe refs
+        let recipeRefs = groupItems.map { item in
+            MealPrepRecipeRef(
+                id: item.id,
+                recipeId: item.id.uuidString,
+                title: item.recipe.title,
+                shelfLifeDays: item.recipe.shelfLifeDays ?? 3,
+                isFreezable: item.recipe.isFreezable ?? false,
+                storageNote: item.recipe.storageNote,
+                recipe: item.recipe
+            )
+        }
+        
+        // Parse steps to create TodayPreparation and WeeklyReheating
+        let (todayPrep, weeklyReheating) = parseMealPrepSteps(groupItems)
+        
+        // Calculate totals
+        let totalPortions = groupItems.reduce(0) { $0 + $1.recipe.servings }
+        let estimatedMinutes = todayPrep?.totalMinutes ?? groupItems.reduce(0) { $0 + $1.recipe.totalMinutes }
+        
+        return MealPrepKit(
+            id: groupId,
+            name: "Meal Prep - \(WeekDateHelper.formatWeekRange(startDate: mealPlan.weekStart))",
+            description: "Préparation pour \(groupItems.count) repas",
+            totalPortions: totalPortions,
+            estimatedPrepMinutes: estimatedMinutes,
+            recipes: recipeRefs,
+            groupedPrepSteps: nil,
+            optimizedRecipeSteps: nil,
+            cookingPhases: nil,
+            todayPreparation: todayPrep,
+            weeklyReheating: weeklyReheating
+        )
+    }
+    
+    /// Parse recipe steps to extract TODAY and TONIGHT sections
+    private static func parseMealPrepSteps(_ items: [MealItem]) -> (TodayPreparation?, WeeklyReheating?) {
+        let commonPreps: [CommonPrepStep] = []  // Empty for now, could be populated later
+        var recipePreps: [RecipePrep] = []
+        var dailyReheating: [DailyReheating] = []
+        
+        for item in items {
+            let steps = item.recipe.steps
+            var todaySteps: [String] = []
+            var tonightSteps: [String] = []
+            var inTodaySection = false
+            var inTonightSection = false
+            
+            // Parse steps to separate TODAY and TONIGHT
+            for step in steps {
+                let trimmed = step.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                if trimmed.contains("📅") || trimmed.uppercased().contains("AUJOURD'HUI") || trimmed.uppercased().contains("TODAY") {
+                    inTodaySection = true
+                    inTonightSection = false
+                    continue
+                } else if trimmed.contains("🌙") || trimmed.uppercased().contains("CE SOIR") || trimmed.uppercased().contains("TONIGHT") {
+                    inTodaySection = false
+                    inTonightSection = true
+                    continue
+                }
+                
+                if inTodaySection && !trimmed.isEmpty {
+                    todaySteps.append(trimmed)
+                } else if inTonightSection && !trimmed.isEmpty {
+                    tonightSteps.append(trimmed)
+                }
+            }
+            
+            // Create RecipePrep for today
+            if !todaySteps.isEmpty {
+                recipePreps.append(RecipePrep(
+                    id: UUID(),
+                    recipeName: item.recipe.title,
+                    emoji: mealTypeEmoji(item.mealType),
+                    prepToday: todaySteps,
+                    dontPrepToday: nil,
+                    estimatedMinutes: item.recipe.totalMinutes / 2, // Rough estimate
+                    eveningMinutes: tonightSteps.isEmpty ? nil : 10
+                ))
+            }
+            
+            // Create DailyReheating for tonight/later
+            if !tonightSteps.isEmpty {
+                dailyReheating.append(DailyReheating(
+                    id: UUID(),
+                    dayNumber: dailyReheating.count + 1,
+                    dayLabel: item.weekday.displayName,
+                    recipeName: item.recipe.title,
+                    emoji: mealTypeEmoji(item.mealType),
+                    steps: tonightSteps,
+                    estimatedMinutes: 10
+                ))
+            }
+        }
+        
+        let todayPrep = !recipePreps.isEmpty ? TodayPreparation(
+            consolidatedIngredients: nil,
+            commonPreps: commonPreps,
+            recipePreps: recipePreps,
+            totalMinutes: recipePreps.reduce(0) { $0 + ($1.estimatedMinutes ?? 0) }
+        ) : nil
+        
+        let weeklyReheating = !dailyReheating.isEmpty ? WeeklyReheating(
+            days: dailyReheating.sorted { $0.dayLabel < $1.dayLabel }
+        ) : nil
+        
+        return (todayPrep, weeklyReheating)
+    }
+    
+    private static func mealTypeEmoji(_ mealType: MealType) -> String {
+        switch mealType {
+        case .breakfast: return "☀️"
+        case .lunch: return "🍽️"
+        case .dinner: return "🌙"
+        case .snack: return "🥤"
+        }
+    }
+    
     // MARK: - Validation
     
     /// Validate that a MealPlan can be safely converted
