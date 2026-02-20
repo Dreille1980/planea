@@ -3835,7 +3835,10 @@ async def generate_today_preparation(kit_recipes: List[dict], language: str = "f
     if language == "fr":
         prompt = f"""Tu es un expert meal prep qui crée des guides de préparation SIMPLES et NARRATIFS.
 
-RECETTES À PRÉPARER AUJOURD'HUI:
+🚨 IMPORTANT: Tu génères des instructions UNIQUEMENT pour ces {len(kit_recipes)} recettes de MEAL PREP.
+N'inclus AUCUNE autre recette de la semaine qui n'est pas dans cette liste!
+
+RECETTES À PRÉPARER AUJOURD'HUI (MEAL PREP UNIQUEMENT):
 {chr(10).join(recipe_list)}
 
 🎯 CRÉE UNE SECTION "CE QUE TU FAIS AUJOURD'HUI" (~2h)
@@ -4148,7 +4151,10 @@ async def generate_weekly_reheating(kit_recipes: List[dict], days: List[str], me
     if language == "fr":
         prompt = f"""Tu es un expert meal prep qui crée des guides de réchauffage SIMPLES.
 
-RECETTES PRÉPARÉES + JOURS:
+🚨 IMPORTANT: Tu génères des instructions UNIQUEMENT pour ces {len(kit_recipes)} recettes de MEAL PREP.
+N'inclus AUCUNE autre recette de la semaine qui n'est pas dans cette liste!
+
+RECETTES PRÉPARÉES + JOURS (MEAL PREP UNIQUEMENT):
 {json.dumps(recipe_summaries, indent=2, ensure_ascii=False)}
 
 🚨🚨🚨 RÈGLE ABSOLUE - GÉNÉRATION COMPLÈTE 🚨🚨🚨
