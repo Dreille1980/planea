@@ -142,6 +142,17 @@ struct WeekOverviewView: View {
             
             // Meal prep section with prominent button
             let mealPrepRecipes = plan.items.filter { $0.isMealPrep }
+            let _ = {
+                print("🥡 DEBUG WeekOverviewView: Total items=\(plan.items.count), MealPrep items=\(mealPrepRecipes.count)")
+                for item in plan.items.prefix(3) {
+                    print("  - \(item.recipe.title): isMealPrep=\(item.isMealPrep), groupId=\(item.mealPrepGroupId?.uuidString ?? "nil")")
+                }
+                if !mealPrepRecipes.isEmpty {
+                    print("🥡 Showing meal prep section with \(mealPrepRecipes.count) items")
+                } else {
+                    print("⚠️ No meal prep recipes found - button will NOT be shown")
+                }
+            }()
             if !mealPrepRecipes.isEmpty {
                 mealPrepMainSection(plan: plan, items: mealPrepRecipes)
             }
