@@ -209,6 +209,12 @@ class Recipe(BaseModel):
     protein_per_serving: Optional[int] = None
     carbs_per_serving: Optional[int] = None
     fat_per_serving: Optional[int] = None
+    # Meal prep properties
+    is_meal_prep: bool = False
+    meal_prep_group_id: Optional[str] = None
+    shelf_life_days: Optional[int] = None
+    is_freezable: Optional[bool] = None
+    storage_note: Optional[str] = None
 
 class PlanItem(BaseModel):
     weekday: Weekday
@@ -1648,6 +1654,11 @@ async def ai_plan(request: Request, req: PlanRequest):
     # Mark ingredients on sale if feature is enabled
     for recipe in recipes:
         await mark_ingredients_on_sale(recipe, req.preferences)
+    
+    # CRITICAL: Map meal prep properties from slots to recipes
+    for slot, recipe in zip(req.slots, recipes):
+        recipe.is_meal_prep = slot.is_meal_prep
+        recipe.meal_prep_group_id = slot.meal_prep_group_id
     
     # Build response
     items = [
