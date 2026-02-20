@@ -907,7 +907,9 @@ async def generate_recipe_with_openai(
     weekday: str = None,
     min_shelf_life_required: int = 3,
     selected_concept: dict = None,
-    blueprint_recipe: dict = None
+    blueprint_recipe: dict = None,
+    is_meal_prep: bool = False,  # NEW: Is this a meal prep recipe?
+    meal_prep_group_id: str = None  # NEW: Group ID for meal prep batches
 ) -> Recipe:
     """Generate a single recipe using OpenAI with diversity awareness (async).
     
@@ -1231,6 +1233,84 @@ PRIORITIZE for long storage:
 - Baked pasta
 
 AVOID: salads, fresh fish, non-frozen seafood
+"""
+    
+    # Build MEAL PREP instructions if this is a meal prep recipe
+    meal_prep_instructions = ""
+    if is_meal_prep:
+        if language == "fr":
+            meal_prep_instructions = """
+
+🍱🍱🍱 RECETTE MEAL PREP - OPTIMISATION CRITIQUE 🍱🍱🍱
+
+Cette recette DOIT être optimisée pour le MEAL PREP:
+
+RÈGLES MEAL PREP OBLIGATOIRES:
+1. Conservation: Recette qui se conserve bien 3-5 jours au frigo
+2. Réchauffage: Se réchauffe facilement (micro-ondes ou poêle)
+3. Texture: Maintient sa qualité après conservation
+4. Portionnement: Facile à diviser en portions individuelles
+
+TYPES DE RECETTES MEAL PREP IDÉALES:
+✅ Plats complets en une préparation:
+   - Bols protéinés (protéine + légumes + féculent)
+   - Plats mijotés (curry, tajines, chilis)
+   - Casseroles et gratins
+   - Pâtes au four
+   - Sautés asiatiques avec sauce
+
+✅ Techniques meal prep friendly:
+   - Rôtir au four (facile à faire en grandes quantités)
+   - Mijoter (améliore avec le temps)
+   - Cuire en sauce (protège de la sécheresse)
+
+❌ ÉVITER pour meal prep:
+   - Recettes avec éléments crus/frais à ajouter au dernier moment
+   - Salades vertes (se flétrit)
+   - Poisson délicat (perd texture, sauf congelé)
+   - Recettes qui deviennent pâteuses
+
+INSTRUCTIONS SPÉCIALES:
+- Intégrer les légumes DANS le plat (pas à part)
+- Sauce généreuse pour maintenir l'humidité
+- Assaisonnement marqué (s'atténue avec le temps)
+"""
+        else:
+            meal_prep_instructions = """
+
+🍱🍱🍱 MEAL PREP RECIPE - CRITICAL OPTIMIZATION 🍱🍱🍱
+
+This recipe MUST be optimized for MEAL PREP:
+
+MANDATORY MEAL PREP RULES:
+1. Storage: Recipe keeps well 3-5 days in fridge
+2. Reheating: Easy to reheat (microwave or pan)
+3. Texture: Maintains quality after storage
+4. Portioning: Easy to divide into individual portions
+
+IDEAL MEAL PREP RECIPE TYPES:
+✅ Complete one-pot dishes:
+   - Protein bowls (protein + vegetables + starch)
+   - Braised dishes (curries, tagines, chilis)
+   - Casseroles and gratins
+   - Baked pasta
+   - Asian stir-fries with sauce
+
+✅ Meal prep friendly techniques:
+   - Roasting in oven (easy to make in large quantities)
+   - Braising (improves with time)
+   - Cooking in sauce (prevents dryness)
+
+❌ AVOID for meal prep:
+   - Recipes with fresh elements to add last minute
+   - Green salads (wilts)
+   - Delicate fish (loses texture, unless frozen)
+   - Recipes that become mushy
+
+SPECIAL INSTRUCTIONS:
+- Integrate vegetables INTO the dish (not separate)
+- Generous sauce to maintain moisture
+- Bold seasoning (diminishes over time)
 """
     
     # Build concept instructions if provided
@@ -1575,7 +1655,9 @@ async def ai_plan(request: Request, req: PlanRequest):
             preferences=req.preferences,
             suggested_protein=suggested_proteins[idx],
             other_plan_proteins=[p for i, p in enumerate(suggested_proteins) if i != idx],
-            weekday=slot.weekday  # Pass weekday for complexity determination
+            weekday=slot.weekday,  # Pass weekday for complexity determination
+            is_meal_prep=slot.is_meal_prep,  # NEW: Pass meal prep flag
+            meal_prep_group_id=slot.meal_prep_group_id  # NEW: Pass group ID
         )
         for idx, slot in enumerate(req.slots)
     ]
