@@ -1427,10 +1427,10 @@ Possible ingredient categories: vegetables, fruits, meats, fish, dairy, dry good
 IMPORTANT: Generate at least 6-8 detailed steps with EXPLICIT preparation steps at the beginning."""
 
     else:
-        prompt = f"""Génère une recette de {meal_type_fr} en français pour {servings} personnes.
+        prompt = f"""Génère une recette de {meal_type_name} en français pour {servings} personnes.
 
-{constraints_text}{complexity_instructions_fr}
-{preferences_text}{protein_portions_text}{accompaniment_guidance_fr}{storage_instructions}{concept_instructions}{diversity_text}
+{constraints_text}{complexity_instructions_en}
+{preferences_text}{protein_portions_text}{accompaniment_guidance_fr}{storage_instructions}{meal_prep_instructions}{diversity_text_en}
 
 CRITIQUE - ÉTAPES DE PRÉPARATION: La recette DOIT commencer par des étapes de préparation détaillées:
 - Les premières étapes doivent décrire TOUTES les préparations d'ingrédients (couper, émincer, hacher, râper, etc.)
