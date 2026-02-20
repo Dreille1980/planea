@@ -1197,6 +1197,9 @@ LOW-CARB ALTERNATIVES (for dietary preferences):
 - If you add a starch, integrate it naturally into the instructions
 """
     
+    # Map meal_type to English name - BEFORE meal prep block
+    meal_type_name = {"BREAKFAST": "breakfast", "LUNCH": "lunch", "DINNER": "dinner"}.get(meal_type, meal_type.lower())
+    
     # Build storage instructions for meal prep with adaptive shelf life
     storage_instructions = ""
     if min_shelf_life_required > 3:
@@ -1374,12 +1377,11 @@ SPECIAL INSTRUCTIONS:
         diversity_text_en += "- Each recipe must be distinct from others\n"
         diversity_text_en += "- Use maximum creativity without limitations\n"
         
-        unit_system_text = "metric (grams, ml)" if units == "METRIC" else "imperial (oz, cups)"
-        
-        # Map meal_type to English name
-        meal_type_name = {"BREAKFAST": "breakfast", "LUNCH": "lunch", "DINNER": "dinner"}.get(meal_type, meal_type.lower())
-        
-        prompt = f"""Generate a {meal_type_name} recipe in English for {servings} people.
+        # After meal prep instructions, build the prompt based on language
+        if language == "en":
+            unit_system_text = "metric (grams, ml)" if units == "METRIC" else "imperial (oz, cups)"
+            
+            prompt = f"""Generate a {meal_type_name} recipe in English for {servings} people.
 
 {constraints_text}{complexity_instructions_en}
 {preferences_text}{protein_portions_text}{accompaniment_guidance_en}{storage_instructions}{meal_prep_instructions}{diversity_text_en}
@@ -1425,9 +1427,10 @@ Use the {unit_system_text} system.
 Possible ingredient categories: vegetables, fruits, meats, fish, dairy, dry goods, condiments, canned goods.
 
 IMPORTANT: Generate at least 6-8 detailed steps with EXPLICIT preparation steps at the beginning."""
-
-    else:
-        prompt = f"""Génère une recette de {meal_type_name} en français pour {servings} personnes.
+        else:  # French
+            unit_system_text = "métrique (grammes, ml)" if units == "METRIC" else "impérial (oz, cups)"
+            
+            prompt = f"""Génère une recette de {meal_type_name} en français pour {servings} personnes.
 
 {constraints_text}{complexity_instructions_en}
 {preferences_text}{protein_portions_text}{accompaniment_guidance_fr}{storage_instructions}{meal_prep_instructions}{diversity_text_en}
