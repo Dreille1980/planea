@@ -225,6 +225,7 @@ class PlanItem(BaseModel):
 
 class PlanResponse(BaseModel):
     items: List[PlanItem]
+    meal_prep_kits: Optional[List[dict]] = None  # NEW: Include meal prep preparation data
 
 class RecipeRequest(BaseModel):
     idea: str
@@ -1682,7 +1683,77 @@ async def ai_plan(request: Request, req: PlanRequest):
             print(f"  - {ing.name}: category='{ing.category}'")
     print("=== END SHOPPING LIST DEBUG ===\n")
     
-    return PlanResponse(items=items)
+    # NEW: Detect meal prep groups and generate kits
+    meal_prep_kits = []
+    meal_prep_groups = {}
+    
+    # Group items by meal_prep_group_id
+    for item in items:
+        if item.is_meal_prep and item.meal_prep_group_id:
+            if item.meal_prep_group_id not in meal_prep_groups:
+                meal_prep_groups[item.meal_prep_group_id] = []
+            meal_prep_groups[item.meal_prep_group_id].append(item)
+    
+    print(f"\n🍱 Detected {len(meal_prep_groups)} meal prep groups")
+    
+    # Generate kit data for each group
+    for group_id, group_items in meal_prep_groups.items():
+        print(f"\n📦 Generating kit for group: {group_id} ({len(group_items)} meals)")
+        
+        # Extract days and meals from slots
+        days_in_group = []
+        meals_in_group = []
+        for item in group_items:
+            if item.weekday not in days_in_group:
+                days_in_group.append(item.weekday)
+            if item.meal_type not in meals_in_group:
+                meals_in_group.append(item.meal_type)
+        
+        # Build kit_recipes structure for generation functions
+        kit_recipes = []
+        for item in group_items:
+            kit_recipes.append({
+                "id": str(uuid.uuid4()),
+                "recipe_id": str(uuid.uuid4()),
+                "title": item.recipe.title,
+                "recipe": {
+                    "title": item.recipe.title,
+                    "servings": item.recipe.servings,
+                    "total_minutes": item.recipe.total_minutes,
+                    "ingredients": [
+                        {
+                            "name": ing.name,
+                            "quantity": ing.quantity,
+                            "unit": ing.unit,
+                            "category": ing.category
+                        }
+                        for ing in item.recipe.ingredients
+                    ],
+                    "steps": item.recipe.steps,
+                    "equipment": item.recipe.equipment,
+                    "tags": item.recipe.tags
+                }
+            })
+        
+        # Generate today preparation and weekly reheating
+        today_preparation = await generate_today_preparation(kit_recipes, req.language)
+        weekly_reheating = await generate_weekly_reheating(kit_recipes, days_in_group, meals_in_group, req.language)
+        
+        # Create kit
+        kit = {
+            "id": group_id,
+            "group_id": group_id,
+            "recipes": kit_recipes,
+            "today_preparation": today_preparation,
+            "weekly_reheating": weekly_reheating,
+            "days": days_in_group,
+            "meals": meals_in_group
+        }
+        
+        meal_prep_kits.append(kit)
+        print(f"  ✅ Kit generated with {len(kit_recipes)} recipes")
+    
+    return PlanResponse(items=items, meal_prep_kits=meal_prep_kits if meal_prep_kits else None)
 
 
 class RegenerateMealRequest(BaseModel):

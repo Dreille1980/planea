@@ -3,6 +3,62 @@ import Foundation
 // Response models that match the API
 private struct PlanResponse: Codable {
     let items: [PlanItemResponse]
+    let mealPrepKits: [[String: AnyCodable]]?
+    
+    enum CodingKeys: String, CodingKey {
+        case items
+        case mealPrepKits = "meal_prep_kits"
+    }
+}
+
+// Helper to handle Any in Codable
+struct AnyCodable: Codable {
+    let value: Any
+    
+    init(_ value: Any) {
+        self.value = value
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        
+        if let intVal = try? container.decode(Int.self) {
+            value = intVal
+        } else if let doubleVal = try? container.decode(Double.self) {
+            value = doubleVal
+        } else if let boolVal = try? container.decode(Bool.self) {
+            value = boolVal
+        } else if let stringVal = try? container.decode(String.self) {
+            value = stringVal
+        } else if let arrayVal = try? container.decode([AnyCodable].self) {
+            value = arrayVal.map { $0.value }
+        } else if let dictVal = try? container.decode([String: AnyCodable].self) {
+            value = dictVal.mapValues { $0.value }
+        } else {
+            value = NSNull()
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        
+        switch value {
+        case let intVal as Int:
+            try container.encode(intVal)
+        case let doubleVal as Double:
+            try container.encode(doubleVal)
+        case let boolVal as Bool:
+            try container.encode(boolVal)
+        case let stringVal as String:
+            try container.encode(stringVal)
+        case let arrayVal as [Any]:
+            try container.encode(arrayVal.map { AnyCodable($0) })
+        case let dictVal as [String: Any]:
+            try container.encode(dictVal.mapValues { AnyCodable($0) })
+        default:
+            try container.encodeNil()
+        }
+    }
 }
 
 private struct PlanItemResponse: Codable {
@@ -175,6 +231,32 @@ struct IAService {
         }
         
         print("✅ Successfully generated plan with \(mealItems.count) items")
+        
+        // CRITICAL: Store meal prep kits if present
+        if let kitsData = planResponse.mealPrepKits, !kitsData.isEmpty {
+            print("🍱 Received \(kitsData.count) meal prep kits from backend")
+            
+            // Convert AnyCodable dictionaries to plain dictionaries
+            let kits = kitsData.map { kitDict -> [String: Any] in
+                var plainDict: [String: Any] = [:]
+                for (key, value) in kitDict {
+                    plainDict[key] = value.value
+                }
+                return plainDict
+            }
+            
+            // Store in MealPrepStorageService for retrieval
+            for kit in kits {
+                if let groupId = kit["group_id"] as? String {
+                    print("  📦 Storing kit for group: \(groupId)")
+                    MealPrepStorageService.shared.saveMealPrepKit(groupId: groupId, kitData: kit)
+                }
+            }
+            
+            print("✅ Stored \(kits.count) meal prep kits successfully")
+        } else {
+            print("ℹ️ No meal prep kits in response")
+        }
         
         return MealPlan(
             id: UUID(),
