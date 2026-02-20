@@ -1241,7 +1241,57 @@ AVOID: salads, fresh fish, non-frozen seafood
         if language == "fr":
             meal_prep_instructions = """
 
-🍱🍱🍱 RECETTE MEAL PREP - OPTIMISATION CRITIQUE 🍱🍱🍱
+🍱🍱🍱 RECETTE MEAL PREP - INSTRUCTIONS DÉTAILLÉES 🍱🍱🍱
+
+Tu DOIS créer une recette optimisée pour le MEAL PREP avec instructions séparées "AUJOURD'HUI" vs "CE SOIR".
+
+🔥 FORMAT OBLIGATOIRE POUR LES ÉTAPES (steps):
+
+Les étapes doivent inclure des SECTIONS CLAIREMENT MARQUÉES:
+
+**📅 AUJOURD'HUI (Préparation à l'avance):**
+1. [Étape de préparation 1]
+2. [Étape de préparation 2]
+3. [Conservation au frigo]
+
+**🌙 CE SOIR (Jour de consommation):**
+1. [Réchauffage ou finition]
+2. [Service]
+
+EXEMPLE CONCRET - Poulet rôti avec légumes:
+
+steps: [
+  "📅 AUJOURD'HUI (Préparation à l'avance):",
+  "1. Assaisonner poulet (600g) avec sel, poivre, paprika et herbes",
+  "2. Rôtir poulet au four 200°C pendant 30 min jusqu'à cuisson complète",
+  "3. Pendant ce temps: rôtir brocoli et carottes sur une autre plaque 20 min",
+  "4. Cuire quinoa (300g): rincer, puis 2 volumes d'eau, bouillir 15 min",
+  "5. Laisser refroidir tous les éléments 10-15 min",
+  "6. Portionner dans 4 contenants hermétiques: poulet + légumes + quinoa",
+  "7. Conserver au frigo jusqu'à 4 jours",
+  "",
+  "🌙 CE SOIR (Jour de consommation):",
+  "1. Réchauffer 1 portion au micro-ondes 2-3 min OU à la poêle 5-8 min",
+  "2. Servir immédiatement"
+]
+
+EXEMPLE CONCRET - Saumon avec légumes (poisson frais):
+
+steps: [
+  "📅 AUJOURD'HUI (Préparation à l'avance):",
+  "1. Préparer marinade: mélanger huile d'olive, jus de citron, ail émincé, aneth",
+  "2. Placer saumon dans un contenant, verser marinade, couvrir, réfrigérer",
+  "3. Laver brocoli, couper en bouquets, conserver au frigo",
+  "4. Cuire riz (300g) et portionner dans 4 contenants",
+  "",
+  "🌙 CE SOIR (Jour de consommation):",
+  "1. Sortir saumon mariné du frigo",
+  "2. Cuire saumon à la poêle ou au four 12-15 min",
+  "3. Pendant ce temps: faire sauter brocoli 5-8 min",
+  "4. Réchauffer portion de riz au micro-ondes 2 min",
+  "5. Assembler et servir"
+]
+
 
 Cette recette DOIT être optimisée pour le MEAL PREP:
 
@@ -1312,85 +1362,7 @@ SPECIAL INSTRUCTIONS:
 - Generous sauce to maintain moisture
 - Bold seasoning (diminishes over time)
 """
-    
-    # Build concept instructions if provided
-    concept_instructions = ""
-    if selected_concept:
-        if language == "fr":
-            concept_instructions = f"""
 
-🎨 THÈME CULINAIRE:
-{selected_concept.get('name', 'Custom')}: {selected_concept.get('description', '')}
-Inspire-toi de ce thème pour créer la recette.
-"""
-        else:
-            concept_instructions = f"""
-
-🎨 CULINARY THEME:
-{selected_concept.get('name', 'Custom')}: {selected_concept.get('description', '')}
-Draw inspiration from this theme.
-"""
-    
-    # Build diversity instructions with protein guidance
-    # Build diversity instructions with recipe type variety  
-    diversity_text = "\n\n🎯 IMPÉRATIF - DIVERSITÉ DES TYPES DE PLATS:\n"
-    diversity_text += "Varie les formats pour créer un menu intéressant et équilibré:\n"
-    diversity_text += "- Plats simples: grillés, poêlés, rôtis (protéine + légumes)\n"
-    diversity_text += "- Plats avec sauce: currys, stroganoffs, fricassées, sautés en sauce\n"
-    diversity_text += "- Plats au four: gratins, casseroles, lasagnes, enchiladas\n"
-    diversity_text += "- Plats mijotés: ragoûts, braisés, tajines, chili\n"
-    diversity_text += "- Plats de pâtes/riz: risottos, pasta bakes, paellas, bols de riz\n"
-    diversity_text += "- Plats internationaux: pad thai, butter chicken, moussaka, fajitas\n\n"
-    
-    # CRITICAL: Add protein restrictions to the prompt
-    if suggested_protein and other_plan_proteins:
-        diversity_text += f"🚨 PROTÉINE OBLIGATOIRE POUR CETTE RECETTE: {suggested_protein}\n"
-        diversity_text += f"❌ STRICTEMENT INTERDIT d'utiliser: {', '.join(other_plan_proteins)}\n"
-        diversity_text += f"✅ Tu DOIS utiliser {suggested_protein} comme protéine principale\n\n"
-    
-    diversity_text += "Crée une recette UNIQUE avec:\n"
-    diversity_text += "- Combinaisons de saveurs créatives et intéressantes\n"
-    diversity_text += "- Ingrédients variés (herbes, épices, condiments)\n"
-    diversity_text += "- Techniques de cuisson appropriées au niveau de complexité\n"
-    
-    unit_system = "métrique (grammes, ml)" if units == "METRIC" else "impérial (oz, cups)"
-    
-    meal_type_fr = {
-        "BREAKFAST": "petit-déjeuner",
-        "LUNCH": "lunch",
-        "DINNER": "souper"
-    }.get(meal_type, "repas")
-    
-    # Language-specific prompts
-    if language == "en":
-        meal_type_name = {
-            "BREAKFAST": "breakfast",
-            "LUNCH": "lunch",
-            "DINNER": "dinner"
-        }.get(meal_type, "meal")
-        
-        constraints_text_en = ""
-        if constraints.get("diet"):
-            diets = ", ".join(constraints["diet"])
-            constraints_text_en += f"Dietary requirements: {diets}. "
-        if constraints.get("evict"):
-            allergies = ", ".join(constraints["evict"])
-            constraints_text_en += f"Allergies/Avoid: {allergies}. "
-        
-        protein_portions_text_en = "\n\nCRITICAL - PROTEIN PORTIONS PER PERSON:\n"
-        protein_portions_text_en += "You MUST include adequate protein in each recipe following these guidelines:\n"
-        protein_portions_text_en += "- Chicken (breast, thigh): 150-200g per person (250-300g if bone-in)\n"
-        protein_portions_text_en += "- Beef (steak, roast): 180-220g per person\n"
-        protein_portions_text_en += "- Pork (chops, tenderloin): 160-200g per person\n"
-        protein_portions_text_en += "- Lamb: 180-200g per person\n"
-        protein_portions_text_en += "- Fish (fillet): 150-180g per person (300-350g if whole fish)\n"
-        protein_portions_text_en += "- Shrimp/Prawns: 120-150g per person\n"
-        protein_portions_text_en += "- Tofu: 120-150g per person\n"
-        protein_portions_text_en += "- Tempeh/Seitan: 100-130g per person\n"
-        protein_portions_text_en += "- Eggs: 2-3 large eggs per person\n"
-        protein_portions_text_en += "- Ground meat (beef, pork, chicken): 150-180g per person\n"
-        protein_portions_text_en += "These portions ensure adequate protein intake for a satisfying meal.\n"
-        
         diversity_text_en = "\n\nCRITICAL - MAXIMUM DIVERSITY:\n"
         if suggested_protein and other_plan_proteins:
             diversity_text_en += f"- SUGGESTED PROTEIN for this recipe: {suggested_protein}\n"
