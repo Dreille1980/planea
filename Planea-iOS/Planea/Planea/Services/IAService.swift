@@ -174,30 +174,43 @@ struct IAService {
         let hasPremium = StoreManager.shared.hasActiveSubscription
         let preferencesDict = preferencesToDict(hasPremium: hasPremium)
         
-        let payload: [String: Any] = [
-            "week_start": weekStartString,
-            "units": units.rawValue,
-            "slots": slots.map { slot in
-                var slotDict: [String: Any] = [
-                    "weekday": slot.weekday.rawValue,
-                    "meal_type": slot.mealType.rawValue,
-                    "is_meal_prep": slot.isMealPrep
+        // Create a strongly-typed payload structure for reliable encoding
+        struct PlanRequest: Encodable {
+            let week_start: String
+            let units: String
+            let slots: [[String: AnyCodable]]
+            let constraints: [String: AnyCodable]
+            let servings: Int
+            let language: String
+            let preferences: [String: AnyCodable]
+        }
+        
+        let payload = PlanRequest(
+            week_start: weekStartString,
+            units: units.rawValue,
+            slots: slots.map { slot in
+                var slotDict: [String: AnyCodable] = [
+                    "weekday": AnyCodable(slot.weekday.rawValue),
+                    "meal_type": AnyCodable(slot.mealType.rawValue),
+                    "is_meal_prep": AnyCodable(slot.isMealPrep)
                 ]
                 if let groupId = slot.mealPrepGroupId {
-                    slotDict["meal_prep_group_id"] = groupId.uuidString
+                    slotDict["meal_prep_group_id"] = AnyCodable(groupId.uuidString)
                 }
                 return slotDict
             },
-            "constraints": constraints,
-            "servings": servings,
-            "language": language,
-            "preferences": preferencesDict
-        ]
-        req.httpBody = try JSONSerialization.data(withJSONObject: payload)
+            constraints: constraints.mapValues { AnyCodable($0) },
+            servings: servings,
+            language: language,
+            preferences: preferencesDict.mapValues { AnyCodable($0) }
+        )
+        
+        let encoder = JSONEncoder()
+        req.httpBody = try encoder.encode(payload)
         
         print("🚀 Generating meal plan...")
         print("📍 URL: \(url.absoluteString)")
-        print("📦 Payload keys: \(payload.keys.joined(separator: ", "))")
+        print("📦 Language: \(language), Servings: \(servings)")
         
         let (data, response) = try await performRequest(request: req)
         
