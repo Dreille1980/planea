@@ -7,6 +7,7 @@ struct WeekOverviewView: View {
     @State private var selectedSegment: Int = 0
     @State private var regeneratingMealId: UUID?
     @State private var showUsageLimitReached = false
+    @State private var showAddMealSheet = false
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
     @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
     
@@ -23,6 +24,26 @@ struct WeekOverviewView: View {
                 // No active week
                 noActiveWeekView
             }
+        }
+        .toolbar {
+            if planVM.activePlan != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: {
+                        let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
+                        impactGenerator.impactOccurred()
+                        showAddMealSheet = true
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title3)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showAddMealSheet) {
+            AddMealSheet()
+                .environmentObject(familyVM)
+                .environmentObject(planVM)
+                .environmentObject(usageVM)
         }
         .sheet(isPresented: $showUsageLimitReached) {
             UsageLimitReachedView()
