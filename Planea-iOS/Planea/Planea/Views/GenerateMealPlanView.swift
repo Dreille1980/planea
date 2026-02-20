@@ -294,35 +294,23 @@ struct MealTypeSelector: View {
             
             Spacer()
             
-            // Simple / Meal Prep toggle (only if selected)
+            // Meal Prep toggle (only if selected)
             if isSelected {
-                HStack(spacing: 6) {
-                    Text("plan.simple".localized)
-                        .font(.caption)
-                        .bold()
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(!isMealPrep ? Color.planeaPrimary.opacity(0.15) : Color.planeaChipDefault)
-                        .foregroundColor(!isMealPrep ? .planeaPrimary : .planeaTextSecondary)
-                        .cornerRadius(8)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            setMealType(isMealPrep: false)
-                        }
-                    
-                    Text("plan.mealPrep".localized)
-                        .font(.caption)
-                        .bold()
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(isMealPrep ? Color.orange.opacity(0.15) : Color.planeaChipDefault)
-                        .foregroundColor(isMealPrep ? .orange : .planeaTextSecondary)
-                        .cornerRadius(8)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            setMealType(isMealPrep: true)
-                        }
+                Toggle(isOn: Binding(
+                    get: { isMealPrep },
+                    set: { newValue in
+                        setMealType(isMealPrep: newValue)
+                    }
+                )) {
+                    HStack(spacing: 4) {
+                        Image(systemName: isMealPrep ? "takeoutbag.and.cup.and.straw.fill" : "takeoutbag.and.cup.and.straw")
+                            .foregroundColor(isMealPrep ? .orange : .gray)
+                        Text("plan.mealPrep".localized)
+                            .font(.caption)
+                            .foregroundColor(isMealPrep ? .orange : .planeaTextSecondary)
+                    }
                 }
+                .toggleStyle(SwitchToggleStyle(tint: .orange))
             }
         }
         .padding(10)
