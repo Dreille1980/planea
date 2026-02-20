@@ -16,11 +16,10 @@ class MealPrepViewModel: ObservableObject {
     @Published var conceptsError: String?
     
     private let service: MealPrepService
-    private let storageService: MealPrepStorageService
+    private let storageService = MealPrepStorageService.shared  // Use singleton
     
     init(baseURL: URL) {
         self.service = MealPrepService(baseURL: baseURL)
-        self.storageService = MealPrepStorageService()
         loadHistory()
     }
     
