@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SavedRecipesView: View {
-    @StateObject private var favoritesVM = FavoritesViewModel()
+    @EnvironmentObject var favoritesVM: FavoritesViewModel
     @EnvironmentObject var usageVM: UsageViewModel
     @EnvironmentObject var planVM: PlanViewModel
     
