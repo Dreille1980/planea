@@ -252,7 +252,6 @@ struct ChatView: View {
             }
             .onAppear {
                 setupViewModel()
-                checkPremiumAccess()
             }
             .onChange(of: speechService.recognizedText) { oldValue, newValue in
                 // Update message text with recognized speech
@@ -339,8 +338,7 @@ struct ChatView: View {
     private var canSendMessage: Bool {
         !messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !viewModel.isLoading &&
-        viewModel.isOnline &&
-        viewModel.hasPremiumAccess
+        viewModel.isOnline
     }
     
     private func sendMessage() {
@@ -455,12 +453,6 @@ struct ChatView: View {
         
         // Inject FamilyViewModel for adding members
         viewModel.familyViewModel = familyVM
-    }
-    
-    private func checkPremiumAccess() {
-        if !viewModel.hasPremiumAccess {
-            showPaywall = true
-        }
     }
     
     private func toggleRecording() {

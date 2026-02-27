@@ -149,21 +149,7 @@ struct WeekOverviewView: View {
     
     private func weekSections(plan: MealPlan) -> some View {
         VStack(spacing: 24) {
-            Divider()
-                .padding(.vertical, 8)
-            
-            // Simple recipes section
-            let simpleRecipes = plan.items.filter { !$0.isMealPrep }
-            if !simpleRecipes.isEmpty {
-                recipeSection(
-                    title: "plan.simpleRecipes.title".localized,
-                    icon: "fork.knife",
-                    color: .planeaPrimary,
-                    items: simpleRecipes
-                )
-            }
-            
-            // Meal prep section with prominent button
+            // Meal prep section with prominent button (only if meal prep recipes exist)
             let mealPrepRecipes = plan.items.filter { $0.isMealPrep }
             let _ = {
                 print("🥡 DEBUG WeekOverviewView: Total items=\(plan.items.count), MealPrep items=\(mealPrepRecipes.count)")
@@ -177,6 +163,9 @@ struct WeekOverviewView: View {
                 }
             }()
             if !mealPrepRecipes.isEmpty {
+                Divider()
+                    .padding(.vertical, 8)
+                
                 mealPrepMainSection(plan: plan, items: mealPrepRecipes)
             }
         }

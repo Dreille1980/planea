@@ -79,9 +79,7 @@ struct ChatService {
         
         // Check for HTTP errors
         if let httpResponse = response as? HTTPURLResponse {
-            if httpResponse.statusCode == 403 {
-                throw ChatError.premiumRequired
-            } else if httpResponse.statusCode != 200 {
+            if httpResponse.statusCode != 200 {
                 throw ChatError.serverError("HTTP \(httpResponse.statusCode)")
             }
         }

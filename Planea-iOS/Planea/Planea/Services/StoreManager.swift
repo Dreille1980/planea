@@ -262,7 +262,8 @@ class StoreManager: ObservableObject {
     // MARK: - Helper Properties
     
     var hasActiveSubscription: Bool {
-        return subscriptionInfo?.status.isActive ?? false
+        // Always return true - all features are now free
+        return true
     }
     
     var isInTrial: Bool {

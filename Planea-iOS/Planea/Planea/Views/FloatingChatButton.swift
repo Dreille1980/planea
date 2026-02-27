@@ -1,22 +1,10 @@
 import SwiftUI
 
 struct FloatingChatButton: View {
-    @EnvironmentObject var storeManager: StoreManager
-    @EnvironmentObject var usageVM: UsageViewModel
     @State private var showChatView = false
-    @State private var showPaywall = false
-    
-    private var hasPremiumAccess: Bool {
-        storeManager.hasActiveSubscription
-    }
     
     var body: some View {
-        // Don't show chat button if usage limit is reached in free version mode
-        if Config.isFreeVersion && !usageVM.canGenerateRecipes {
-            EmptyView()
-        } else {
-            chatButton
-        }
+        chatButton
     }
     
     private var chatButton: some View {
@@ -43,17 +31,11 @@ struct FloatingChatButton: View {
         .sheet(isPresented: $showChatView) {
             ChatView()
         }
-        .sheet(isPresented: $showPaywall) {
-            SubscriptionPaywallView()
-        }
     }
     
     private func openChat() {
-        if hasPremiumAccess {
-            showChatView = true
-        } else {
-            showPaywall = true
-        }
+        // All users can access chat - no restrictions
+        showChatView = true
     }
 }
 

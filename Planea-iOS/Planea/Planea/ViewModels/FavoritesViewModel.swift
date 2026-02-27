@@ -51,12 +51,7 @@ class FavoritesViewModel: ObservableObject {
     
     @MainActor
     func saveRecipe(_ recipe: Recipe) {
-        // Check if user has free plan restrictions
-        if let usageVM = usageVM, usageVM.hasFreePlanRestrictions {
-            showPaywall = true
-            return
-        }
-        
+        // All users can save recipes - no restrictions
         let context = container.viewContext
         
         // Check if already saved

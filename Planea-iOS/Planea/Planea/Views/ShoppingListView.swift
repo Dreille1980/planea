@@ -409,45 +409,18 @@ struct ShoppingListView: View {
     
     private var exportButton: some View {
         Button(action: handleExportAction) {
-            exportButtonLabel
+            Label("action.export".localized, systemImage: "square.and.arrow.up")
+                .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent)
         .tint(.planeaPrimary)
         .padding()
     }
     
-    private var exportButtonLabel: some View {
-        HStack(spacing: 8) {
-            Label("action.export".localized, systemImage: "square.and.arrow.up")
-            if usageVM.hasFreePlanRestrictions {
-                premiumBadge
-            }
-        }
-        .frame(maxWidth: .infinity)
-    }
-    
-    private var premiumBadge: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "lock.fill")
-            Text("Premium")
-        }
-        .font(.caption)
-        .fontWeight(.semibold)
-        .foregroundColor(.white)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Capsule().fill(Color.planeaSecondary))
-    }
-    
     private func handleExportAction() {
-        if usageVM.hasFreePlanRestrictions {
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.warning)
-            showPaywall = true
-        } else {
-            let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
-            impactGenerator.impactOccurred()
-            showingExportOptions = true
-        }
+        // All users can export - no restrictions
+        let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
+        impactGenerator.impactOccurred()
+        showingExportOptions = true
     }
 }
