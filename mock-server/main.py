@@ -1771,6 +1771,36 @@ class RegenerateMealRequest(BaseModel):
 @limiter.limit("20/minute")
 async def regenerate_meal(request: Request, req: RegenerateMealRequest):
     """Regenerate a single meal with diversity."""
+    
+    # CRITICAL FIX: Use diversity_seed to randomize protein selection
+    # This ensures we don't always get chicken when regenerating
+    print(f"\n🔄 Regenerating meal with diversity_seed: {req.diversity_seed}")
+    
+    # Build protein pool based on user preferences
+    default_proteins = ["chicken", "beef", "pork", "fish", "salmon", "shrimp", "tofu", "turkey", "lamb", "tuna"]
+    
+    # Get user's preferred proteins if available - check both locations
+    preferred_proteins = req.preferences.get("preferredProteins", []) if req.preferences else []
+    if not preferred_proteins and req.constraints:
+        preferred_proteins = req.constraints.get("preferredProteins", [])
+    
+    # Use user's preferred proteins if provided, otherwise use defaults
+    protein_pool = preferred_proteins if preferred_proteins else default_proteins
+    
+    # Remove excluded proteins
+    excluded_proteins = req.constraints.get("excludedProteins", []) if req.constraints else []
+    protein_pool = [p for p in protein_pool if p not in excluded_proteins]
+    
+    # Use diversity_seed to deterministically select a protein
+    # This ensures different seeds = different proteins
+    import random
+    random.seed(req.diversity_seed)
+    selected_protein = random.choice(protein_pool)
+    
+    print(f"  🎯 Selected protein: {selected_protein} (from pool of {len(protein_pool)})")
+    print(f"  📋 Protein pool: {protein_pool}")
+    
+    # Generate recipe with the selected protein
     recipe = await generate_recipe_with_openai(
         meal_type=req.meal_type,
         constraints=req.constraints,
@@ -1780,7 +1810,9 @@ async def regenerate_meal(request: Request, req: RegenerateMealRequest):
         diversity_seed=req.diversity_seed,
         language=req.language,
         preferences=req.preferences,
-        weekday=req.weekday  # Pass weekday for complexity determination
+        weekday=req.weekday,  # Pass weekday for complexity determination
+        suggested_protein=selected_protein,  # CRITICAL: Force this protein
+        other_plan_proteins=[p for p in protein_pool if p != selected_protein]  # Avoid these
     )
     
     # Mark ingredients on sale if feature is enabled
