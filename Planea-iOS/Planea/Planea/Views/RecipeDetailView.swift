@@ -14,17 +14,17 @@ struct RecipeDetailView: View {
                 // Hero section with main info
                 VStack(alignment: .leading, spacing: 12) {
                     Text(recipe.title)
-                        .font(.title2)
-                        .bold()
+                        .font(.planeaTitle2)
+                        .foregroundColor(.planeaTextPrimary)
                     
                     HStack(spacing: 24) {
                         Label("\(recipe.servings)", systemImage: "person.2.fill")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaSubheadline)
+                            .foregroundColor(.planeaTextSecondary)
                         
                         Label("\(recipe.totalMinutes) min", systemImage: "clock.fill")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaSubheadline)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                     
                     // Nutritional information (if available)
@@ -39,13 +39,13 @@ struct RecipeDetailView: View {
                                 .foregroundColor(.orange)
                             Text("\(calories) cal")
                             Text("|")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.planeaTextSecondary)
                             Text("P: \(protein)g")
                             Text("G: \(carbs)g")
                             Text("L: \(fat)g")
                         }
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.planeaSubheadline)
+                        .foregroundColor(.planeaTextSecondary)
                     }
                 }
                 .padding()
@@ -56,8 +56,7 @@ struct RecipeDetailView: View {
                 // Ingredients section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("recipe.ingredients".localized)
-                        .font(.headline)
-                        .bold()
+                        .font(.planeaHeadline)
                     
                     VStack(spacing: 8) {
                         ForEach(recipe.ingredients) { ing in
@@ -69,7 +68,7 @@ struct RecipeDetailView: View {
                                 
                                 HStack(spacing: 6) {
                                     Text(ing.name.capitalized)
-                                        .font(.body)
+                                        .font(.planeaBody)
                                     
                                     if ing.isOnSale {
                                         Image(systemName: "tag.fill")
@@ -81,8 +80,8 @@ struct RecipeDetailView: View {
                                 Spacer()
                                 
                                 Text(converted)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .font(.planeaSubheadline)
+                                    .foregroundColor(.planeaTextSecondary)
                             }
                             .padding(.vertical, 4)
                         }
@@ -95,20 +94,20 @@ struct RecipeDetailView: View {
                 // Steps section
                 VStack(alignment: .leading, spacing: 12) {
                     Text("recipe.steps".localized)
-                        .font(.headline)
-                        .bold()
+                        .font(.planeaHeadline)
                     
                     VStack(alignment: .leading, spacing: 16) {
                         ForEach(Array(recipe.steps.enumerated()), id: \.offset) { idx, step in
                             HStack(alignment: .top, spacing: 12) {
                                 Text("\(idx+1)")
-                                    .font(.headline)
-                                    .foregroundStyle(.white)
+                                    .font(.planeaHeadline)
+                                    .foregroundColor(.white)
                                     .frame(width: 28, height: 28)
                                     .background(Circle().fill(Color.planeaPrimary))
                                 
                                 Text(step)
-                                    .font(.body)
+                                    .font(.planeaBody)
+                                    .foregroundColor(.planeaTextPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }

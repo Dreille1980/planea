@@ -13,23 +13,50 @@ struct SavedRecipesView: View {
             NavigationStack {
                 Group {
                 if favoritesVM.savedRecipes.isEmpty {
-                    // Empty state
-                    VStack(spacing: 16) {
-                        Image(systemName: "heart.slash")
-                            .font(.system(size: 60))
-                            .foregroundStyle(.secondary)
+                    // Enhanced Empty state with illustration & CTA
+                    VStack(spacing: 24) {
+                        Spacer()
                         
-                        VStack(spacing: 8) {
+                        // Illustration
+                        ZStack {
+                            Circle()
+                                .fill(Color.planeaSecondary.opacity(0.1))
+                                .frame(width: 120, height: 120)
+                            
+                            Image(systemName: "heart.fill")
+                                .font(.system(size: 50))
+                                .foregroundColor(.planeaSecondaryAccessible)
+                        }
+                        
+                        // Text content
+                        VStack(spacing: 12) {
                             Text("favorites.empty".localized)
-                                .font(.title3)
-                                .bold()
+                                .font(.planeaTitle2)
+                                .foregroundColor(.planeaTextPrimary)
+                                .multilineTextAlignment(.center)
                             
                             Text("favorites.empty_description".localized)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .font(.planeaBody)
+                                .foregroundColor(.planeaTextSecondary)
                                 .multilineTextAlignment(.center)
-                                .padding(.horizontal)
+                                .padding(.horizontal, 32)
                         }
+                        
+                        // Helpful tip
+                        HStack(spacing: 12) {
+                            Image(systemName: "lightbulb.fill")
+                                .foregroundColor(.orange)
+                            
+                            Text("Astuce : Touchez ♥ sur une recette pour la sauvegarder ici")
+                                .font(.planeaCallout)
+                                .foregroundColor(.planeaTextSecondary)
+                        }
+                        .padding()
+                        .background(Color.orange.opacity(0.1))
+                        .cornerRadius(PlaneaRadius.card)
+                        .padding(.horizontal, 32)
+                        
+                        Spacer()
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
