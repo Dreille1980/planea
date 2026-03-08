@@ -23,30 +23,29 @@ struct ErrorMessageMapper {
         }
         
         // Check for custom API errors
-        if let errorMessage = error.localizedDescription.lowercased() {
-            if errorMessage.contains("quota") || errorMessage.contains("limite") {
-                return (
-                    title: "Limite atteinte",
-                    message: "Vous avez atteint votre limite de génération. Réessayez plus tard ou passez à Premium pour des générations illimitées.",
-                    isRecoverable: true
-                )
-            }
-            
-            if errorMessage.contains("auth") || errorMessage.contains("token") {
-                return (
-                    title: "Authentification requise",
-                    message: "Veuillez vous reconnecter pour continuer.",
-                    isRecoverable: true
-                )
-            }
-            
-            if errorMessage.contains("invalid") || errorMessage.contains("malformed") {
-                return (
-                    title: "Données invalides",
-                    message: "Les données envoyées sont invalides. Veuillez réessayer.",
-                    isRecoverable: true
-                )
-            }
+        let errorMessage = error.localizedDescription.lowercased()
+        if errorMessage.contains("quota") || errorMessage.contains("limite") {
+            return (
+                title: "Limite atteinte",
+                message: "Vous avez atteint votre limite de génération. Réessayez plus tard ou passez à Premium pour des générations illimitées.",
+                isRecoverable: true
+            )
+        }
+        
+        if errorMessage.contains("auth") || errorMessage.contains("token") {
+            return (
+                title: "Authentification requise",
+                message: "Veuillez vous reconnecter pour continuer.",
+                isRecoverable: true
+            )
+        }
+        
+        if errorMessage.contains("invalid") || errorMessage.contains("malformed") {
+            return (
+                title: "Données invalides",
+                message: "Les données envoyées sont invalides. Veuillez réessayer.",
+                isRecoverable: true
+            )
         }
         
         // Default generic error
