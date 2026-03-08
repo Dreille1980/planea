@@ -20,6 +20,10 @@ extension Color {
     /// Usage : Mot clé dans titre ("Planifiez"), chip sélectionné (fond léger), icône ✨
     static let planeaSecondary = Color(light: "#E38A3F", dark: "#F5A563")
     
+    /// Orange brûlé avec opacité 80% minimum (pour accessibilité)
+    /// Usage : Empty states, illustrations - garantit ratio 4.5:1
+    static let planeaSecondaryAccessible = Color(light: "#E38A3F", dark: "#F5A563").opacity(0.8)
+    
     /// Vert sauge foncé - Couleur tertiaire pour structure
     /// Usage : Barre verticale gauche des cartes jour (4px, 100% opacité)
     static let planeaTertiary = Color(light: "#7FA19B", dark: "#95B8B1")

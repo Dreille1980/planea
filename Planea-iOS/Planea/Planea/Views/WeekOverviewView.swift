@@ -59,7 +59,7 @@ struct WeekOverviewView: View {
             
             Image(systemName: "calendar.badge.exclamationmark")
                 .font(.system(size: 60))
-                .foregroundColor(.planeaSecondary.opacity(0.6))
+                .foregroundColor(.planeaSecondaryAccessible)
             
             VStack(spacing: 8) {
                 Text("plan.noActiveWeek.title".localized)
