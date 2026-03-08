@@ -110,19 +110,7 @@ struct ShoppingListView: View {
                         
                         // CTA
                         if let plan = planVM.currentPlan {
-                            Button(action: {
-                                let impact = UIImpactFeedbackGenerator(style: .medium)
-                                impact.impactOccurred()
-                                generateShoppingList(from: plan)
-                            }) {
-                                Label("plan.generateList".localized, systemImage: "sparkles")
-                                    .font(.planeaCallout)
-                                    .padding(.horizontal, PlaneaSpacing.lg)
-                                    .padding(.vertical, PlaneaSpacing.sm)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.planeaPrimary)
-                            .planeaShadow(.medium)
+                            generateListButton(plan: plan)
                         }
                         
                         Spacer()
@@ -449,5 +437,22 @@ struct ShoppingListView: View {
         let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
         impactGenerator.impactOccurred()
         showingExportOptions = true
+    }
+    
+    // Helper view for generate button
+    private func generateListButton(plan: MealPlan) -> some View {
+        Button(action: {
+            let impact = UIImpactFeedbackGenerator(style: .medium)
+            impact.impactOccurred()
+            generateShoppingList(from: plan)
+        }) {
+            Label("plan.generateList".localized, systemImage: "sparkles")
+                .font(.planeaCallout)
+                .padding(.horizontal, PlaneaSpacing.lg)
+                .padding(.vertical, PlaneaSpacing.sm)
+        }
+        .buttonStyle(.borderedProminent)
+        .tint(.planeaPrimary)
+        .planeaShadow(.medium)
     }
 }
