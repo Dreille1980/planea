@@ -291,6 +291,10 @@ struct MealTypeSelector: View {
             .onTapGesture {
                 toggleSelection()
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(mealType.localizedName) pour \(weekday.displayName)")
+            .accessibilityValue(isSelected ? "Sélectionné" : "Non sélectionné")
+            .accessibilityHint(isSelected ? "Touchez pour désélectionner" : "Touchez pour sélectionner")
             
             Spacer()
             
@@ -319,6 +323,10 @@ struct MealTypeSelector: View {
     }
     
     private func toggleSelection() {
+        // Haptic feedback for premium feel
+        let impact = UIImpactFeedbackGenerator(style: .light)
+        impact.impactOccurred()
+        
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             if let index = selectedSlots.firstIndex(where: { $0.weekday == weekday && $0.mealType == mealType }) {
                 selectedSlots.remove(at: index)

@@ -127,6 +127,10 @@ struct RecipeDetailView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
                     Button(action: {
+                        // Haptic feedback
+                        let impact = UIImpactFeedbackGenerator(style: .medium)
+                        impact.impactOccurred()
+                        
                         let units = UnitSystem(rawValue: unitSystem) ?? .metric
                         if shoppingVM.currentList != nil {
                             shoppingVM.addRecipeToList(recipe: recipe)
@@ -139,8 +143,14 @@ struct RecipeDetailView: View {
                         Image(systemName: "cart.badge.plus")
                             .foregroundStyle(.primary)
                     }
+                    .accessibilityLabel("Ajouter à la liste d'épicerie")
+                    .accessibilityHint("Ajoute les ingrédients de cette recette à votre liste d'achats")
                     
                     Button(action: {
+                        // Haptic feedback
+                        let impact = UIImpactFeedbackGenerator(style: .light)
+                        impact.impactOccurred()
+                        
                         withAnimation {
                             if favoritesVM.isRecipeSaved(recipe) {
                                 favoritesVM.removeRecipe(recipe)
@@ -152,6 +162,8 @@ struct RecipeDetailView: View {
                         Image(systemName: favoritesVM.isRecipeSaved(recipe) ? "heart.fill" : "heart")
                             .foregroundColor(favoritesVM.isRecipeSaved(recipe) ? .planeaSecondary : .primary)
                     }
+                    .accessibilityLabel(favoritesVM.isRecipeSaved(recipe) ? "Retirer des favoris" : "Ajouter aux favoris")
+                    .accessibilityHint(favoritesVM.isRecipeSaved(recipe) ? "Retire cette recette de vos favoris" : "Sauvegarde cette recette dans vos favoris")
                 }
             }
         }

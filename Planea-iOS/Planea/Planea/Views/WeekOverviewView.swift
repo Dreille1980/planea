@@ -598,7 +598,12 @@ struct WeekMealRow: View {
         .buttonStyle(.plain)
         .overlay(alignment: .topTrailing) {
             HStack(spacing: 8) {
-                Button(action: onRegenerate) {
+                Button(action: {
+                    // Haptic feedback
+                    let impact = UIImpactFeedbackGenerator(style: .medium)
+                    impact.impactOccurred()
+                    onRegenerate()
+                }) {
                     HStack(spacing: 4) {
                         if isRegenerating {
                             ProgressView()
@@ -615,6 +620,8 @@ struct WeekMealRow: View {
                     .cornerRadius(8)
                 }
                 .disabled(isRegenerating)
+                .accessibilityLabel("Régénérer cette recette")
+                .accessibilityHint("Génère une nouvelle recette pour ce repas")
                 
                 Button(action: onRemove) {
                     Image(systemName: "xmark.circle.fill")

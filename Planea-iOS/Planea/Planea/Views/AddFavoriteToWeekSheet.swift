@@ -19,7 +19,8 @@ struct AddFavoriteToWeekSheet: View {
         // Use all weekdays in order
         return [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
     }
-    let mealTypes: [MealType] = [.breakfast, .lunch, .dinner, .snack]
+    // Only show lunch and dinner options
+    let mealTypes: [MealType] = [.lunch, .dinner]
     
     var body: some View {
         NavigationStack {
@@ -114,6 +115,10 @@ struct AddFavoriteToWeekSheet: View {
                 Button("action.cancel".localized, role: .cancel) {}
             } message: {
                 Text("favorites.conflict_message".localized)
+            }
+            .onAppear {
+                // Ensure plans are loaded when the sheet appears
+                planVM.loadPlans()
             }
         }
     }
