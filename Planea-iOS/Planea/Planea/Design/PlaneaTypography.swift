@@ -58,6 +58,14 @@ extension Font {
     
     /// Caption 2 - Extra small text (11pt base)
     static let planeaCaption2 = Font.system(.caption2, design: .default, weight: .regular)
+    
+    // MARK: - Aliases for compatibility
+    
+    /// Alias for planeaCaption1 (most common caption use)
+    static let planeaCaption = Font.planeaCaption1
+    
+    /// Alias for planeaDisplayLarge (for .largeTitle replacements)
+    static let planeaLargeTitle = Font.planeaDisplayLarge
 }
 
 // MARK: - Text Style Extension
