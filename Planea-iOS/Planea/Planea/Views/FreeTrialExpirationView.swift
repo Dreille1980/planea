@@ -34,21 +34,21 @@ struct FreeTrialExpirationView: View {
                 
                 // Title
                 Text("freetrial.expired.title".localized)
-                    .font(.title)
+                    .font(.planeaTitle1)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
                 // Message
                 Text("freetrial.expired.message".localized)
-                    .font(.body)
+                    .font(.planeaBody)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.planeaTextSecondary)
                     .padding(.horizontal, 32)
                 
                 Spacer()
                 
                 // Buttons
-                VStack(spacing: 12) {
+                VStack(spacing: PlaneaSpacing.sm) {
                     Button(action: {
                         showSubscriptionView = true
                     }) {
@@ -56,7 +56,7 @@ struct FreeTrialExpirationView: View {
                             Image(systemName: "star.fill")
                             Text("freetrial.expired.subscribe".localized)
                         }
-                        .font(.headline)
+                        .font(.planeaHeadline)
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(
@@ -74,11 +74,11 @@ struct FreeTrialExpirationView: View {
                         dismiss()
                     }) {
                         Text("freetrial.expired.continue".localized)
-                            .font(.subheadline)
+                            .font(.planeaSubheadline)
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color(.systemGray6))
-                            .foregroundStyle(.primary)
+                            .foregroundColor(.planeaTextPrimary)
                             .cornerRadius(12)
                     }
                 }
@@ -92,7 +92,7 @@ struct FreeTrialExpirationView: View {
                         dismiss()
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                 }
             }

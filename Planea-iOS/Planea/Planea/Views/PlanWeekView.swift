@@ -71,7 +71,7 @@ struct PlanWeekView: View {
                     if let plan = planVM.currentPlan {
                         // Show generated plan with modern card design
                         ScrollView {
-                            LazyVStack(spacing: 12) {
+                            LazyVStack(spacing: PlaneaSpacing.sm) {
                                 // Week range header
                                 WeekRangeHeader(weekStart: plan.weekStart)
                                     .padding(.horizontal)
@@ -105,7 +105,7 @@ struct PlanWeekView: View {
                         }
                         
                         // Bottom action buttons
-                        VStack(spacing: 12) {
+                        VStack(spacing: PlaneaSpacing.sm) {
                             Divider()
                             
                             // Show status badge
@@ -114,7 +114,7 @@ struct PlanWeekView: View {
                                     Image(systemName: "pencil.circle.fill")
                                     Text("plan.draft".localized)
                                 }
-                                .font(.caption)
+                                .font(.planeaCaption)
                                 .foregroundStyle(.orange)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
@@ -125,7 +125,7 @@ struct PlanWeekView: View {
                                     Image(systemName: "checkmark.seal.fill")
                                     Text("plan.active.badge".localized)
                                 }
-                                .font(.caption)
+                                .font(.planeaCaption)
                                 .foregroundStyle(.green)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
@@ -133,7 +133,7 @@ struct PlanWeekView: View {
                                 .cornerRadius(12)
                             }
                             
-                            HStack(spacing: 12) {
+                            HStack(spacing: PlaneaSpacing.sm) {
                                 // Activate Plan button (only if draft)
                                 if plan.status == .draft {
                                     Button(action: {
@@ -172,16 +172,16 @@ struct PlanWeekView: View {
                     } else {
                         // Modern slot selection UI
                         ScrollView {
-                            VStack(spacing: 12) {
+                            VStack(spacing: PlaneaSpacing.sm) {
                                 // Header with styled title
                                 VStack(spacing: 4) {
                                     // Styled title with "Planifiez" in orange
                                     Text(attributedPlanTitle())
-                                        .font(.title3)
+                                        .font(.planeaTitle3)
                                         .bold()
                                     
                                     Text("plan.selectMeals".localized)
-                                        .font(.caption)
+                                        .font(.planeaCaption)
                                         .foregroundColor(.planeaTextSecondary)
                                 }
                                 .padding(.top, 4)
@@ -207,11 +207,11 @@ struct PlanWeekView: View {
                         VStack(spacing: 0) {
                             Divider()
                             
-                            VStack(spacing: 12) {
+                            VStack(spacing: PlaneaSpacing.sm) {
                                 if let error = errorMessage {
                                     Text(error)
                                         .foregroundStyle(.red)
-                                        .font(.caption)
+                                        .font(.planeaCaption)
                                         .multilineTextAlignment(.center)
                                 }
                                 
@@ -240,8 +240,8 @@ struct PlanWeekView: View {
                                 
                                 if !planVM.slots.isEmpty {
                                     Text("\(planVM.slots.count) \("plan.mealsSelected".localized)")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .font(.planeaCaption)
+                                        .foregroundColor(.planeaTextSecondary)
                                 }
                             }
                             .padding()
@@ -265,31 +265,31 @@ struct PlanWeekView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: PlaneaSpacing.md) {
                         Button(action: {
                             showPlanHistory = true
                         }) {
                             Image(systemName: "clock.arrow.circlepath")
-                                .font(.title3)
+                                .font(.planeaTitle3)
                         }
                         
                         Button(action: {
                             showTemplates = true
                         }) {
                             Image(systemName: "bookmark.fill")
-                                .font(.title3)
+                                .font(.planeaTitle3)
                         }
                     }
                 }
                 
                 if planVM.currentPlan != nil {
                     ToolbarItem(placement: .topBarTrailing) {
-                        HStack(spacing: 16) {
+                        HStack(spacing: PlaneaSpacing.md) {
                             Button(action: {
                                 showSaveAsTemplateDialog = true
                             }) {
                                 Image(systemName: "square.and.arrow.down")
-                                    .font(.title3)
+                                    .font(.planeaTitle3)
                             }
                             
                             Button(action: {
@@ -298,7 +298,7 @@ struct PlanWeekView: View {
                                 showAddMealSheet = true
                             }) {
                                 Image(systemName: "plus.circle.fill")
-                                    .font(.title3)
+                                    .font(.planeaTitle3)
                             }
                         }
                     }
@@ -560,7 +560,7 @@ struct DaySelectionRow: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 Text(dayLabel)
-                    .font(.subheadline)
+                    .font(.planeaSubheadline)
                     .bold()
                     .foregroundColor(.planeaTextPrimary)
                 
@@ -584,7 +584,7 @@ struct DaySelectionRow: View {
                     }
                 }
             }
-            .padding(12)
+            .padding(PlaneaSpacing.sm)
         }
         .background(
             RoundedRectangle(cornerRadius: 10)
@@ -616,10 +616,10 @@ struct MealPillButton: View {
             HStack(spacing: 4) {
                 if isSelected {
                     Text(mealIcon)
-                        .font(.caption2)
+                        .font(.planeaCaption2)
                 }
                 Text(label)
-                    .font(.caption)
+                    .font(.planeaCaption)
                     .bold()
             }
             .frame(maxWidth: .infinity)
@@ -643,11 +643,11 @@ struct WeekRangeHeader: View {
     var body: some View {
         HStack {
             Image(systemName: "calendar")
-                .font(.subheadline)
+                .font(.planeaSubheadline)
                 .foregroundColor(.planeaSecondary)
             
             Text(String(format: "week.range".localized, Date.weekRange(from: weekStart)))
-                .font(.subheadline)
+                .font(.planeaSubheadline)
                 .bold()
                 .foregroundColor(.planeaTextPrimary)
         }
@@ -681,12 +681,12 @@ struct DayCardView: View {
                 .fill(Color.planeaTertiary)
                 .frame(width: 4)
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                 // Header with date
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(date.dayWithDate())
-                            .font(.headline)
+                            .font(.planeaHeadline)
                             .bold()
                             .foregroundColor(.planeaTextPrimary)
                     }
@@ -695,9 +695,9 @@ struct DayCardView: View {
                     
                     HStack(spacing: 4) {
                         Image(systemName: "fork.knife")
-                            .font(.caption)
+                            .font(.planeaCaption)
                         Text("\(meals.count)")
-                            .font(.caption)
+                            .font(.planeaCaption)
                             .bold()
                     }
                     .foregroundColor(.planeaTextSecondary)
@@ -711,7 +711,7 @@ struct DayCardView: View {
                     .background(Color.planeaBorder)
                 
                 // Meals list
-                VStack(spacing: 12) {
+                VStack(spacing: PlaneaSpacing.sm) {
                     ForEach(meals, id: \.0.id) { mealTuple in
                         MealRowView(
                             mealItem: mealTuple.0,
@@ -729,7 +729,7 @@ struct DayCardView: View {
                     }
                 }
             }
-            .padding(12)
+            .padding(PlaneaSpacing.sm)
         }
         .background(
             RoundedRectangle(cornerRadius: 12)
@@ -769,10 +769,10 @@ struct MealRowView: View {
     
     var body: some View {
         NavigationLink(destination: RecipeDetailView(recipe: mealItem.recipe)) {
-            HStack(spacing: 12) {
+            HStack(spacing: PlaneaSpacing.sm) {
                 // Icon
                 Image(systemName: iconName)
-                    .font(.title3)
+                    .font(.planeaTitle3)
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(iconColor)
                     .frame(width: 32, height: 32)
@@ -782,24 +782,24 @@ struct MealRowView: View {
                 // Content
                 VStack(alignment: .leading, spacing: 2) {
                     Text(mealLabel)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                     
                     Text(recipeName)
-                        .font(.subheadline)
+                        .font(.planeaSubheadline)
                         .bold()
-                        .foregroundStyle(.primary)
+                        .foregroundColor(.planeaTextPrimary)
                 }
                 
                 Spacer()
                 
                 // Navigate icon
                 Image(systemName: "chevron.right")
-                    .font(.caption)
+                    .font(.planeaCaption)
                     .foregroundStyle(.tertiary)
                     .frame(width: 20)
             }
-            .padding(12)
+            .padding(PlaneaSpacing.sm)
             .background(Color(.systemGray6))
             .cornerRadius(10)
         }
@@ -832,7 +832,7 @@ struct MealRowView: View {
                         .foregroundColor(.planeaDanger)
                 }
             }
-            .padding(12)
+            .padding(PlaneaSpacing.sm)
         }
     }
 }

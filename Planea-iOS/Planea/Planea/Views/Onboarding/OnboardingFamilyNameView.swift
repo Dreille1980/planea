@@ -24,7 +24,7 @@ struct OnboardingFamilyNameView: View {
             
             // Title
             Text("onboarding.familyname.title".localized)
-                .font(.title)
+                .font(.planeaTitle1)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
             
@@ -32,7 +32,7 @@ struct OnboardingFamilyNameView: View {
             VStack(alignment: .leading, spacing: 8) {
                 TextField("onboarding.familyname.placeholder".localized, text: $familyName)
                     .textFieldStyle(.roundedBorder)
-                    .font(.title3)
+                    .font(.planeaTitle3)
                     .multilineTextAlignment(.center)
                     .focused($isTextFieldFocused)
                     .textContentType(.organizationName)
@@ -48,10 +48,10 @@ struct OnboardingFamilyNameView: View {
                 if familyName.isEmpty {
                     HStack {
                         Image(systemName: "info.circle")
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.planeaTextSecondary)
                         Text("onboarding.familyname.hint".localized)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                     .padding(.horizontal, 32)
                 }
@@ -62,7 +62,7 @@ struct OnboardingFamilyNameView: View {
             // Continue Button
             Button(action: saveFamilyName) {
                 Text("action.continue".localized)
-                    .font(.headline)
+                    .font(.planeaHeadline)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding()

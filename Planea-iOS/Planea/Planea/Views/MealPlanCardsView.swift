@@ -5,16 +5,16 @@ struct MealPlanCardsView: View {
     let planData: [DayPlanData]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
             // Intro text
             Text("chat.meal_plan.current_plan".localized)
-                .font(.subheadline)
+                .font(.planeaSubheadline)
                 .fontWeight(.semibold)
-                .foregroundColor(.secondary)
+                .foregroundColor(.planeaTextSecondary)
                 .padding(.horizontal, 4)
             
             // Vertical stacked cards
-            VStack(spacing: 12) {
+            VStack(spacing: PlaneaSpacing.sm) {
                 ForEach(planData) { dayData in
                     MealPlanDayCard(dayData: dayData)
                 }
@@ -32,23 +32,23 @@ struct MealPlanDayCard: View {
     @State private var selectedMeal: MealData?
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
             // Day header
             HStack {
                 Text(dayData.dayName)
-                    .font(.headline)
+                    .font(.planeaHeadline)
                     .bold()
                 
                 Spacer()
                 
                 HStack(spacing: 4) {
                     Image(systemName: "fork.knife")
-                        .font(.caption)
+                        .font(.planeaCaption)
                     Text("\(dayData.meals.count)")
-                        .font(.caption)
+                        .font(.planeaCaption)
                         .bold()
                 }
-                .foregroundStyle(.secondary)
+                .foregroundColor(.planeaTextSecondary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(Color(.systemGray5))
@@ -58,7 +58,7 @@ struct MealPlanDayCard: View {
             Divider()
             
             // Meals list
-            VStack(spacing: 12) {
+            VStack(spacing: PlaneaSpacing.sm) {
                 ForEach(dayData.meals) { meal in
                     Button(action: {
                         selectedMeal = meal
@@ -92,20 +92,20 @@ struct MealPlanDayCard: View {
                 }
             } else {
                 // Fallback if recipe data not available
-                VStack(spacing: 16) {
+                VStack(spacing: PlaneaSpacing.md) {
                     Image(systemName: "doc.text")
-                        .font(.largeTitle)
-                        .foregroundColor(.secondary)
+                        .font(.planeaLargeTitle)
+                        .foregroundColor(.planeaTextSecondary)
                     Text(meal.title)
-                        .font(.headline)
+                        .font(.planeaHeadline)
                     if let servings = meal.servings, let time = meal.time {
                         HStack {
                             Label("\(servings) portions", systemImage: "person.2")
                             Spacer()
                             Label("\(time) min", systemImage: "clock")
                         }
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                     }
                     Button("chat.close".localized) {
                         showingRecipeDetail = false
@@ -120,12 +120,12 @@ struct MealPlanDayCard: View {
     
     @ViewBuilder
     private func mealRow(meal: MealData) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: PlaneaSpacing.sm) {
             // Icon
             Image(systemName: iconName(for: meal.mealType))
-                .font(.title3)
+                .font(.planeaTitle3)
                 .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(.secondary)
+                .foregroundColor(.planeaTextSecondary)
                 .frame(width: 32, height: 32)
                 .background(Color(.systemGray5))
                 .cornerRadius(8)
@@ -133,24 +133,24 @@ struct MealPlanDayCard: View {
             // Content
             VStack(alignment: .leading, spacing: 2) {
                 Text(meal.mealType)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.planeaCaption)
+                    .foregroundColor(.planeaTextSecondary)
                 
                 Text(meal.title)
-                    .font(.subheadline)
+                    .font(.planeaSubheadline)
                     .bold()
-                    .foregroundStyle(.primary)
+                    .foregroundColor(.planeaTextPrimary)
             }
             
             Spacer()
             
             // Navigate icon
             Image(systemName: "chevron.right")
-                .font(.caption)
+                .font(.planeaCaption)
                 .foregroundStyle(.tertiary)
                 .frame(width: 20)
         }
-        .padding(12)
+        .padding(PlaneaSpacing.sm)
         .background(Color(.systemGray6))
         .cornerRadius(10)
     }
@@ -254,7 +254,7 @@ struct MealData: Identifiable {
     return ScrollView {
         VStack {
             Text("Aperçu des cartes de plan")
-                .font(.title2)
+                .font(.planeaTitle2)
                 .fontWeight(.bold)
                 .padding()
             

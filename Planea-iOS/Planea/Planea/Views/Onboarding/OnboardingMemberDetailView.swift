@@ -61,7 +61,7 @@ struct OnboardingMemberDetailView: View {
                     Label("member.dietaryPreferences".localized, systemImage: "leaf.fill")
                 } footer: {
                     Text("onboarding.member.diets.footer".localized)
-                        .font(.caption)
+                        .font(.planeaCaption)
                 }
                 
                 Section {
@@ -81,7 +81,7 @@ struct OnboardingMemberDetailView: View {
                     Label("member.allergens".localized, systemImage: "exclamationmark.triangle.fill")
                 } footer: {
                     Text("onboarding.member.allergens.footer".localized)
-                        .font(.caption)
+                        .font(.planeaCaption)
                 }
                 
                 Section {
@@ -116,7 +116,7 @@ struct OnboardingMemberDetailView: View {
                     Label("member.customAllergens".localized, systemImage: "plus.circle")
                 } footer: {
                     Text("onboarding.member.customAllergens.footer".localized)
-                        .font(.caption)
+                        .font(.planeaCaption)
                 }
                 
                 Section {
@@ -150,7 +150,7 @@ struct OnboardingMemberDetailView: View {
                     Label("member.dislikes".localized, systemImage: "hand.thumbsdown.fill")
                 } footer: {
                     Text("onboarding.member.dislikes.footer".localized)
-                        .font(.caption)
+                        .font(.planeaCaption)
                 }
             }
             .navigationTitle("onboarding.member.title".localized)

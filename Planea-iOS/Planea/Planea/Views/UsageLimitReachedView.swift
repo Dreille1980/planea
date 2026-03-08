@@ -44,15 +44,15 @@ struct UsageLimitReachedView: View {
                     
                     // Title
                     Text("usage.limit.reached.title".localized)
-                        .font(.largeTitle)
+                        .font(.planeaLargeTitle)
                         .fontWeight(.bold)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                     
                     // Message
                     Text(String(format: "usage.limit.reached.message".localized, nextResetDate))
-                        .font(.title3)
-                        .foregroundStyle(.secondary)
+                        .font(.planeaTitle3)
+                        .foregroundColor(.planeaTextSecondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
                     
@@ -61,9 +61,9 @@ struct UsageLimitReachedView: View {
                         .padding(.horizontal, 40)
                     
                     // Info about accessible features
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: PlaneaSpacing.md) {
                         Text("usage.limit.accessible".localized)
-                            .font(.headline)
+                            .font(.planeaHeadline)
                             .padding(.horizontal)
                         
                         FeatureItem(icon: "calendar", text: "usage.limit.feature.plans".localized)
@@ -75,7 +75,7 @@ struct UsageLimitReachedView: View {
                     .padding(.vertical)
                     
                     // Action Buttons
-                    VStack(spacing: 16) {
+                    VStack(spacing: PlaneaSpacing.md) {
                         // Share Button
                         ShareLink(item: "usage.limit.share.message".localized) {
                             HStack {
@@ -100,7 +100,7 @@ struct UsageLimitReachedView: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color(.systemGray5))
-                            .foregroundStyle(.primary)
+                            .foregroundColor(.planeaTextPrimary)
                             .cornerRadius(12)
                             .fontWeight(.semibold)
                         }
@@ -122,8 +122,8 @@ struct UsageLimitReachedView: View {
                             dismiss()
                         }) {
                             Image(systemName: "xmark.circle.fill")
-                                .font(.title2)
-                                .foregroundStyle(.secondary)
+                                .font(.planeaTitle2)
+                                .foregroundColor(.planeaTextSecondary)
                         }
                         .padding()
                     }
@@ -151,14 +151,14 @@ struct FeatureItem: View {
     let text: String
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: PlaneaSpacing.sm) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(.planeaTitle3)
                 .foregroundStyle(.blue)
                 .frame(width: 30)
             
             Text(text)
-                .font(.body)
+                .font(.planeaBody)
             
             Spacer()
         }

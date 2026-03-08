@@ -12,25 +12,25 @@ struct TemplatesListView: View {
             ZStack {
                 if planVM.templates.isEmpty {
                     // Empty state
-                    VStack(spacing: 16) {
+                    VStack(spacing: PlaneaSpacing.md) {
                         Image(systemName: "bookmark.slash")
                             .font(.system(size: 60))
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.planeaTextSecondary)
                         
                         Text("Aucun template")
-                            .font(.title2)
+                            .font(.planeaTitle2)
                             .bold()
                         
                         Text("Créez un plan que vous aimez, puis sauvegardez-le comme template pour le réutiliser!")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaBody)
+                            .foregroundColor(.planeaTextSecondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 32)
                     }
                 } else {
                     // Templates list
                     ScrollView {
-                        LazyVStack(spacing: 12) {
+                        LazyVStack(spacing: PlaneaSpacing.sm) {
                             ForEach(planVM.templates) { template in
                                 TemplateCard(
                                     template: template,
@@ -114,18 +114,18 @@ struct TemplateCard: View {
                 .fill(Color.planeaTertiary)
                 .frame(width: 4)
             
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                 // Header
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(template.name)
-                            .font(.headline)
+                            .font(.planeaHeadline)
                             .bold()
                             .foregroundColor(.planeaTextPrimary)
                         
                         Text("Créé le \(formattedDate(template.createdDate))")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                     
                     Spacer()
@@ -133,7 +133,7 @@ struct TemplateCard: View {
                     // Delete button
                     Button(action: onDelete) {
                         Image(systemName: "trash")
-                            .font(.body)
+                            .font(.planeaBody)
                             .foregroundColor(.planeaDanger)
                             .frame(width: 32, height: 32)
                     }
@@ -142,12 +142,12 @@ struct TemplateCard: View {
                 Divider()
                 
                 // Stats
-                HStack(spacing: 16) {
+                HStack(spacing: PlaneaSpacing.md) {
                     HStack(spacing: 4) {
                         Image(systemName: "calendar")
-                            .font(.caption)
+                            .font(.planeaCaption)
                         Text("\(dayCount) jours")
-                            .font(.caption)
+                            .font(.planeaCaption)
                             .bold()
                     }
                     .foregroundColor(.planeaTextSecondary)
@@ -158,9 +158,9 @@ struct TemplateCard: View {
                     
                     HStack(spacing: 4) {
                         Image(systemName: "fork.knife")
-                            .font(.caption)
+                            .font(.planeaCaption)
                         Text("\(mealCount) repas")
-                            .font(.caption)
+                            .font(.planeaCaption)
                             .bold()
                     }
                     .foregroundColor(.planeaTextSecondary)
@@ -186,7 +186,7 @@ struct TemplateCard: View {
                     .cornerRadius(10)
                 }
             }
-            .padding(12)
+            .padding(PlaneaSpacing.sm)
         }
         .background(
             RoundedRectangle(cornerRadius: 12)

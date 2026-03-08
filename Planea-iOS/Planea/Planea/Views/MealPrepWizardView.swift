@@ -134,18 +134,18 @@ struct MealPrepWizardView: View {
             // Title
             VStack(alignment: .leading, spacing: 8) {
                 Text(LocalizedStringKey("meal_prep_step1_title"))
-                    .font(.title2)
+                    .font(.planeaTitle2)
                     .fontWeight(.bold)
                 
                 Text(LocalizedStringKey("meal_prep_step1_subtitle"))
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(.planeaSubheadline)
+                    .foregroundColor(.planeaTextSecondary)
             }
             
             // Days covered
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                 Text(LocalizedStringKey("meal_prep_days_covered"))
-                    .font(.headline)
+                    .font(.planeaHeadline)
                 
                 VStack(spacing: 8) {
                     daysPresetButton(.mondayToFriday)
@@ -160,9 +160,9 @@ struct MealPrepWizardView: View {
             }
             
             // Meals to cover
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                 Text(LocalizedStringKey("meal_prep_meals_to_cover"))
-                    .font(.headline)
+                    .font(.planeaHeadline)
                 
                 VStack(spacing: 8) {
                     mealToggle(.lunch)
@@ -171,17 +171,17 @@ struct MealPrepWizardView: View {
             }
             
             // Servings per meal
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                 Text(LocalizedStringKey("meal_prep_servings_per_meal"))
-                    .font(.headline)
+                    .font(.planeaHeadline)
                 
                 Stepper(value: $servingsPerMeal, in: 1...8) {
                     HStack {
                         Text("\(servingsPerMeal)")
-                            .font(.title3)
+                            .font(.planeaTitle3)
                             .fontWeight(.semibold)
                         Text(LocalizedStringKey("portions"))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                 }
                 .padding()
@@ -190,8 +190,8 @@ struct MealPrepWizardView: View {
                 
                 if !familyViewModel.members.isEmpty {
                     Text(String(format: NSLocalizedString("meal_prep_family_size_hint", comment: ""), familyViewModel.members.count))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                 }
             }
         }
@@ -227,7 +227,7 @@ struct MealPrepWizardView: View {
                     }
                 }) {
                     Text(day.localizedShortName)
-                        .font(.subheadline)
+                        .font(.planeaSubheadline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                         .background(customDays.contains(day) ? Color.accentColor.opacity(0.2) : Color(UIColor.tertiarySystemBackground))
@@ -269,18 +269,18 @@ struct MealPrepWizardView: View {
             // Title
             VStack(alignment: .leading, spacing: 8) {
                 Text(LocalizedStringKey("meal_prep_step2_title"))
-                    .font(.title2)
+                    .font(.planeaTitle2)
                     .fontWeight(.bold)
                 
                 Text(LocalizedStringKey("meal_prep_step2_subtitle"))
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(.planeaSubheadline)
+                    .foregroundColor(.planeaTextSecondary)
             }
             
             // Prep time
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                 Text(LocalizedStringKey("meal_prep_total_prep_time"))
-                    .font(.headline)
+                    .font(.planeaHeadline)
                 
                 VStack(spacing: 8) {
                     prepTimeButton(.oneHour)
@@ -290,9 +290,9 @@ struct MealPrepWizardView: View {
             }
             
             // Skill level
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                 Text(LocalizedStringKey("meal_prep_skill_level"))
-                    .font(.headline)
+                    .font(.planeaHeadline)
                 
                 VStack(spacing: 8) {
                     skillLevelButton(.beginner)
@@ -302,16 +302,16 @@ struct MealPrepWizardView: View {
             }
             
             // Toggles
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                 Text(LocalizedStringKey("meal_prep_options"))
-                    .font(.headline)
+                    .font(.planeaHeadline)
                 
                 Toggle(isOn: $avoidRareIngredients) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(LocalizedStringKey("meal_prep_avoid_rare"))
                         Text(LocalizedStringKey("meal_prep_avoid_rare_hint"))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                 }
                 .padding()
@@ -322,8 +322,8 @@ struct MealPrepWizardView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(LocalizedStringKey("meal_prep_prefer_long_shelf"))
                         Text(LocalizedStringKey("meal_prep_prefer_long_shelf_hint"))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                 }
                 .padding()
@@ -378,29 +378,29 @@ struct MealPrepWizardView: View {
             // Title
             VStack(alignment: .leading, spacing: 8) {
                 Text(LocalizedStringKey("meal_prep.concept_selection.title"))
-                    .font(.title2)
+                    .font(.planeaTitle2)
                     .fontWeight(.bold)
                 
                 Text(LocalizedStringKey("meal_prep.concept_selection.subtitle"))
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(.planeaSubheadline)
+                    .foregroundColor(.planeaTextSecondary)
             }
             
             if viewModel.isGenerating {
                 // Loading state for meal generation
-                VStack(spacing: 16) {
+                VStack(spacing: PlaneaSpacing.md) {
                     ProgressView()
                         .scaleEffect(1.5)
                     Text(LocalizedStringKey("meal_prep_generating"))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.planeaTextSecondary)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
             } else {
                 // Free text input
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                     Text(LocalizedStringKey("meal_prep.concept_input.label"))
-                        .font(.headline)
+                        .font(.planeaHeadline)
                     
                     TextField(
                         NSLocalizedString("meal_prep.concept_input.placeholder", comment: ""),
@@ -415,20 +415,20 @@ struct MealPrepWizardView: View {
                 }
                 
                 // Random suggestions
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                     Text(LocalizedStringKey("meal_prep.theme_suggestions.title"))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.planeaSubheadline)
+                        .foregroundColor(.planeaTextSecondary)
                     
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(randomSuggestions, id: \.self) { suggestion in
                             HStack(spacing: 8) {
                                 Image(systemName: "lightbulb.fill")
-                                    .font(.caption)
+                                    .font(.planeaCaption)
                                     .foregroundColor(.yellow)
                                 Text(LocalizedStringKey(suggestion))
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .font(.planeaCaption)
+                                    .foregroundColor(.planeaTextSecondary)
                             }
                             .padding(.vertical, 4)
                         }
@@ -451,12 +451,12 @@ struct MealPrepWizardView: View {
             // Title
             VStack(alignment: .leading, spacing: 8) {
                 Text(LocalizedStringKey("meal_prep_step3_title"))
-                    .font(.title2)
+                    .font(.planeaTitle2)
                     .fontWeight(.bold)
                 
                 Text(LocalizedStringKey("meal_prep_step3_subtitle"))
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(.planeaSubheadline)
+                    .foregroundColor(.planeaTextSecondary)
             }
             
             if let kit = viewModel.generatedKits.first {
@@ -464,12 +464,12 @@ struct MealPrepWizardView: View {
                 kitDetailView(kit)
             } else if let error = viewModel.errorMessage {
                 // Error state
-                VStack(spacing: 16) {
+                VStack(spacing: PlaneaSpacing.md) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(.largeTitle)
+                        .font(.planeaLargeTitle)
                         .foregroundColor(.orange)
                     Text(error)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.planeaTextSecondary)
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
@@ -479,43 +479,43 @@ struct MealPrepWizardView: View {
     }
     
     private func kitDetailView(_ kit: MealPrepKit) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: PlaneaSpacing.lg) {
             // Kit summary
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                 Text(kit.name)
-                    .font(.title3)
+                    .font(.planeaTitle3)
                     .fontWeight(.semibold)
                 
                 if let description = kit.description {
                     Text(description)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.planeaSubheadline)
+                        .foregroundColor(.planeaTextSecondary)
                 }
                 
                 // Statistics
-                HStack(spacing: 20) {
+                HStack(spacing: PlaneaSpacing.lg) {
                     VStack(alignment: .leading, spacing: 4) {
                         Label("\(kit.recipes.count)", systemImage: "fork.knife")
-                            .font(.headline)
+                            .font(.planeaHeadline)
                         Text("recettes")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Label("\(kit.totalPortions)", systemImage: "person.2")
-                            .font(.headline)
+                            .font(.planeaHeadline)
                         Text("portions")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Label(viewModel.formatPrepTime(minutes: kit.estimatedPrepMinutes), systemImage: "clock")
-                            .font(.headline)
+                            .font(.planeaHeadline)
                         Text(LocalizedStringKey("meal_prep.total_time"))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                 }
                 .padding()
@@ -525,17 +525,17 @@ struct MealPrepWizardView: View {
             }
             
             // Recipe list with storage info
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                 HStack {
                     Text(LocalizedStringKey("meal_prep.recipes_included"))
-                        .font(.headline)
+                        .font(.planeaHeadline)
                     Spacer()
                     Image(systemName: "refrigerator")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
+                        .foregroundColor(.planeaTextSecondary)
+                        .font(.planeaCaption)
                     Text(LocalizedStringKey("meal_prep.storage"))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                 }
                 
                 VStack(alignment: .leading, spacing: 10) {
@@ -558,26 +558,26 @@ struct MealPrepWizardView: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(recipeRef.title)
-                        .font(.subheadline)
+                        .font(.planeaSubheadline)
                         .fontWeight(.medium)
                     
                     // Storage info
-                    HStack(spacing: 12) {
+                    HStack(spacing: PlaneaSpacing.sm) {
                         // Shelf life
                         HStack(spacing: 4) {
                             Image(systemName: "calendar")
-                                .font(.caption2)
+                                .font(.planeaCaption2)
                             Text("\(recipeRef.shelfLifeDays)j")
-                                .font(.caption)
+                                .font(.planeaCaption)
                         }
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.planeaTextSecondary)
                         
                         // Freezable indicator
                         HStack(spacing: 4) {
                             Image(systemName: recipeRef.isFreezable ? "snowflake" : "snowflake.slash")
-                                .font(.caption2)
+                                .font(.planeaCaption2)
                             Text(LocalizedStringKey(recipeRef.isFreezable ? "meal_prep.freezable" : "meal_prep.not_freezable"))
-                                .font(.caption)
+                                .font(.planeaCaption)
                         }
                         .foregroundColor(recipeRef.isFreezable ? .blue : .orange)
                     }
@@ -593,7 +593,7 @@ struct MealPrepWizardView: View {
     // MARK: - Navigation Buttons
     
     private var navigationButtons: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: PlaneaSpacing.md) {
             if currentStep > 1 {
                 Button(action: goBack) {
                     Text(LocalizedStringKey("back"))

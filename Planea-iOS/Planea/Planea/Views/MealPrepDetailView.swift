@@ -34,16 +34,16 @@ struct MealPrepDetailView: View {
     
     private var recipesTab: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: PlaneaSpacing.lg) {
                 // Kit Summary
                 kitSummarySection
                 
                 Divider()
                 
                 // Recipes List
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: PlaneaSpacing.md) {
                     Text(LocalizedStringKey("meal_prep.detail.recipes_section"))
-                        .font(.headline)
+                        .font(.planeaHeadline)
                         .padding(.horizontal)
                     
                     ForEach(kit.recipes) { recipeRef in
@@ -56,38 +56,38 @@ struct MealPrepDetailView: View {
     }
     
     private var kitSummarySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
             if let description = kit.description {
                 Text(description)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(.planeaSubheadline)
+                    .foregroundColor(.planeaTextSecondary)
                     .padding(.horizontal)
             }
             
             // Statistics
-            HStack(spacing: 20) {
+            HStack(spacing: PlaneaSpacing.lg) {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("\(kit.recipes.count)", systemImage: "fork.knife")
-                        .font(.headline)
+                        .font(.planeaHeadline)
                     Text(LocalizedStringKey("meal_prep.detail.recipes_count"))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Label("\(kit.totalPortions)", systemImage: "person.2")
-                        .font(.headline)
+                        .font(.planeaHeadline)
                     Text(LocalizedStringKey("meal_prep.detail.portions_count"))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Label(formatPrepTime(minutes: kit.estimatedPrepMinutes), systemImage: "clock")
-                        .font(.headline)
+                        .font(.planeaHeadline)
                     Text(LocalizedStringKey("meal_prep.total_time"))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                 }
             }
             .padding()
@@ -112,37 +112,37 @@ struct MealPrepDetailView: View {
     }
     
     private func recipeCardContent(_ recipeRef: MealPrepRecipeRef, recipe: Recipe?) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
             // Recipe Title & Storage Info
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(recipeRef.title)
-                        .font(.headline)
+                        .font(.planeaHeadline)
                         .foregroundColor(.primary)
                     
                     // Storage information
-                    HStack(spacing: 16) {
+                    HStack(spacing: PlaneaSpacing.md) {
                         HStack(spacing: 4) {
                             Image(systemName: "calendar")
-                                .font(.caption)
+                                .font(.planeaCaption)
                             Text("\(recipeRef.shelfLifeDays)j")
-                                .font(.caption)
+                                .font(.planeaCaption)
                         }
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.planeaTextSecondary)
                         
                         HStack(spacing: 4) {
                             Image(systemName: recipeRef.isFreezable ? "snowflake" : "snowflake.slash")
-                                .font(.caption)
+                                .font(.planeaCaption)
                             Text(LocalizedStringKey(recipeRef.isFreezable ? "meal_prep.freezable" : "meal_prep.not_freezable"))
-                                .font(.caption)
+                                .font(.planeaCaption)
                         }
                         .foregroundColor(recipeRef.isFreezable ? .blue : .orange)
                     }
                     
                     if let storageNote = recipeRef.storageNote {
                         Text(storageNote)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                             .italic()
                     }
                 }
@@ -152,8 +152,8 @@ struct MealPrepDetailView: View {
                 // Add chevron if recipe is available
                 if recipe != nil {
                     Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                 }
             }
             
@@ -164,12 +164,12 @@ struct MealPrepDetailView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Label("\(recipe.servings)", systemImage: "person.2")
-                            .font(.caption)
+                            .font(.planeaCaption)
                         Spacer()
                         Label("\(recipe.totalMinutes)min", systemImage: "clock")
-                            .font(.caption)
+                            .font(.planeaCaption)
                     }
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.planeaTextSecondary)
                     
                     // Nutritional information (if available)
                     if let calories = recipe.caloriesPerServing,
@@ -179,17 +179,17 @@ struct MealPrepDetailView: View {
                         
                         HStack(spacing: 8) {
                             Image(systemName: "flame.fill")
-                                .font(.caption)
+                                .font(.planeaCaption)
                                 .foregroundColor(.orange)
                             Text("\(calories) cal")
                             Text("|")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.planeaTextSecondary)
                             Text("P: \(protein)g")
                             Text("G: \(carbs)g")
                             Text("L: \(fat)g")
                         }
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                     }
                 }
             }
@@ -246,15 +246,15 @@ struct MealPrepDetailView: View {
                     // Header
                     VStack(alignment: .leading, spacing: 8) {
                         Text(LocalizedStringKey("meal_prep.detail.today_title"))
-                            .font(.title2)
+                            .font(.planeaTitle2)
                             .fontWeight(.bold)
                         
-                        HStack(spacing: 12) {
+                        HStack(spacing: PlaneaSpacing.sm) {
                             Image(systemName: "clock")
                                 .foregroundColor(.accentColor)
                             Text("~\(todayPrep.totalMinutes) minutes")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .font(.planeaSubheadline)
+                                .foregroundColor(.planeaTextSecondary)
                         }
                     }
                     .padding(.horizontal)
@@ -264,9 +264,9 @@ struct MealPrepDetailView: View {
                     
                     // Consolidated Ingredients Section (NEW - BEFORE common preps)
                     if let consolidatedIngredients = todayPrep.consolidatedIngredients, !consolidatedIngredients.isEmpty {
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: PlaneaSpacing.md) {
                             Text(LocalizedStringKey("meal_prep.detail.shopping_list_title"))
-                                .font(.headline)
+                                .font(.planeaHeadline)
                                 .padding(.horizontal)
                             
                             consolidatedIngredientsCard(consolidatedIngredients)
@@ -275,9 +275,9 @@ struct MealPrepDetailView: View {
                     
                     // Common Preparations Section
                     if !todayPrep.commonPreps.isEmpty {
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: PlaneaSpacing.md) {
                             Text(LocalizedStringKey("meal_prep.detail.common_preps_title"))
-                                .font(.headline)
+                                .font(.planeaHeadline)
                                 .padding(.horizontal)
                             
                             ForEach(todayPrep.commonPreps) { commonPrep in
@@ -288,9 +288,9 @@ struct MealPrepDetailView: View {
                     
                     // Recipe Preparations Section
                     if !todayPrep.recipePreps.isEmpty {
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: PlaneaSpacing.md) {
                             Text(LocalizedStringKey("meal_prep.detail.recipe_preps_title"))
-                                .font(.headline)
+                                .font(.planeaHeadline)
                                 .padding(.horizontal)
                             
                             ForEach(todayPrep.recipePreps) { recipePrep in
@@ -300,14 +300,14 @@ struct MealPrepDetailView: View {
                     }
                 } else {
                     // Fallback to old structure or empty state
-                    VStack(spacing: 16) {
+                    VStack(spacing: PlaneaSpacing.md) {
                         Image(systemName: "calendar.badge.clock")
                             .font(.system(size: 48))
                             .foregroundColor(.gray)
                         
                         Text(LocalizedStringKey("meal_prep.detail.no_today_prep"))
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .font(.planeaSubheadline)
+                            .foregroundColor(.planeaTextSecondary)
                             .multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity)
@@ -330,15 +330,15 @@ struct MealPrepDetailView: View {
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("\(completedSections)/\(totalSections)")
-                    .font(.caption)
+                    .font(.planeaCaption)
                     .fontWeight(.semibold)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.planeaTextSecondary)
                 
                 Spacer()
                 
                 Text(LocalizedStringKey("meal_prep.detail.sections_completed"))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.planeaCaption)
+                    .foregroundColor(.planeaTextSecondary)
             }
             
             GeometryReader { geometry in
@@ -364,13 +364,13 @@ struct MealPrepDetailView: View {
     private func commonPrepCard(_ commonPrep: CommonPrepStep) -> some View {
         let isCompleted = completedCommonPreps.contains(commonPrep.id)
         
-        return HStack(alignment: .top, spacing: 12) {
+        return HStack(alignment: .top, spacing: PlaneaSpacing.sm) {
             // Checkbox
             Button(action: {
                 toggleCommonPrep(commonPrep.id)
             }) {
                 Image(systemName: isCompleted ? "checkmark.square.fill" : "square")
-                    .font(.title2)
+                    .font(.planeaTitle2)
                     .foregroundColor(isCompleted ? .accentColor : .secondary)
             }
             .buttonStyle(PlainButtonStyle())
@@ -378,7 +378,7 @@ struct MealPrepDetailView: View {
             VStack(alignment: .leading, spacing: 8) {
                 // Category header
                 Text(commonPrep.category)
-                    .font(.headline)
+                    .font(.planeaHeadline)
                     .foregroundColor(isCompleted ? .secondary : .primary)
                 
                 // Items list
@@ -391,7 +391,7 @@ struct MealPrepDetailView: View {
                                 .padding(.top, 6)
                             
                             Text(item)
-                                .font(.subheadline)
+                                .font(.planeaSubheadline)
                                 .foregroundColor(isCompleted ? .secondary : .primary)
                                 .strikethrough(isCompleted)
                         }
@@ -417,13 +417,13 @@ struct MealPrepDetailView: View {
     private func recipePrepCard(_ recipePrep: RecipePrep) -> some View {
         let isCompleted = completedRecipePreps.contains(recipePrep.id)
         
-        return HStack(alignment: .top, spacing: 12) {
+        return HStack(alignment: .top, spacing: PlaneaSpacing.sm) {
             // Checkbox
             Button(action: {
                 toggleRecipePrep(recipePrep.id)
             }) {
                 Image(systemName: isCompleted ? "checkmark.square.fill" : "square")
-                    .font(.title2)
+                    .font(.planeaTitle2)
                     .foregroundColor(isCompleted ? .accentColor : .secondary)
             }
             .buttonStyle(PlainButtonStyle())
@@ -432,22 +432,22 @@ struct MealPrepDetailView: View {
                 // Recipe header with emoji
                 HStack(spacing: 8) {
                     Text(recipePrep.emoji)
-                        .font(.title)
+                        .font(.planeaTitle1)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(recipePrep.recipeName)
-                            .font(.headline)
+                            .font(.planeaHeadline)
                             .foregroundColor(isCompleted ? .secondary : .primary)
                         
                         if let minutes = recipePrep.estimatedMinutes {
-                            HStack(spacing: 12) {
+                            HStack(spacing: PlaneaSpacing.sm) {
                                 Label("\(minutes)min", systemImage: "clock")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .font(.planeaCaption)
+                                    .foregroundColor(.planeaTextSecondary)
                                 
                                 if let eveningMinutes = recipePrep.eveningMinutes {
                                     Label("\(eveningMinutes)min soir", systemImage: "moon")
-                                        .font(.caption)
+                                        .font(.planeaCaption)
                                         .foregroundColor(.orange)
                                 }
                             }
@@ -459,11 +459,11 @@ struct MealPrepDetailView: View {
                 if let warning = recipePrep.dontPrepToday {
                     HStack(spacing: 8) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.caption)
+                            .font(.planeaCaption)
                             .foregroundColor(.orange)
                         
                         Text(warning)
-                            .font(.caption)
+                            .font(.planeaCaption)
                             .foregroundColor(.orange)
                     }
                     .padding(8)
@@ -477,12 +477,12 @@ struct MealPrepDetailView: View {
                     ForEach(Array(recipePrep.prepToday.enumerated()), id: \.offset) { index, step in
                         HStack(alignment: .top, spacing: 8) {
                             Text("\(index + 1).")
-                                .font(.subheadline)
+                                .font(.planeaSubheadline)
                                 .fontWeight(.medium)
                                 .foregroundColor(isCompleted ? .secondary : .primary)
                             
                             Text(step)
-                                .font(.subheadline)
+                                .font(.planeaSubheadline)
                                 .foregroundColor(isCompleted ? .secondary : .primary)
                                 .strikethrough(isCompleted)
                         }
@@ -506,16 +506,16 @@ struct MealPrepDetailView: View {
     
     // Consolidated Ingredients Card (NEW)
     private func consolidatedIngredientsCard(_ ingredients: [ConsolidatedIngredient]) -> some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: PlaneaSpacing.sm) {
             // Icon
             Image(systemName: "cart.fill")
-                .font(.title2)
+                .font(.planeaTitle2)
                 .foregroundColor(.accentColor)
             
             VStack(alignment: .leading, spacing: 8) {
                 // Header
                 Text(LocalizedStringKey("meal_prep.detail.shopping_list_header"))
-                    .font(.headline)
+                    .font(.planeaHeadline)
                     .foregroundColor(.primary)
                 
                 // Ingredients grid
@@ -529,13 +529,13 @@ struct MealPrepDetailView: View {
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(ingredient.name)
-                                    .font(.subheadline)
+                                    .font(.planeaSubheadline)
                                     .fontWeight(.medium)
                                     .foregroundColor(.primary)
                                 
                                 Text(ingredient.quantity)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .font(.planeaCaption)
+                                    .foregroundColor(.planeaTextSecondary)
                             }
                         }
                     }
@@ -570,12 +570,12 @@ struct MealPrepDetailView: View {
                     // Header
                     VStack(alignment: .leading, spacing: 8) {
                         Text(LocalizedStringKey("meal_prep.detail.weekly_title"))
-                            .font(.title2)
+                            .font(.planeaTitle2)
                             .fontWeight(.bold)
                         
                         Text(LocalizedStringKey("meal_prep.detail.weekly_subtitle"))
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .font(.planeaSubheadline)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                     .padding(.horizontal)
                     
@@ -588,14 +588,14 @@ struct MealPrepDetailView: View {
                     }
                 } else {
                     // Empty state
-                    VStack(spacing: 16) {
+                    VStack(spacing: PlaneaSpacing.md) {
                         Image(systemName: "calendar.badge.clock")
                             .font(.system(size: 48))
                             .foregroundColor(.gray)
                         
                         Text(LocalizedStringKey("meal_prep.detail.no_weekly_reheating"))
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .font(.planeaSubheadline)
+                            .foregroundColor(.planeaTextSecondary)
                             .multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity)
@@ -618,15 +618,15 @@ struct MealPrepDetailView: View {
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("\(completedDaysCount)/\(totalDays)")
-                    .font(.caption)
+                    .font(.planeaCaption)
                     .fontWeight(.semibold)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.planeaTextSecondary)
                 
                 Spacer()
                 
                 Text(LocalizedStringKey("meal_prep.detail.days_completed"))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.planeaCaption)
+                    .foregroundColor(.planeaTextSecondary)
             }
             
             GeometryReader { geometry in
@@ -652,13 +652,13 @@ struct MealPrepDetailView: View {
     private func dailyReheatingCard(_ day: DailyReheating) -> some View {
         let isCompleted = completedDays.contains(day.id)
         
-        return HStack(alignment: .top, spacing: 12) {
+        return HStack(alignment: .top, spacing: PlaneaSpacing.sm) {
             // Checkbox
             Button(action: {
                 toggleDay(day.id)
             }) {
                 Image(systemName: isCompleted ? "checkmark.square.fill" : "square")
-                    .font(.title2)
+                    .font(.planeaTitle2)
                     .foregroundColor(isCompleted ? .accentColor : .secondary)
             }
             .buttonStyle(PlainButtonStyle())
@@ -667,21 +667,21 @@ struct MealPrepDetailView: View {
                 // Day header with emoji
                 HStack(spacing: 8) {
                     Text(day.emoji)
-                        .font(.title)
+                        .font(.planeaTitle1)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(day.dayLabel)
-                            .font(.headline)
+                            .font(.planeaHeadline)
                             .foregroundColor(isCompleted ? .secondary : .accentColor)
                         
                         Text(day.recipeName)
-                            .font(.subheadline)
+                            .font(.planeaSubheadline)
                             .fontWeight(.medium)
                             .foregroundColor(isCompleted ? .secondary : .primary)
                         
                         Label("\(day.estimatedMinutes)min", systemImage: "clock")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                 }
                 
@@ -690,12 +690,12 @@ struct MealPrepDetailView: View {
                     ForEach(Array(day.steps.enumerated()), id: \.offset) { index, step in
                         HStack(alignment: .top, spacing: 8) {
                             Text("\(index + 1).")
-                                .font(.subheadline)
+                                .font(.planeaSubheadline)
                                 .fontWeight(.medium)
                                 .foregroundColor(isCompleted ? .secondary : .primary)
                             
                             Text(step)
-                                .font(.subheadline)
+                                .font(.planeaSubheadline)
                                 .foregroundColor(isCompleted ? .secondary : .primary)
                                 .strikethrough(isCompleted)
                         }

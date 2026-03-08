@@ -22,16 +22,16 @@ struct RecentRecipesView: View {
                             NavigationLink(destination: RecipeDetailView(recipe: recipe)) {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text(recipe.title)
-                                        .font(.headline)
+                                        .font(.planeaHeadline)
                                     
-                                    HStack(spacing: 12) {
+                                    HStack(spacing: PlaneaSpacing.sm) {
                                         Label("\(recipe.servings)", systemImage: "person.2")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
+                                            .font(.planeaCaption)
+                                            .foregroundColor(.planeaTextSecondary)
                                         
                                         Label("\(recipe.totalMinutes) min", systemImage: "clock")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
+                                            .font(.planeaCaption)
+                                            .foregroundColor(.planeaTextSecondary)
                                     }
                                 }
                                 .padding(.vertical, 4)
@@ -104,7 +104,7 @@ struct AddToPlanSheet: View {
                 Section {
                     if planVM.hasMealInSlot(weekday: selectedWeekday, mealType: selectedMealType) {
                         Text("Cette période contient déjà un repas. Il sera remplacé.")
-                            .font(.caption)
+                            .font(.planeaCaption)
                             .foregroundStyle(.orange)
                     }
                 }
@@ -121,8 +121,8 @@ struct AddToPlanSheet: View {
                 if planVM.currentPlan == nil {
                     Section {
                         Text("Veuillez créer un plan de semaine avant d'ajouter des repas")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                 }
             }

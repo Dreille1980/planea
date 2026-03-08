@@ -14,7 +14,7 @@ struct OnboardingMembersListView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            VStack(spacing: 16) {
+            VStack(spacing: PlaneaSpacing.md) {
                 ZStack {
                     Circle()
                         .fill(Color.planeaTertiary.opacity(0.1))
@@ -27,12 +27,12 @@ struct OnboardingMembersListView: View {
                 .padding(.top, 32)
                 
                 Text("onboarding.members.title".localized)
-                    .font(.title2)
+                    .font(.planeaTitle2)
                     .fontWeight(.bold)
                 
                 Text("onboarding.members.subtitle".localized)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.planeaSubheadline)
+                    .foregroundColor(.planeaTextSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
             }
@@ -40,7 +40,7 @@ struct OnboardingMembersListView: View {
             
             // Members List
             ScrollView {
-                VStack(spacing: 12) {
+                VStack(spacing: PlaneaSpacing.sm) {
                     ForEach(familyVM.members, id: \.id) { member in
                         MemberCard(
                             member: member,
@@ -55,9 +55,9 @@ struct OnboardingMembersListView: View {
                     Button(action: { showingAddMember = true }) {
                         HStack {
                             Image(systemName: "plus.circle.fill")
-                                .font(.title3)
+                                .font(.planeaTitle3)
                             Text("onboarding.members.add".localized)
-                                .font(.headline)
+                                .font(.planeaHeadline)
                         }
                         .foregroundStyle(Color.planeaPrimary)
                         .frame(maxWidth: .infinity)
@@ -77,7 +77,7 @@ struct OnboardingMembersListView: View {
             if hasAtLeastOneConfiguredMember {
                 Button(action: onContinue) {
                     Text("action.continue".localized)
-                        .font(.headline)
+                        .font(.planeaHeadline)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -155,7 +155,7 @@ struct MemberCard: View {
     
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 16) {
+            HStack(spacing: PlaneaSpacing.md) {
                 // Avatar
                 ZStack {
                     Circle()
@@ -164,11 +164,11 @@ struct MemberCard: View {
                     
                     if isConfigured {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.title2)
+                            .font(.planeaTitle2)
                             .foregroundStyle(Color.planeaTertiary)
                     } else {
                         Image(systemName: "person.fill")
-                            .font(.title3)
+                            .font(.planeaTitle3)
                             .foregroundStyle(.gray)
                     }
                 }
@@ -176,31 +176,31 @@ struct MemberCard: View {
                 // Member Info
                 VStack(alignment: .leading, spacing: 4) {
                     Text(member.displayName)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                        .font(.planeaHeadline)
+                        .foregroundColor(.planeaTextPrimary)
                     
                     if isConfigured {
                         HStack(spacing: 4) {
                             if !member.diets.isEmpty {
                                 Label("\(member.diets.count)", systemImage: "leaf.fill")
-                                    .font(.caption)
+                                    .font(.planeaCaption)
                                     .foregroundStyle(Color.planeaTertiary)
                             }
                             if !member.allergens.isEmpty {
                                 Label("\(member.allergens.count)", systemImage: "exclamationmark.triangle.fill")
-                                    .font(.caption)
+                                    .font(.planeaCaption)
                                     .foregroundStyle(Color.planeaSecondary)
                             }
                             if !member.dislikes.isEmpty {
                                 Label("\(member.dislikes.count)", systemImage: "hand.thumbsdown.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .font(.planeaCaption)
+                                    .foregroundColor(.planeaTextSecondary)
                             }
                         }
                     } else {
                         Text("onboarding.member.configure".localized)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                 }
                 
@@ -208,8 +208,8 @@ struct MemberCard: View {
                 
                 // Chevron
                 Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.planeaCaption)
+                    .foregroundColor(.planeaTextSecondary)
             }
             .padding()
             .background(

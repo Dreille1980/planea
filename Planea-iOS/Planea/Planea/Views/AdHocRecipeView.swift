@@ -87,7 +87,7 @@ struct AdHocRecipeView: View {
                                     .cornerRadius(8)
                             }
                             
-                            HStack(spacing: 12) {
+                            HStack(spacing: PlaneaSpacing.sm) {
                                 Button(action: { showCamera = true }) {
                                     Label("adhoc.takePhoto".localized, systemImage: "camera.fill")
                                 }
@@ -115,7 +115,7 @@ struct AdHocRecipeView: View {
                             Toggle("adhoc.useConstraints".localized, isOn: $useConstraints)
                         } footer: {
                             Text("adhoc.useConstraints.footer".localized)
-                                .font(.caption)
+                                .font(.planeaCaption)
                         }
                     }
                     
@@ -136,7 +136,7 @@ struct AdHocRecipeView: View {
                         Section {
                             Text(error)
                                 .foregroundStyle(.red)
-                                .font(.caption)
+                                .font(.planeaCaption)
                         }
                     }
                     

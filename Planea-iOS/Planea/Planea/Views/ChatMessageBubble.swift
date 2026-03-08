@@ -45,11 +45,11 @@ struct ChatMessageBubble: View {
                 if !message.isFromUser, let mode = message.detectedMode {
                     HStack(spacing: 4) {
                         Image(systemName: mode.icon)
-                            .font(.caption2)
+                            .font(.planeaCaption2)
                         Text(mode.displayName)
-                            .font(.caption2)
+                            .font(.planeaCaption2)
                     }
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.planeaTextSecondary)
                 }
             }
             .frame(maxWidth: 280, alignment: message.isFromUser ? .trailing : .leading)
@@ -73,7 +73,7 @@ struct ChatMessageBubble: View {
                 if line.hasPrefix("ℹ️") {
                     // Disclaimer line - smaller font
                     Text(line)
-                        .font(.caption2)
+                        .font(.planeaCaption2)
                         .foregroundColor(message.isFromUser ? .white.opacity(0.8) : .secondary)
                 } else if !line.isEmpty {
                     // Regular content
@@ -260,13 +260,13 @@ struct ChatMessageBubble: View {
     
     @ViewBuilder
     private func pendingRecipeCardView(recipeData: PendingRecipeData) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
             // Title
             HStack {
                 Image(systemName: "fork.knife")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.planeaTextSecondary)
                 Text(recipeData.title)
-                    .font(.headline)
+                    .font(.planeaHeadline)
                     .fontWeight(.semibold)
             }
             
@@ -274,26 +274,26 @@ struct ChatMessageBubble: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Image(systemName: "calendar")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.planeaTextSecondary)
                         .frame(width: 20)
                     Text(recipeData.dayMeal)
-                        .font(.subheadline)
+                        .font(.planeaSubheadline)
                 }
                 
                 HStack {
                     Image(systemName: "person.2")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.planeaTextSecondary)
                         .frame(width: 20)
                     Text("\(recipeData.servings) portions")
-                        .font(.subheadline)
+                        .font(.planeaSubheadline)
                 }
                 
                 HStack {
                     Image(systemName: "clock")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.planeaTextSecondary)
                         .frame(width: 20)
                     Text("\(recipeData.time) min")
-                        .font(.subheadline)
+                        .font(.planeaSubheadline)
                 }
             }
         }
@@ -305,7 +305,7 @@ struct ChatMessageBubble: View {
     
     @ViewBuilder
     private var addMealConfirmationButtons: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: PlaneaSpacing.sm) {
             Button(action: {
                 chatViewModel.confirmAddMeal()
             }) {
@@ -323,7 +323,7 @@ struct ChatMessageBubble: View {
             }) {
                 Label("Annuler", systemImage: "xmark.circle.fill")
                     .font(.subheadline.weight(.medium))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.planeaTextSecondary)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(Color(.systemGray6))
@@ -335,7 +335,7 @@ struct ChatMessageBubble: View {
     
     @ViewBuilder
     private var confirmationButtons: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: PlaneaSpacing.sm) {
             Button(action: {
                 Task {
                     await chatViewModel.confirmRecipeModification()
@@ -355,7 +355,7 @@ struct ChatMessageBubble: View {
             }) {
                 Label("chat.cancel.button".localized, systemImage: "xmark.circle.fill")
                     .font(.subheadline.weight(.medium))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.planeaTextSecondary)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(Color(.systemGray6))
@@ -369,7 +369,7 @@ struct ChatMessageBubble: View {
 #Preview {
     let viewModel = ChatViewModel()
     
-    return VStack(spacing: 16) {
+    return VStack(spacing: PlaneaSpacing.md) {
         ChatMessageBubble(
             message: ChatMessage(
                 content: "Bonjour! Comment puis-je vous aider avec vos repas aujourd'hui?",

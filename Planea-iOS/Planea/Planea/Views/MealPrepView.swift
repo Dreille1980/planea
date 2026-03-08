@@ -64,12 +64,12 @@ struct MealPrepView: View {
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(LocalizedStringKey("meal_prep_title"))
-                .font(.largeTitle)
+                .font(.planeaLargeTitle)
                 .fontWeight(.bold)
             
             Text(LocalizedStringKey("meal_prep_subtitle"))
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .font(.planeaSubheadline)
+                .foregroundColor(.planeaTextSecondary)
         }
     }
     
@@ -81,7 +81,7 @@ struct MealPrepView: View {
         }) {
             HStack {
                 Image(systemName: "calendar.badge.plus")
-                    .font(.title3)
+                    .font(.planeaTitle3)
                 
                 Text(LocalizedStringKey("meal_prep_create_button"))
                     .fontWeight(.semibold)
@@ -97,9 +97,9 @@ struct MealPrepView: View {
     // MARK: - History Section
     
     private var historySection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: PlaneaSpacing.md) {
             Text(LocalizedStringKey("meal_prep_history_title"))
-                .font(.title2)
+                .font(.planeaTitle2)
                 .fontWeight(.bold)
             
             ForEach(viewModel.history) { instance in
@@ -144,17 +144,17 @@ struct MealPrepKitCard: View {
     let onChoose: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
             // Kit header
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(kit.name)
-                        .font(.headline)
+                        .font(.planeaHeadline)
                     
                     if let description = kit.description {
                         Text(description)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .font(.planeaSubheadline)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                 }
                 
@@ -162,15 +162,15 @@ struct MealPrepKitCard: View {
             }
             
             // Kit stats
-            HStack(spacing: 16) {
+            HStack(spacing: PlaneaSpacing.md) {
                 Label("\(kit.recipes.count) recettes", systemImage: "fork.knife")
-                    .font(.caption)
+                    .font(.planeaCaption)
                 Label("\(kit.totalPortions) portions", systemImage: "person.2")
-                    .font(.caption)
+                    .font(.planeaCaption)
                 Label("~\(kit.estimatedPrepMinutes/60)h\(kit.estimatedPrepMinutes%60)", systemImage: "clock")
-                    .font(.caption)
+                    .font(.planeaCaption)
             }
-            .foregroundColor(.secondary)
+            .foregroundColor(.planeaTextSecondary)
             
             // Recipe list preview
             VStack(alignment: .leading, spacing: 4) {
@@ -181,15 +181,15 @@ struct MealPrepKitCard: View {
                             .frame(width: 6, height: 6)
                         
                         Text(recipe.title)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                         
                         Spacer()
                         
                         // Storage indicator
                         if !recipe.isFreezable {
                             Image(systemName: "snowflake.slash")
-                                .font(.caption2)
+                                .font(.planeaCaption2)
                                 .foregroundColor(.orange)
                         }
                     }
@@ -197,8 +197,8 @@ struct MealPrepKitCard: View {
                 
                 if kit.recipes.count > 3 {
                     Text("+\(kit.recipes.count - 3) more...")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .font(.planeaCaption2)
+                        .foregroundColor(.planeaTextSecondary)
                         .padding(.leading, 14)
                 }
             }
@@ -206,7 +206,7 @@ struct MealPrepKitCard: View {
             // Choose button
             Button(action: onChoose) {
                 Text(LocalizedStringKey("meal_prep_choose_kit"))
-                    .font(.subheadline)
+                    .font(.planeaSubheadline)
                     .fontWeight(.medium)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
@@ -234,23 +234,23 @@ struct MealPrepHistoryRow: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(instance.kit.name)
-                        .font(.headline)
+                        .font(.planeaHeadline)
                     
                     Text("\(instance.kit.totalPortions) portions")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.planeaSubheadline)
+                        .foregroundColor(.planeaTextSecondary)
                     
                     Text(formatDate(instance.appliedWeekStart))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                 }
                 
                 Spacer()
                 
-                HStack(spacing: 12) {
+                HStack(spacing: PlaneaSpacing.sm) {
                     Button(action: onReplay) {
                         Label(LocalizedStringKey("meal_prep_replay"), systemImage: "arrow.clockwise")
-                            .font(.caption)
+                            .font(.planeaCaption)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
                             .background(Color.accentColor.opacity(0.1))
@@ -261,14 +261,14 @@ struct MealPrepHistoryRow: View {
                     
                     Button(action: onDelete) {
                         Image(systemName: "trash")
-                            .font(.caption)
+                            .font(.planeaCaption)
                             .foregroundColor(.red)
                     }
                     .buttonStyle(.plain)
                     
                     Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                 }
             }
             .padding()

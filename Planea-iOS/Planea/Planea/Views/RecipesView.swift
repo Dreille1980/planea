@@ -51,7 +51,7 @@ struct RecipesView: View {
                             showRecentRecipes = true
                         } label: {
                             Image(systemName: "clock")
-                                .font(.title3)
+                                .font(.planeaTitle3)
                         }
                     }
                 }
@@ -71,15 +71,15 @@ struct RecipesView: View {
 struct MealPrepContentView: View {
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: PlaneaSpacing.lg) {
                 // Header
                 VStack(alignment: .leading, spacing: 8) {
                     Text("mealprep.title".localized)
-                        .font(.title2)
+                        .font(.planeaTitle2)
                         .fontWeight(.bold)
                     Text("mealprep.subtitle".localized)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.planeaSubheadline)
+                        .foregroundColor(.planeaTextSecondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
@@ -89,7 +89,7 @@ struct MealPrepContentView: View {
                     // TODO: Open wizard
                 } label: {
                     Text("mealprep.cta".localized)
-                        .font(.headline)
+                        .font(.planeaHeadline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -99,16 +99,16 @@ struct MealPrepContentView: View {
                 .padding(.horizontal)
                 
                 // Coming soon placeholder
-                VStack(spacing: 12) {
+                VStack(spacing: PlaneaSpacing.sm) {
                     Image(systemName: "calendar.badge.clock")
                         .font(.system(size: 48))
                         .foregroundColor(.gray)
                     Text("Coming Soon")
-                        .font(.title3)
+                        .font(.planeaTitle3)
                         .fontWeight(.medium)
                     Text("Meal prep feature is being developed")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.planeaSubheadline)
+                        .foregroundColor(.planeaTextSecondary)
                         .multilineTextAlignment(.center)
                 }
                 .padding(.top, 40)
@@ -181,7 +181,7 @@ struct AdHocRecipeContentView: View {
                                 .cornerRadius(8)
                         }
                         
-                        HStack(spacing: 12) {
+                        HStack(spacing: PlaneaSpacing.sm) {
                             Button(action: { showCamera = true }) {
                                 Label("adhoc.takePhoto".localized, systemImage: "camera.fill")
                             }
@@ -201,7 +201,7 @@ struct AdHocRecipeContentView: View {
                         Toggle("adhoc.useConstraints".localized, isOn: $useConstraints)
                     } footer: {
                         Text("adhoc.useConstraints.footer".localized)
-                            .font(.caption)
+                            .font(.planeaCaption)
                     }
                 }
                 
@@ -222,7 +222,7 @@ struct AdHocRecipeContentView: View {
                     Section {
                         Text(error)
                             .foregroundStyle(.red)
-                            .font(.caption)
+                            .font(.planeaCaption)
                     }
                 }
                 

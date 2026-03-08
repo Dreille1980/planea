@@ -19,14 +19,14 @@ struct SubscriptionLockOverlay: View {
                 
                 // Title
                 Text("subscription.locked.title".localized)
-                    .font(.title)
+                    .font(.planeaTitle1)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
                 
                 // Description
                 Text("subscription.locked.description".localized)
-                    .font(.body)
+                    .font(.planeaBody)
                     .foregroundStyle(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
@@ -36,7 +36,7 @@ struct SubscriptionLockOverlay: View {
                     showSubscriptionSheet = true
                 }) {
                     Text("subscription.unlock".localized)
-                        .font(.headline)
+                        .font(.planeaHeadline)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding()

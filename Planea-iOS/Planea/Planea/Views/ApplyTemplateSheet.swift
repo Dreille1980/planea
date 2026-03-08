@@ -17,25 +17,25 @@ struct ApplyTemplateSheet: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
+            VStack(spacing: PlaneaSpacing.lg) {
                 // Template info
                 VStack(spacing: 8) {
                     Text("Appliquer le template")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
+                        .font(.planeaHeadline)
+                        .foregroundColor(.planeaTextSecondary)
                     
                     Text(template.name)
-                        .font(.title2)
+                        .font(.planeaTitle2)
                         .bold()
                         .foregroundColor(.planeaPrimary)
                 }
                 .padding(.top)
                 
                 // Date picker
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                     Text("Choisir la date de début")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.planeaSubheadline)
+                        .foregroundColor(.planeaTextSecondary)
                     
                     DatePicker(
                         "Date de début",
@@ -49,7 +49,7 @@ struct ApplyTemplateSheet: View {
                     HStack {
                         Image(systemName: "calendar")
                         Text("Semaine: \(WeekDateHelper.formatWeekRange(startDate: selectedDate))")
-                            .font(.subheadline)
+                            .font(.planeaSubheadline)
                     }
                     .foregroundColor(.planeaSecondary)
                     .padding()
@@ -67,7 +67,7 @@ struct ApplyTemplateSheet: View {
                         Image(systemName: "calendar.badge.clock")
                         Text("Commencer aujourd'hui")
                     }
-                    .font(.subheadline)
+                    .font(.planeaSubheadline)
                     .padding(.vertical, 12)
                     .frame(maxWidth: .infinity)
                 }

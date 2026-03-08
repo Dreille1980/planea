@@ -23,18 +23,18 @@ struct FamilyManagementView: View {
                             VStack(alignment: .trailing, spacing: 2) {
                                 if !member.diets.isEmpty {
                                     Text("\(member.diets.count) \("count.diets".localized)")
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
+                                        .font(.planeaCaption2)
+                                        .foregroundColor(.planeaTextSecondary)
                                 }
                                 if !member.allergens.isEmpty {
                                     Text("\(member.allergens.count) \("count.allergens".localized)")
-                                        .font(.caption2)
+                                        .font(.planeaCaption2)
                                         .foregroundStyle(.orange)
                                 }
                                 if !member.dislikes.isEmpty {
                                     Text("\(member.dislikes.count) \("count.dislikes".localized)")
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
+                                        .font(.planeaCaption2)
+                                        .foregroundColor(.planeaTextSecondary)
                                 }
                             }
                         }
@@ -49,8 +49,8 @@ struct FamilyManagementView: View {
             
             Section {
                 Text("onboarding.hint".localized)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .font(.planeaFootnote)
+                    .foregroundColor(.planeaTextSecondary)
             }
         }
         .navigationTitle("family.management".localized)

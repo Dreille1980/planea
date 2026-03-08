@@ -96,8 +96,8 @@ struct AppFeatureTourView: View {
                     if currentPage < slides.count - 1 {
                         Button(action: skipTour) {
                             Text("tour.skip".localized)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .font(.planeaSubheadline)
+                                .foregroundColor(.planeaTextSecondary)
                         }
                         .padding()
                     }
@@ -120,7 +120,7 @@ struct AppFeatureTourView: View {
                 // Bottom button
                 Button(action: handleNextAction) {
                     Text(currentPage < slides.count - 1 ? "tour.next".localized : "tour.start".localized)
-                        .font(.headline)
+                        .font(.planeaHeadline)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -225,17 +225,17 @@ struct TourSlideView: View {
             
             // Title
             Text(slide.title.localized)
-                .font(.title)
+                .font(.planeaTitle1)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.primary)
+                .foregroundColor(.planeaTextPrimary)
                 .offset(y: showInteractive ? 0 : 20)
             
             // Description
             Text(slide.description.localized)
-                .font(.body)
+                .font(.planeaBody)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
+                .foregroundColor(.planeaTextSecondary)
                 .padding(.horizontal, 32)
                 .offset(y: showInteractive ? 0 : 20)
             
@@ -325,7 +325,7 @@ struct AdHocIllustration: View {
     @State private var showCamera = false
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: PlaneaSpacing.md) {
             // Text input
             VStack(spacing: 8) {
                 RoundedRectangle(cornerRadius: 8)
@@ -343,13 +343,13 @@ struct AdHocIllustration: View {
                     )
                 
                 Text("text")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.planeaCaption2)
+                    .foregroundColor(.planeaTextSecondary)
             }
             
             Text("ou")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.planeaCaption)
+                .foregroundColor(.planeaTextSecondary)
             
             // Camera
             VStack(spacing: 8) {
@@ -358,14 +358,14 @@ struct AdHocIllustration: View {
                     .frame(width: 100, height: 80)
                     .overlay(
                         Image(systemName: "camera.fill")
-                            .font(.largeTitle)
+                            .font(.planeaLargeTitle)
                             .foregroundStyle(Color.planeaPrimary)
                             .scaleEffect(showCamera ? 1.0 : 0.8)
                     )
                 
                 Text("photo")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.planeaCaption2)
+                    .foregroundColor(.planeaTextSecondary)
             }
         }
         .onAppear {
@@ -381,12 +381,12 @@ struct ShoppingIllustration: View {
     @State private var checkedItems: Set<Int> = []
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
             ForEach(0..<4) { index in
                 HStack {
                     Image(systemName: checkedItems.contains(index) ? "checkmark.circle.fill" : "circle")
                         .foregroundStyle(checkedItems.contains(index) ? Color.planeaTertiary : .gray)
-                        .font(.title3)
+                        .font(.planeaTitle3)
                     
                     RoundedRectangle(cornerRadius: 4)
                         .fill(Color.planeaSecondary.opacity(0.3))
@@ -412,7 +412,7 @@ struct FavoritesIllustration: View {
     @State private var likedItems: Set<Int> = [0, 2]
     
     var body: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: PlaneaSpacing.sm) {
             ForEach(0..<6) { index in
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.planeaSecondary.opacity(0.2))
@@ -424,7 +424,7 @@ struct FavoritesIllustration: View {
                                 Spacer()
                                 Image(systemName: likedItems.contains(index) ? "heart.fill" : "heart")
                                     .foregroundStyle(likedItems.contains(index) ? Color.planeaSecondary : .gray)
-                                    .font(.title3)
+                                    .font(.planeaTitle3)
                                     .padding(8)
                             }
                         }
@@ -440,8 +440,8 @@ struct FlyersIllustration: View {
     let isActive: Bool
     
     var body: some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 12) {
+        VStack(spacing: PlaneaSpacing.md) {
+            HStack(spacing: PlaneaSpacing.sm) {
                 ForEach(0..<3) { index in
                     VStack(spacing: 4) {
                         RoundedRectangle(cornerRadius: 8)
@@ -454,9 +454,9 @@ struct FlyersIllustration: View {
                         
                         HStack(spacing: 4) {
                             Image(systemName: "tag.fill")
-                                .font(.caption2)
+                                .font(.planeaCaption2)
                             Text("-\(25 + index * 10)%")
-                                .font(.caption2)
+                                .font(.planeaCaption2)
                                 .fontWeight(.bold)
                         }
                         .foregroundStyle(Color.planeaDanger)
@@ -472,9 +472,9 @@ struct FlyersIllustration: View {
             // Premium badge
             HStack {
                 Image(systemName: "star.fill")
-                    .font(.caption)
+                    .font(.planeaCaption)
                 Text("Premium")
-                    .font(.caption)
+                    .font(.planeaCaption)
                     .fontWeight(.semibold)
             }
             .foregroundStyle(Color.planeaSecondary)
@@ -490,7 +490,7 @@ struct MealPrepIllustration: View {
     @State private var fillProgress: [CGFloat] = [0, 0, 0, 0]
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: PlaneaSpacing.sm) {
             ForEach(0..<4) { index in
                 VStack(spacing: 4) {
                     // Container with lid
@@ -513,9 +513,9 @@ struct MealPrepIllustration: View {
                     
                     // Day label
                     Text(["L", "M", "M", "J"][index])
-                        .font(.caption2)
+                        .font(.planeaCaption2)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.planeaTextSecondary)
                 }
                 .scaleEffect(isActive ? 1.0 : 0.8)
                 .animation(.spring(response: 0.6).delay(Double(index) * 0.15), value: isActive)
@@ -538,13 +538,13 @@ struct AIChatIllustration: View {
     @State private var showBubbles: [Bool] = [false, false, false]
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: PlaneaSpacing.sm) {
             // User bubble (right)
             HStack {
                 Spacer()
                 HStack(spacing: 6) {
                     Text("...")
-                        .font(.caption)
+                        .font(.planeaCaption)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
@@ -558,7 +558,7 @@ struct AIChatIllustration: View {
                         .frame(width: 30, height: 30)
                         .overlay(
                             Image(systemName: "person.fill")
-                                .font(.caption)
+                                .font(.planeaCaption)
                                 .foregroundStyle(Color.planeaTertiary)
                         )
                 }
@@ -571,12 +571,12 @@ struct AIChatIllustration: View {
                     .frame(width: 30, height: 30)
                     .overlay(
                         Image(systemName: "sparkles")
-                            .font(.caption)
+                            .font(.planeaCaption)
                             .foregroundStyle(Color.planeaPrimary)
                     )
                 
                 Text("...")
-                    .font(.caption)
+                    .font(.planeaCaption)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
@@ -593,7 +593,7 @@ struct AIChatIllustration: View {
                 Spacer()
                 HStack(spacing: 6) {
                     Text("...")
-                        .font(.caption)
+                        .font(.planeaCaption)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
@@ -607,7 +607,7 @@ struct AIChatIllustration: View {
                         .frame(width: 30, height: 30)
                         .overlay(
                             Image(systemName: "person.fill")
-                                .font(.caption)
+                                .font(.planeaCaption)
                                 .foregroundStyle(Color.planeaTertiary)
                         )
                 }
@@ -634,7 +634,7 @@ struct GetStartedIllustration: View {
         ZStack {
             ForEach(0..<3) { i in
             Image(systemName: "sparkle")
-                .font(.title)
+                .font(.planeaTitle1)
                 .foregroundStyle(Color.planeaPrimary)
                 .offset(
                         x: animate ? CGFloat.random(in: -40...40) : 0,

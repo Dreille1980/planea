@@ -51,10 +51,10 @@ struct PlanHistoryRow: View {
     
     var body: some View {
         NavigationLink(destination: PlanHistoryDetailView(plan: plan)) {
-            HStack(spacing: 12) {
+            HStack(spacing: PlaneaSpacing.sm) {
                 // Icon
                 Image(systemName: "book.closed.fill")
-                    .font(.title2)
+                    .font(.planeaTitle2)
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(.blue)
                     .frame(width: 40, height: 40)
@@ -65,33 +65,33 @@ struct PlanHistoryRow: View {
                     // Display plan name if available, otherwise show "Week of date"
                     if let name = plan.name, !name.isEmpty {
                         Text(name)
-                            .font(.headline)
+                            .font(.planeaHeadline)
                             .lineLimit(1)
                         
                         Text(dateFormatter.string(from: plan.weekStart))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     } else {
                         Text("plan.history.weekOf".localized)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                         
                         Text(dateFormatter.string(from: plan.weekStart))
-                            .font(.headline)
+                            .font(.planeaHeadline)
                     }
                     
                     // Stats
-                    HStack(spacing: 12) {
+                    HStack(spacing: PlaneaSpacing.sm) {
                         Label("\(plan.items.count)", systemImage: "fork.knife")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                         
                         if let confirmedDate = plan.confirmedDate {
                             Text("•")
                                 .foregroundStyle(.tertiary)
                             Text(confirmedDate, style: .relative)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(.planeaCaption)
+                                .foregroundColor(.planeaTextSecondary)
                         }
                     }
                 }
@@ -114,7 +114,7 @@ struct PlanHistoryDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
+            VStack(spacing: PlaneaSpacing.sm) {
                 ForEach(weekdays, id: \.self) { day in
                     if let dayMeals = mealsForDay(day) {
                         DayHistoryCard(day: dayLabel(for: day), meals: dayMeals)
@@ -170,23 +170,23 @@ struct DayHistoryCard: View {
     let meals: [(MealItem, String)]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
             // Header
             HStack {
                 Text(day)
-                    .font(.headline)
+                    .font(.planeaHeadline)
                     .bold()
                 
                 Spacer()
                 
                 HStack(spacing: 4) {
                     Image(systemName: "fork.knife")
-                        .font(.caption)
+                        .font(.planeaCaption)
                     Text("\(meals.count)")
-                        .font(.caption)
+                        .font(.planeaCaption)
                         .bold()
                 }
-                .foregroundStyle(.secondary)
+                .foregroundColor(.planeaTextSecondary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(Color(.systemGray5))
@@ -196,7 +196,7 @@ struct DayHistoryCard: View {
             Divider()
             
             // Meals list (read-only)
-            VStack(spacing: 12) {
+            VStack(spacing: PlaneaSpacing.sm) {
                 ForEach(meals, id: \.0.id) { mealTuple in
                     NavigationLink(destination: RecipeDetailView(recipe: mealTuple.0.recipe)) {
                         MealHistoryRow(
@@ -241,10 +241,10 @@ struct MealHistoryRow: View {
     }
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: PlaneaSpacing.sm) {
             // Icon
             Image(systemName: iconName)
-                .font(.title3)
+                .font(.planeaTitle3)
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(iconColor)
                 .frame(width: 32, height: 32)
@@ -254,24 +254,24 @@ struct MealHistoryRow: View {
             // Content
             VStack(alignment: .leading, spacing: 2) {
                 Text(mealLabel)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.planeaCaption)
+                    .foregroundColor(.planeaTextSecondary)
                 
                 Text(recipeName)
-                    .font(.subheadline)
+                    .font(.planeaSubheadline)
                     .bold()
-                    .foregroundStyle(.primary)
+                    .foregroundColor(.planeaTextPrimary)
             }
             
             Spacer()
             
             // Navigate icon
             Image(systemName: "chevron.right")
-                .font(.caption)
+                .font(.planeaCaption)
                 .foregroundStyle(.tertiary)
                 .frame(width: 20)
         }
-        .padding(12)
+        .padding(PlaneaSpacing.sm)
         .background(Color(.systemGray6))
         .cornerRadius(10)
     }

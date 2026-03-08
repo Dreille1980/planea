@@ -42,25 +42,25 @@ struct WhatsNewView: View {
                 
                 // Title
                 Text("whats_new.title".localized)
-                    .font(.title)
+                    .font(.planeaTitle1)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
                 // Version subtitle
                 Text(String(format: "whats_new.version".localized, version))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.planeaSubheadline)
+                    .foregroundColor(.planeaTextSecondary)
                 
                 // Features list
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: PlaneaSpacing.md) {
                     ForEach(features, id: \.self) { featureKey in
-                        HStack(alignment: .top, spacing: 12) {
+                        HStack(alignment: .top, spacing: PlaneaSpacing.sm) {
                             Image(systemName: "checkmark.circle.fill")
-                                .font(.title3)
+                                .font(.planeaTitle3)
                                 .foregroundStyle(.green)
                             
                             Text(featureKey.localized)
-                                .font(.body)
+                                .font(.planeaBody)
                                 .multilineTextAlignment(.leading)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -76,7 +76,7 @@ struct WhatsNewView: View {
                     dismiss()
                 }) {
                     Text("whats_new.close".localized)
-                        .font(.headline)
+                        .font(.planeaHeadline)
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(
@@ -100,7 +100,7 @@ struct WhatsNewView: View {
                         dismiss()
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                 }
             }

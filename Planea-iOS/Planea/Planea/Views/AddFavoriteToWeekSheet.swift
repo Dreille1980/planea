@@ -29,9 +29,9 @@ struct AddFavoriteToWeekSheet: View {
                     .ignoresSafeArea()
                 
                 ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: PlaneaSpacing.md) {
                     // Recipe preview
-                    HStack(spacing: 12) {
+                    HStack(spacing: PlaneaSpacing.sm) {
                         Image(systemName: "fork.knife.circle.fill")
                             .font(.system(size: 40))
                             .symbolRenderingMode(.hierarchical)
@@ -39,17 +39,17 @@ struct AddFavoriteToWeekSheet: View {
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text(recipe.title)
-                                .font(.headline)
-                                .foregroundStyle(.primary)
+                                .font(.planeaHeadline)
+                                .foregroundColor(.planeaTextPrimary)
                             
-                            HStack(spacing: 12) {
+                            HStack(spacing: PlaneaSpacing.sm) {
                                 Label("\(recipe.servings)", systemImage: "person.2")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .font(.planeaCaption)
+                                    .foregroundColor(.planeaTextSecondary)
                                 
                                 Label("\(recipe.totalMinutes) min", systemImage: "clock")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .font(.planeaCaption)
+                                    .foregroundColor(.planeaTextSecondary)
                             }
                         }
                         
@@ -61,13 +61,13 @@ struct AddFavoriteToWeekSheet: View {
                     
                     // Instructions
                     Text("favorites.select_slot_instruction".localized)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(.planeaSubheadline)
+                        .foregroundColor(.planeaTextSecondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                     
                     // Day and meal selection
-                    LazyVStack(spacing: 12) {
+                    LazyVStack(spacing: PlaneaSpacing.sm) {
                         ForEach(weekdays, id: \.self) { day in
                             DaySlotSelectionRow(
                                 day: day,
@@ -204,9 +204,9 @@ struct DaySlotSelectionRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(dayLabel)
-                .font(.subheadline)
+                .font(.planeaSubheadline)
                 .bold()
-                .foregroundStyle(.primary)
+                .foregroundColor(.planeaTextPrimary)
             
             VStack(spacing: 8) {
                 ForEach(mealTypes, id: \.self) { mealType in
@@ -248,10 +248,10 @@ struct SlotButton: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
+            HStack(spacing: PlaneaSpacing.sm) {
                 // Icon
                 Image(systemName: icon)
-                    .font(.title3)
+                    .font(.planeaTitle3)
                     .symbolRenderingMode(.hierarchical)
                     .foregroundStyle(color)
                     .frame(width: 32, height: 32)
@@ -260,8 +260,8 @@ struct SlotButton: View {
                 
                 // Label
                 Text(label)
-                    .font(.subheadline)
-                    .foregroundStyle(.primary)
+                    .font(.planeaSubheadline)
+                    .foregroundColor(.planeaTextPrimary)
                 
                 Spacer()
                 
@@ -269,9 +269,9 @@ struct SlotButton: View {
                 if isOccupied {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.caption)
+                            .font(.planeaCaption)
                         Text("favorites.slot_occupied".localized)
-                            .font(.caption)
+                            .font(.planeaCaption)
                     }
                     .foregroundStyle(.orange)
                     .padding(.horizontal, 8)
@@ -282,10 +282,10 @@ struct SlotButton: View {
                 
                 // Selection indicator
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
+                    .font(.planeaTitle3)
                     .foregroundStyle(isSelected ? .green : .secondary)
             }
-            .padding(12)
+            .padding(PlaneaSpacing.sm)
             .background(
                 RoundedRectangle(cornerRadius: 10)
                     .fill(isSelected ? Color.accentColor.opacity(0.1) : Color(.systemGray6))

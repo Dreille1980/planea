@@ -15,7 +15,7 @@ struct OnboardingGenerationPreferencesView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            VStack(spacing: 16) {
+            VStack(spacing: PlaneaSpacing.md) {
                 ZStack {
                     Circle()
                         .fill(Color.planeaSecondary.opacity(0.1))
@@ -28,12 +28,12 @@ struct OnboardingGenerationPreferencesView: View {
                 .padding(.top, 32)
                 
                 Text("onboarding.prefs.title".localized)
-                    .font(.title2)
+                    .font(.planeaTitle2)
                     .fontWeight(.bold)
                 
                 Text("onboarding.prefs.subtitle".localized)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.planeaSubheadline)
+                    .foregroundColor(.planeaTextSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
             }
@@ -43,10 +43,10 @@ struct OnboardingGenerationPreferencesView: View {
             Form {
                 // Time Section (Free)
                 Section {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                         Text("prefs.weekday".localized)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaSubheadline)
+                            .foregroundColor(.planeaTextSecondary)
                         
                         HStack {
                             Text("\(preferences.weekdayMaxMinutes) min")
@@ -58,8 +58,8 @@ struct OnboardingGenerationPreferencesView: View {
                         }
                         
                         Text("prefs.weekend".localized)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaSubheadline)
+                            .foregroundColor(.planeaTextSecondary)
                             .padding(.top, 8)
                         
                         HStack {
@@ -156,7 +156,7 @@ struct OnboardingGenerationPreferencesView: View {
             // Continue Button
             Button(action: saveAndContinue) {
                 Text("action.continue".localized)
-                    .font(.headline)
+                    .font(.planeaHeadline)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding()

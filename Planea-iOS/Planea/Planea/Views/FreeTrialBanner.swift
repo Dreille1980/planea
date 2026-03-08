@@ -9,25 +9,25 @@ struct FreeTrialBanner: View {
             Button(action: {
                 showSubscriptionView = true
             }) {
-                HStack(spacing: 12) {
+                HStack(spacing: PlaneaSpacing.sm) {
                     Image(systemName: "gift.fill")
-                        .font(.title3)
+                        .font(.planeaTitle3)
                         .foregroundStyle(.white)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text("freetrial.banner.title".localized)
-                            .font(.subheadline)
+                            .font(.planeaSubheadline)
                             .fontWeight(.semibold)
                         
                         Text(String(format: "freetrial.banner.daysLeft".localized, usageVM.daysRemainingInFreeTrial))
-                            .font(.caption)
+                            .font(.planeaCaption)
                     }
                     .foregroundStyle(.white)
                     
                     Spacer()
                     
                     Image(systemName: "chevron.right")
-                        .font(.caption)
+                        .font(.planeaCaption)
                         .foregroundStyle(.white.opacity(0.7))
                 }
                 .padding(.horizontal, 16)

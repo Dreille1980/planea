@@ -15,14 +15,14 @@ struct MealPrepComingSoonView: View {
                 
                 // Title
                 Text("mealprep.comingsoon.title".localized)
-                    .font(.title)
+                    .font(.planeaTitle1)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
                 // Subtitle/Description
                 Text("mealprep.comingsoon.subtitle".localized)
-                    .font(.body)
-                    .foregroundColor(.secondary)
+                    .font(.planeaBody)
+                    .foregroundColor(.planeaTextSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
                     .fixedSize(horizontal: false, vertical: true)

@@ -14,10 +14,10 @@ struct GenerationPreferencesView: View {
             Form {
                 // Time Section
                 Section {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: PlaneaSpacing.sm) {
                         Text("prefs.weekday".localized)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaSubheadline)
+                            .foregroundColor(.planeaTextSecondary)
                         
                         HStack {
                             Text("\(preferences.weekdayMaxMinutes) min")
@@ -29,8 +29,8 @@ struct GenerationPreferencesView: View {
                         }
                         
                         Text("prefs.weekend".localized)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaSubheadline)
+                            .foregroundColor(.planeaTextSecondary)
                             .padding(.top, 8)
                         
                         HStack {

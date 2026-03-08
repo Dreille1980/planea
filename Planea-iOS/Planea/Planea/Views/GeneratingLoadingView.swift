@@ -54,7 +54,7 @@ struct GeneratingLoadingView: View {
             // Message
             VStack(spacing: 8) {
                 Text(messages[currentMessageIndex].1)
-                    .font(.headline)
+                    .font(.planeaHeadline)
                     .multilineTextAlignment(.center)
                     .transition(.asymmetric(
                         insertion: .opacity.combined(with: .move(edge: .top)),
@@ -63,8 +63,8 @@ struct GeneratingLoadingView: View {
                     .id(currentMessageIndex)
                 
                 Text("\("plan.creating".localized) \(totalItems) \("plan.meals".localized)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.planeaSubheadline)
+                    .foregroundColor(.planeaTextSecondary)
             }
             .frame(height: 60)
             

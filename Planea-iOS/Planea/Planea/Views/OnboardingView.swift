@@ -26,18 +26,18 @@ struct OnboardingView: View {
                                 VStack(alignment: .trailing, spacing: 2) {
                                     if !member.diets.isEmpty {
                                         Text("\(member.diets.count) \("count.diets".localized)")
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
+                                            .font(.planeaCaption2)
+                                            .foregroundColor(.planeaTextSecondary)
                                     }
                                     if !member.allergens.isEmpty {
                                         Text("\(member.allergens.count) \("count.allergens".localized)")
-                                            .font(.caption2)
+                                            .font(.planeaCaption2)
                                             .foregroundStyle(.orange)
                                     }
                                     if !member.dislikes.isEmpty {
                                         Text("\(member.dislikes.count) \("count.dislikes".localized)")
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
+                                            .font(.planeaCaption2)
+                                            .foregroundColor(.planeaTextSecondary)
                                     }
                                 }
                             }
@@ -51,26 +51,26 @@ struct OnboardingView: View {
                 
                 Section {
                     Text("onboarding.hint".localized)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(.planeaFootnote)
+                        .foregroundColor(.planeaTextSecondary)
                 }
                 
                 // Free Trial Welcome Message
                 Section {
-                    VStack(spacing: 12) {
+                    VStack(spacing: PlaneaSpacing.sm) {
                         HStack {
                             Image(systemName: "star.circle.fill")
-                                .font(.title)
+                                .font(.planeaTitle1)
                                 .foregroundStyle(.yellow)
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("subscription.welcome".localized)
-                                    .font(.headline)
-                                    .foregroundStyle(.primary)
+                                    .font(.planeaHeadline)
+                                    .foregroundColor(.planeaTextPrimary)
                                 
                                 Text("subscription.welcome.message".localized)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .font(.planeaSubheadline)
+                                    .foregroundColor(.planeaTextSecondary)
                             }
                             
                             Spacer()
@@ -85,14 +85,14 @@ struct OnboardingView: View {
                         Spacer()
                         NavigationLink(destination: LegalDocumentView(documentType: .termsAndConditions)) {
                             Text("subscription.terms".localized)
-                                .font(.caption)
+                                .font(.planeaCaption)
                         }
                         Text("•")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                         NavigationLink(destination: LegalDocumentView(documentType: .privacyPolicy)) {
                             Text("subscription.privacy".localized)
-                                .font(.caption)
+                                .font(.planeaCaption)
                         }
                         Spacer()
                     }
@@ -102,7 +102,7 @@ struct OnboardingView: View {
                     Button(action: completeOnboarding) {
                         Text("onboarding.continue".localized)
                             .frame(maxWidth: .infinity)
-                            .font(.headline)
+                            .font(.planeaHeadline)
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(familyVM.family.name.isEmpty || familyVM.members.isEmpty)
@@ -114,8 +114,8 @@ struct OnboardingView: View {
                             Text(familyVM.family.name.isEmpty ? 
                                 "onboarding.requirement.familyName".localized : 
                                 "onboarding.requirement.members".localized)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(.planeaCaption)
+                                .foregroundColor(.planeaTextSecondary)
                         }
                         .frame(maxWidth: .infinity, alignment: .center)
                     }

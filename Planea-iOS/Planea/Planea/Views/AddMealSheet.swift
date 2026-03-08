@@ -81,7 +81,7 @@ struct AddMealSheet: View {
                     Text("add_meal.manual_entry".localized)
                 } footer: {
                     Text("add_meal.manual_entry_footer".localized)
-                        .font(.caption)
+                        .font(.planeaCaption)
                 }
                 
                 // AI Generation section
@@ -107,7 +107,7 @@ struct AddMealSheet: View {
                     Text("add_meal.ai_generation".localized)
                 } footer: {
                     Text("add_meal.ai_generation_footer".localized)
-                        .font(.caption)
+                        .font(.planeaCaption)
                 }
                 
                 // Error message
@@ -115,7 +115,7 @@ struct AddMealSheet: View {
                     Section {
                         Text(error)
                             .foregroundStyle(.red)
-                            .font(.caption)
+                            .font(.planeaCaption)
                     }
                 }
             }

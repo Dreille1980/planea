@@ -28,16 +28,16 @@ struct OnboardingCompletionView: View {
             }
             
             // Title
-            VStack(spacing: 12) {
+            VStack(spacing: PlaneaSpacing.sm) {
                 Text("onboarding.completion.title".localized)
-                    .font(.title)
+                    .font(.planeaTitle1)
                     .fontWeight(.bold)
                     .opacity(showContent ? 1.0 : 0.0)
                     .offset(y: showContent ? 0 : 20)
                 
                 Text("onboarding.completion.subtitle".localized)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                    .font(.planeaBody)
+                    .foregroundColor(.planeaTextSecondary)
                     .multilineTextAlignment(.center)
                     .opacity(showContent ? 1.0 : 0.0)
                     .offset(y: showContent ? 0 : 20)
@@ -45,7 +45,7 @@ struct OnboardingCompletionView: View {
             .padding(.horizontal, 32)
             
             // Summary
-            VStack(spacing: 16) {
+            VStack(spacing: PlaneaSpacing.md) {
                 SummaryRow(
                     icon: "house.fill",
                     title: "onboarding.completion.family".localized,
@@ -79,7 +79,7 @@ struct OnboardingCompletionView: View {
             // Start Button
             Button(action: completeOnboarding) {
                 Text("onboarding.completion.start".localized)
-                    .font(.headline)
+                    .font(.planeaHeadline)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -127,20 +127,20 @@ struct SummaryRow: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .font(.title3)
+                .font(.planeaTitle3)
                 .foregroundStyle(Color.planeaPrimary)
                 .frame(width: 30)
             
             Text(title)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.planeaSubheadline)
+                .foregroundColor(.planeaTextSecondary)
             
             Spacer()
             
             Text(value)
-                .font(.subheadline)
+                .font(.planeaSubheadline)
                 .fontWeight(.semibold)
-                .foregroundStyle(.primary)
+                .foregroundColor(.planeaTextPrimary)
         }
     }
 }

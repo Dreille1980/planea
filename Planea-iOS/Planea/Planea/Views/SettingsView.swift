@@ -30,7 +30,7 @@ struct SettingsView: View {
                             Text("usage.monthly".localized)
                             Spacer()
                             Text(usageVM.usageDisplayString())
-                                .foregroundStyle(.secondary)
+                                .foregroundColor(.planeaTextSecondary)
                         }
                     }
                     
@@ -53,7 +53,7 @@ struct SettingsView: View {
                                     Text("subscription.trial.remaining".localized)
                                     Spacer()
                                     Text("\(daysRemaining) \("subscription.trial.daysLeft".localized)")
-                                        .foregroundStyle(.secondary)
+                                        .foregroundColor(.planeaTextSecondary)
                                 }
                             } else if info.status == .developerAccess {
                                 Button(action: {
@@ -71,7 +71,7 @@ struct SettingsView: View {
                                     Text("subscription.trial.remaining".localized)
                                     Spacer()
                                     Text("\(FreeTrialService.shared.daysRemaining) \("subscription.trial.daysLeft".localized)")
-                                        .foregroundStyle(.secondary)
+                                        .foregroundColor(.planeaTextSecondary)
                                 }
                             }
                         }
@@ -92,8 +92,8 @@ struct SettingsView: View {
                         // Developer access code
                         VStack(alignment: .leading, spacing: 8) {
                             Text("subscription.developer.code".localized)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(.planeaCaption)
+                                .foregroundColor(.planeaTextSecondary)
                             
                             HStack {
                                 TextField("", text: $developerCode)
@@ -103,7 +103,7 @@ struct SettingsView: View {
                                 
                                 Button(action: validateDeveloperCode) {
                                     Text("action.validate".localized)
-                                        .font(.subheadline)
+                                        .font(.planeaSubheadline)
                                 }
                                 .buttonStyle(.borderedProminent)
                             }
@@ -125,8 +125,8 @@ struct SettingsView: View {
                         
                         // Show trial status
                         Text("Trial Status: \(FreeTrialService.shared.getTrialStatusDescription())")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                 }
                 
@@ -136,8 +136,8 @@ struct SettingsView: View {
                             Label("settings.manageFamily".localized, systemImage: "person.3.fill")
                             Spacer()
                             Text("\(familyVM.members.count) \("settings.members".localized)")
-                                .foregroundStyle(.secondary)
-                                .font(.subheadline)
+                                .foregroundColor(.planeaTextSecondary)
+                                .font(.planeaSubheadline)
                         }
                     }
                 }
@@ -177,11 +177,11 @@ struct SettingsView: View {
                             Label("settings.feedback".localized, systemImage: "envelope.fill")
                             Spacer()
                             Image(systemName: "arrow.up.right")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(.planeaCaption)
+                                .foregroundColor(.planeaTextSecondary)
                         }
                     }
-                    .foregroundStyle(.primary)
+                    .foregroundColor(.planeaTextPrimary)
                 }
                 
                 // Help Section
@@ -192,7 +192,7 @@ struct SettingsView: View {
                             Spacer()
                         }
                     }
-                    .foregroundStyle(.primary)
+                    .foregroundColor(.planeaTextPrimary)
                 }
                 
                 // Legal Section
@@ -212,7 +212,7 @@ struct SettingsView: View {
                         Text("settings.version".localized)
                         Spacer()
                         Text(appVersion)
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.planeaTextSecondary)
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -238,7 +238,7 @@ struct SettingsView: View {
                 switch info.status {
                 case .active:
                     Text("subscription.status.active".localized)
-                        .font(.caption)
+                        .font(.planeaCaption)
                         .fontWeight(.semibold)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
@@ -246,7 +246,7 @@ struct SettingsView: View {
                         .background(Capsule().fill(Color.green))
                 case .inTrial:
                     Text("subscription.status.trial".localized)
-                        .font(.caption)
+                        .font(.planeaCaption)
                         .fontWeight(.semibold)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
@@ -254,7 +254,7 @@ struct SettingsView: View {
                         .background(Capsule().fill(Color.blue))
                 case .freeTrial:
                     Text("subscription.status.trial".localized)
-                        .font(.caption)
+                        .font(.planeaCaption)
                         .fontWeight(.semibold)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
@@ -262,7 +262,7 @@ struct SettingsView: View {
                         .background(Capsule().fill(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)))
                 case .developerAccess:
                     Text("subscription.status.developer".localized)
-                        .font(.caption)
+                        .font(.planeaCaption)
                         .fontWeight(.semibold)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
@@ -270,7 +270,7 @@ struct SettingsView: View {
                         .background(Capsule().fill(Color.purple))
                 case .expired, .notSubscribed:
                     Text("subscription.status.free".localized)
-                        .font(.caption)
+                        .font(.planeaCaption)
                         .fontWeight(.semibold)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
@@ -279,7 +279,7 @@ struct SettingsView: View {
                 }
             } else {
                 Text("subscription.status.free".localized)
-                    .font(.caption)
+                    .font(.planeaCaption)
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
                     .padding(.horizontal, 8)

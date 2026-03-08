@@ -19,31 +19,31 @@ struct SubscriptionPaywallView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     // Header
-                    VStack(spacing: 12) {
+                    VStack(spacing: PlaneaSpacing.sm) {
                         Image(systemName: "star.circle.fill")
                             .font(.system(size: 60))
                             .foregroundStyle(.yellow)
                         
                         Text("subscription.title".localized)
-                            .font(.largeTitle)
+                            .font(.planeaLargeTitle)
                             .fontWeight(.bold)
                         
                         if limitReached {
                             Text("usage.limit_message".localized)
-                                .font(.title3)
-                                .foregroundStyle(.secondary)
+                                .font(.planeaTitle3)
+                                .foregroundColor(.planeaTextSecondary)
                                 .multilineTextAlignment(.center)
                         } else if !viewModel.hasActiveSubscription {
                             Text("subscription.trialEnded".localized)
-                                .font(.title3)
-                                .foregroundStyle(.secondary)
+                                .font(.planeaTitle3)
+                                .foregroundColor(.planeaTextSecondary)
                                 .multilineTextAlignment(.center)
                         }
                     }
                     .padding(.top, 40)
                     
                     // Features
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: PlaneaSpacing.md) {
                         FeatureRow(icon: "calendar.badge.checkmark", text: "subscription.feature.planning".localized)
                         FeatureRow(icon: "cart.fill", text: "subscription.feature.shopping".localized)
                         FeatureRow(icon: "sparkles", text: "subscription.feature.ai".localized)
@@ -53,29 +53,29 @@ struct SubscriptionPaywallView: View {
                     .padding(.horizontal)
                     
                     // Subscription Options
-                    VStack(spacing: 16) {
+                    VStack(spacing: PlaneaSpacing.md) {
                         if viewModel.isLoading {
                             // Loading state
-                            VStack(spacing: 12) {
+                            VStack(spacing: PlaneaSpacing.sm) {
                                 ProgressView()
                                 Text("Loading subscription options...")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .font(.planeaSubheadline)
+                                    .foregroundColor(.planeaTextSecondary)
                             }
                             .frame(height: 200)
                         } else if viewModel.monthlyProduct == nil && viewModel.yearlyProduct == nil {
                             // No products loaded - show helpful message
-                            VStack(spacing: 16) {
+                            VStack(spacing: PlaneaSpacing.md) {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .font(.system(size: 50))
                                     .foregroundStyle(.orange)
                                 
                                 Text("Subscription Options Unavailable")
-                                    .font(.headline)
+                                    .font(.planeaHeadline)
                                 
                                 Text("Please try the following:\n\n1. Restart the app\n2. Check your internet connection\n3. Verify StoreKit Configuration in Xcode")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .font(.planeaSubheadline)
+                                    .foregroundColor(.planeaTextSecondary)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal)
                             }
@@ -113,7 +113,7 @@ struct SubscriptionPaywallView: View {
                     .padding(.horizontal)
                     
                     // Action Buttons
-                    VStack(spacing: 12) {
+                    VStack(spacing: PlaneaSpacing.sm) {
                         // Restore Button
                         Button(action: {
                             Task {
@@ -121,7 +121,7 @@ struct SubscriptionPaywallView: View {
                             }
                         }) {
                             Text("subscription.restore".localized)
-                                .font(.subheadline)
+                                .font(.planeaSubheadline)
                                 .foregroundStyle(.blue)
                         }
                         
@@ -132,30 +132,30 @@ struct SubscriptionPaywallView: View {
                             }
                         }) {
                             Text("subscription.manage".localized)
-                                .font(.subheadline)
+                                .font(.planeaSubheadline)
                                 .foregroundStyle(.blue)
                         }
                     }
                     
                     // Terms and Privacy
-                    HStack(spacing: 16) {
+                    HStack(spacing: PlaneaSpacing.md) {
                         Button("subscription.terms".localized) {
                             openLegalURL(type: .terms)
                         }
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                         
                         Button("subscription.privacy".localized) {
                             openLegalURL(type: .privacy)
                         }
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                     }
                     
                     // Auto-renewal Legal Text
                     Text("subscription.autorenewal".localized)
                         .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.planeaTextSecondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
                         .padding(.bottom, 40)
@@ -171,8 +171,8 @@ struct SubscriptionPaywallView: View {
                             onDismiss?()
                         }) {
                             Image(systemName: "xmark.circle.fill")
-                                .font(.title2)
-                                .foregroundStyle(.secondary)
+                                .font(.planeaTitle2)
+                                .foregroundColor(.planeaTextSecondary)
                         }
                         .padding()
                     }
@@ -236,14 +236,14 @@ struct FeatureRow: View {
     let text: String
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: PlaneaSpacing.sm) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(.planeaTitle3)
                 .foregroundStyle(.blue)
                 .frame(width: 30)
             
             Text(text)
-                .font(.body)
+                .font(.planeaBody)
             
             Spacer()
         }
@@ -259,16 +259,16 @@ struct SubscriptionOptionCard: View {
     
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 12) {
+            VStack(spacing: PlaneaSpacing.sm) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(product.displayName)
-                            .font(.headline)
-                            .foregroundStyle(.primary)
+                            .font(.planeaHeadline)
+                            .foregroundColor(.planeaTextPrimary)
                         
                         if let trialDescription = trialDescription {
                             Text(trialDescription)
-                                .font(.subheadline)
+                                .font(.planeaSubheadline)
                                 .foregroundStyle(.green)
                         }
                     }
@@ -277,14 +277,14 @@ struct SubscriptionOptionCard: View {
                     
                     VStack(alignment: .trailing, spacing: 4) {
                         Text(product.displayPrice)
-                            .font(.title3)
+                            .font(.planeaTitle3)
                             .fontWeight(.bold)
-                            .foregroundStyle(.primary)
+                            .foregroundColor(.planeaTextPrimary)
                         
                         if let subscription = product.subscription {
                             Text("/ \(periodText(for: subscription.subscriptionPeriod))")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(.planeaCaption)
+                                .foregroundColor(.planeaTextSecondary)
                         }
                     }
                 }
@@ -292,7 +292,7 @@ struct SubscriptionOptionCard: View {
                 if let savingsText = savingsText {
                     HStack {
                         Text(savingsText)
-                            .font(.subheadline)
+                            .font(.planeaSubheadline)
                             .fontWeight(.semibold)
                             .foregroundStyle(.white)
                             .padding(.horizontal, 12)
