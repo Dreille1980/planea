@@ -67,22 +67,21 @@ struct ChatView: View {
                             Image(systemName: "doc.text.magnifyingglass")
                                 .foregroundColor(.blue)
                             Text("chat.pending_recipe.title".localized)
-                                .font(.headline)
+                                .font(.planeaHeadline)
                             Spacer()
                         }
                         
                         VStack(alignment: .leading, spacing: 8) {
                             Text(pendingRecipe.title)
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
+                                .font(.planeaSubheadline)
                             
                             HStack {
                                 Label("\(pendingRecipe.servings) portions", systemImage: "person.2")
                                 Spacer()
                                 Label("\(pendingRecipe.totalMinutes) min", systemImage: "clock")
                             }
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            .font(.planeaCaption)
+                            .foregroundColor(.planeaTextSecondary)
                             
                             NavigationLink(destination: RecipeDetailView(recipe: pendingRecipe)) {
                                 HStack {
@@ -96,9 +95,9 @@ struct ChatView: View {
                         }
                         .padding(12)
                         .background(Color(.systemGray6))
-                        .cornerRadius(8)
+                        .cornerRadius(PlaneaRadius.card)
                         
-                        HStack(spacing: 12) {
+                        HStack(spacing: PlaneaSpacing.sm) {
                             Button(action: {
                                 Task {
                                     await viewModel.confirmRecipeModification()
@@ -108,13 +107,12 @@ struct ChatView: View {
                                     Image(systemName: "checkmark.circle.fill")
                                     Text("chat.pending_recipe.confirm".localized)
                                 }
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
+                                .font(.planeaSubheadline)
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
+                                .padding(.vertical, PlaneaSpacing.sm)
                                 .background(Color.green)
-                                .cornerRadius(10)
+                                .cornerRadius(PlaneaRadius.button)
                             }
                             .disabled(viewModel.isLoading)
                             
@@ -125,13 +123,12 @@ struct ChatView: View {
                                     Image(systemName: "xmark.circle.fill")
                                     Text("chat.pending_recipe.cancel".localized)
                                 }
-                                .font(.subheadline)
-                                .fontWeight(.medium)
+                                .font(.planeaSubheadline)
                                 .foregroundColor(.red)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
+                                .padding(.vertical, PlaneaSpacing.sm)
                                 .background(Color.red.opacity(0.1))
-                                .cornerRadius(10)
+                                .cornerRadius(PlaneaRadius.button)
                             }
                             .disabled(viewModel.isLoading)
                         }
@@ -268,18 +265,24 @@ struct ChatView: View {
     // MARK: - Welcome View
     
     private var welcomeView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "bubble.left.and.bubble.right.fill")
-                .font(.system(size: 60))
-                .foregroundColor(.blue)
+        VStack(spacing: PlaneaSpacing.lg) {
+            ZStack {
+                Circle()
+                    .fill(Color.blue.opacity(0.1))
+                    .frame(width: 120, height: 120)
+                
+                Image(systemName: "bubble.left.and.bubble.right.fill")
+                    .font(.system(size: 50))
+                    .foregroundColor(.blue)
+            }
             
             Text("chat.welcome.title".localized)
-                .font(.title2)
-                .fontWeight(.bold)
+                .font(.planeaTitle2)
+                .foregroundColor(.planeaTextPrimary)
             
             Text("chat.welcome.subtitle".localized)
-                .font(.body)
-                .foregroundColor(.secondary)
+                .font(.planeaBody)
+                .foregroundColor(.planeaTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
             
@@ -315,7 +318,7 @@ struct ChatView: View {
         let description: String
         
         var body: some View {
-            HStack(alignment: .top, spacing: 12) {
+            HStack(alignment: .top, spacing: PlaneaSpacing.sm) {
                 Image(systemName: icon)
                     .font(.title3)
                     .foregroundColor(.blue)
@@ -323,11 +326,10 @@ struct ChatView: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
+                        .font(.planeaSubheadline)
                     Text(description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.planeaCaption)
+                        .foregroundColor(.planeaTextSecondary)
                 }
             }
         }

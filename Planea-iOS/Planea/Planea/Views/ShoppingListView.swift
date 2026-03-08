@@ -41,26 +41,27 @@ struct ShoppingListView: View {
                                 let converted = convertIngredient(item)
                                 HStack {
                                     Image(systemName: item.isChecked ? "checkmark.circle.fill" : "circle")
-                                        .foregroundStyle(item.isChecked ? .green : .gray)
+                                        .foregroundColor(item.isChecked ? .green : .gray)
                                         .font(.title3)
                                     
                                     HStack(spacing: 6) {
                                         Text(item.name)
+                                            .font(.planeaBody)
                                             .strikethrough(item.isChecked)
-                                            .foregroundStyle(item.isChecked ? .secondary : .primary)
+                                            .foregroundColor(item.isChecked ? .planeaTextSecondary : .planeaTextPrimary)
                                         
                                         if item.isOnSale {
                                             Image(systemName: "tag.fill")
                                                 .font(.caption)
-                                                .foregroundStyle(.green)
+                                                .foregroundColor(.green)
                                         }
                                     }
                                     
                                     Spacer()
                                     
                                     Text(formatQuantityWithUnit(converted.quantity, unit: converted.unit))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .font(.planeaCaption)
+                                        .foregroundColor(.planeaTextSecondary)
                                 }
                                 .contentShape(Rectangle())
                                 .onTapGesture {
@@ -79,28 +80,54 @@ struct ShoppingListView: View {
                         exportButton
                     }
                 } else {
-                    VStack(spacing: 20) {
-                        Image(systemName: "cart")
-                            .font(.system(size: 60))
-                            .foregroundStyle(.secondary)
+                    // Enhanced Empty state
+                    VStack(spacing: PlaneaSpacing.lg) {
+                        Spacer()
                         
-                        Text("shopping.noList".localized)
-                            .font(.headline)
+                        // Illustration
+                        ZStack {
+                            Circle()
+                                .fill(Color.planeaPrimary.opacity(0.1))
+                                .frame(width: 120, height: 120)
+                            
+                            Image(systemName: "cart.fill")
+                                .font(.system(size: 50))
+                                .foregroundColor(.planeaPrimary)
+                        }
                         
-                        Text("shopping.generateFirst".localized)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
+                        // Text content
+                        VStack(spacing: PlaneaSpacing.sm) {
+                            Text("shopping.noList".localized)
+                                .font(.planeaTitle2)
+                                .foregroundColor(.planeaTextPrimary)
+                            
+                            Text("shopping.generateFirst".localized)
+                                .font(.planeaBody)
+                                .foregroundColor(.planeaTextSecondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, PlaneaSpacing.xl)
+                        }
                         
+                        // CTA
                         if let plan = planVM.currentPlan {
-                            Button("plan.generateList".localized) {
+                            Button(action: {
+                                let impact = UIImpactFeedbackGenerator(style: .medium)
+                                impact.impactOccurred()
                                 generateShoppingList(from: plan)
+                            }) {
+                                Label("plan.generateList".localized, systemImage: "sparkles")
+                                    .font(.planeaCallout)
+                                    .padding(.horizontal, PlaneaSpacing.lg)
+                                    .padding(.vertical, PlaneaSpacing.sm)
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(.planeaPrimary)
+                            .planeaShadow(.medium)
                         }
+                        
+                        Spacer()
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding()
                 }
             }
