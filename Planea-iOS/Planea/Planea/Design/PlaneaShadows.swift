@@ -9,9 +9,35 @@
 
 import SwiftUI
 
+/// Shadow levels enum for semantic shadow application
+enum PlaneaShadowLevel {
+    case subtle
+    case low
+    case medium
+    case high
+    case veryHigh
+}
+
 /// Shadow presets for consistent elevation throughout the app
 /// Provides standardized shadow styles for different UI elevations
 extension View {
+    /// Apply shadow with semantic level
+    /// Usage: .planeaShadow(.medium)
+    func planeaShadow(_ level: PlaneaShadowLevel) -> some View {
+        switch level {
+        case .subtle:
+            return AnyView(self.planeaSubtleShadow())
+        case .low:
+            return AnyView(self.planeaButtonShadow())
+        case .medium:
+            return AnyView(self.planeaElevatedShadow())
+        case .high:
+            return AnyView(self.planeaHighElevationShadow())
+        case .veryHigh:
+            return AnyView(self.shadow(color: Color.black.opacity(0.20), radius: 20, x: 0, y: 8))
+        }
+    }
+    
     /// Ombre légère pour les cartes standard
     /// Utilise: Cards, items de liste
     /// Elevation: Basse (0-2dp)
