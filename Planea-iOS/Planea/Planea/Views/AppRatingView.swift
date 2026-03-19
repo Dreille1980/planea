@@ -58,7 +58,7 @@ struct AppRatingView: View {
                     .padding(.vertical, 16)
                     .background(Color.planeaPrimary)
                     .foregroundColor(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: PlaneaRadius.medium))
+                    .clipShape(RoundedRectangle(cornerRadius: PlaneaRadius.button))
                 }
 
                 // Bouton Non
@@ -74,7 +74,7 @@ struct AppRatingView: View {
                     .padding(.vertical, 16)
                     .background(Color.planeaTextSecondary.opacity(0.1))
                     .foregroundColor(.planeaTextPrimary)
-                    .clipShape(RoundedRectangle(cornerRadius: PlaneaRadius.medium))
+                    .clipShape(RoundedRectangle(cornerRadius: PlaneaRadius.button))
                 }
 
                 // Bouton Plus tard
