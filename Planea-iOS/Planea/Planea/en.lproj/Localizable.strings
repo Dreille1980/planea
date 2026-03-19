@@ -801,3 +801,18 @@
 "plan.mealPrepCount.plural" = "%d meals in meal prep";
 "plan.mealPrep.viewDayPrep" = "View day preparation";
 "plan.mealPrep.weekReheatingPlan" = "+ Weekly reheating plan";
+
+// Common errors
+"common.error" = "Error";
+"common.ok" = "OK";
+
+// Week Generation Wizard
+"wizard.title" = "Plan My Week";
+"wizard.button.back" = "Back";
+"wizard.button.continue" = "Continue";
+"wizard.button.generate" = "Generate";
+"wizard.step1.subtitle" = "Select the meals you want to plan";
+"wizard.mealprep.title" = "What is Meal Prep?";
+"wizard.mealprep.description" = "Meal prep means cooking multiple meals in a single session to save time during the week. The AI will create optimized recipes that share ingredients and preparation steps.";
+"wizard.mealprep.slots" = "Meals selected for Meal Prep";
+"wizard.mealprep.hint" = "✓ Tap Generate to create your personalized plan";

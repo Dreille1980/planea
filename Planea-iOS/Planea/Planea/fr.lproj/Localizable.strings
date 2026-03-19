@@ -817,3 +817,18 @@
 "plan.mealPrepCount.plural" = "%d repas en meal prep";
 "plan.mealPrep.viewDayPrep" = "Voir la préparation du jour";
 "plan.mealPrep.weekReheatingPlan" = "+ Plan de réchauffage de la semaine";
+
+// Erreurs communes
+"common.error" = "Erreur";
+"common.ok" = "OK";
+
+// Wizard de génération de semaine
+"wizard.title" = "Planifier ma semaine";
+"wizard.button.back" = "Retour";
+"wizard.button.continue" = "Continuer";
+"wizard.button.generate" = "Générer";
+"wizard.step1.subtitle" = "Sélectionnez les repas que vous souhaitez planifier";
+"wizard.mealprep.title" = "Qu'est-ce que le Meal Prep?";
+"wizard.mealprep.description" = "Le Meal Prep consiste à cuisiner plusieurs repas en une seule session pour gagner du temps durant la semaine. L'IA va créer des recettes optimisées qui partagent des ingrédients et des étapes de préparation.";
+"wizard.mealprep.slots" = "Repas sélectionnés en Meal Prep";
+"wizard.mealprep.hint" = "✓ Appuyez sur Générer pour créer votre plan personnalisé";
