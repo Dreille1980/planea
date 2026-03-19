@@ -216,7 +216,11 @@ struct IAService {
         // Decode the API response
         let planResponse = try JSONDecoder().decode(PlanResponse.self, from: data)
         
-        // Convert to MealPlan
+        // Calculate the correct weekStart (start of the current week based on user preference)
+        let prefs = PreferencesService.shared.loadPreferences()
+        let correctWeekStart = WeekDateHelper.startOfWeek(from: weekStart, preferredStartDay: prefs.weekStartDay)
+        
+        // Convert to MealPlan with real dates
         let mealItems = planResponse.items.map { item in
             var mealItem = MealItem(
                 id: UUID(),
@@ -230,6 +234,9 @@ struct IAService {
             if let groupIdString = item.mealPrepGroupId, let groupId = UUID(uuidString: groupIdString) {
                 mealItem.mealPrepGroupId = groupId
             }
+            
+            // CRITICAL: Assign real calendar date to each meal
+            mealItem.date = MealItem.calculateDate(for: item.weekday, weekStart: correctWeekStart)
             
             return mealItem
         }
@@ -265,7 +272,7 @@ struct IAService {
         return MealPlan(
             id: UUID(),
             familyId: UUID(), // Will be set by the caller if needed
-            weekStart: weekStart,
+            weekStart: correctWeekStart,
             items: mealItems
         )
     }

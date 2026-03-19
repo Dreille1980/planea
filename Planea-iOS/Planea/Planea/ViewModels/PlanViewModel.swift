@@ -46,6 +46,16 @@ final class PlanViewModel: ObservableObject {
     @MainActor func savePlan(_ plan: MealPlan) {
         var mutablePlan = plan
         mutablePlan.status = .draft
+        
+        // Ensure all MealItems have a real date populated
+        mutablePlan.items = mutablePlan.items.map { item in
+            var mutableItem = item
+            if mutableItem.date == nil {
+                mutableItem.date = MealItem.calculateDate(for: item.weekday, weekStart: mutablePlan.weekStart)
+            }
+            return mutableItem
+        }
+        
         currentPlan = mutablePlan
         persistence.saveMealPlan(mutablePlan)
         
@@ -107,14 +117,16 @@ final class PlanViewModel: ObservableObject {
     func regenerateMeal(mealItem: MealItem, newRecipe: Recipe) {
         guard var plan = currentPlan else { return }
         
-        // Find and replace the meal item
+        // Find and replace the meal item, preserving the date
         if let index = plan.items.firstIndex(where: { $0.id == mealItem.id }) {
-            let updatedItem = MealItem(
+            var updatedItem = MealItem(
                 id: mealItem.id,
                 weekday: mealItem.weekday,
                 mealType: mealItem.mealType,
                 recipe: newRecipe
             )
+            // Preserve the real date from the original item
+            updatedItem.date = mealItem.date ?? MealItem.calculateDate(for: mealItem.weekday, weekStart: plan.weekStart)
             plan.items[index] = updatedItem
             currentPlan = plan
             persistence.saveMealPlan(plan)
@@ -180,13 +192,14 @@ final class PlanViewModel: ObservableObject {
             plan.items.removeAll(where: { $0.weekday == weekday && $0.mealType == mealType })
         }
         
-        // Create new meal item with the favorite recipe
-        let newMeal = MealItem(
+        // Create new meal item with the favorite recipe and real date
+        var newMeal = MealItem(
             id: UUID(),
             weekday: weekday,
             mealType: mealType,
             recipe: recipe
         )
+        newMeal.date = MealItem.calculateDate(for: weekday, weekStart: plan.weekStart)
         
         // Add to plan
         plan.items.append(newMeal)
@@ -215,13 +228,17 @@ final class PlanViewModel: ObservableObject {
         
         // Load family to get the familyId
         let (family, _) = persistence.loadFamily()
-        let familyId = family?.id ?? UUID() // Use existing family ID or create a new one
+        let familyId = family?.id ?? UUID()
         
-        // Otherwise, create a new draft plan
+        // Calculate correct week start based on user preference
+        let prefs = PreferencesService.shared.loadPreferences()
+        let correctWeekStart = WeekDateHelper.startOfWeek(from: Date(), preferredStartDay: prefs.weekStartDay)
+        
+        // Create a new draft plan with the correct week start
         let newPlan = MealPlan(
             id: UUID(),
             familyId: familyId,
-            weekStart: Date(),
+            weekStart: correctWeekStart,
             items: [],
             status: .draft,
             confirmedDate: nil,

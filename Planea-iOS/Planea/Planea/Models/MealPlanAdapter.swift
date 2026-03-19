@@ -60,18 +60,21 @@ struct MealPlanAdapter {
     /// - Parameter plannedWeek: The planned week
     /// - Returns: A legacy MealPlan
     static func toMealPlan(_ plannedWeek: PlannedWeek) -> MealPlan {
-        // Flatten PlannedDays back to MealItems
+        // Flatten PlannedDays back to MealItems with real dates
         let items: [MealItem] = plannedWeek.days.flatMap { day in
             let weekdayIndex = WeekDateHelper.weekdayIndex(from: day.date)
             let weekday = WeekDateHelper.indexToWeekday(weekdayIndex)
             
             return day.meals.map { plannedMeal in
-                MealItem(
+                var item = MealItem(
                     id: plannedMeal.id,
                     weekday: weekday,
                     mealType: plannedMeal.mealType,
                     recipe: plannedMeal.recipe
                 )
+                // CRITICAL: Preserve the real date from PlannedDay
+                item.date = day.date
+                return item
             }
         }
         

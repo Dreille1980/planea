@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 
 enum RecipesSegment: String, CaseIterable {
+    case today = "recipes.segment.today"
     case viewWeek = "recipes.segment.viewWeek"
     case generatePlan = "recipes.segment.generatePlan"
     case adHoc = "recipes.segment.adHoc"
@@ -11,7 +12,7 @@ struct RecipesView: View {
     @EnvironmentObject var recipeHistoryVM: RecipeHistoryViewModel
     @EnvironmentObject var usageVM: UsageViewModel
     @StateObject private var storeManager = StoreManager.shared
-    @State private var selectedSegment: RecipesSegment = .viewWeek
+    @State private var selectedSegment: RecipesSegment = .today
     @State private var showRecentRecipes = false
     
     var body: some View {
@@ -31,6 +32,9 @@ struct RecipesView: View {
                 
                 // Segment content
                 TabView(selection: $selectedSegment) {
+                    TodayView(selectedSegment: $selectedSegment)
+                        .tag(RecipesSegment.today)
+                    
                     WeekOverviewView(selectedSegment: $selectedSegment)
                         .tag(RecipesSegment.viewWeek)
                     

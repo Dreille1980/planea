@@ -270,13 +270,17 @@ struct AddMealSheet: View {
             }
         }
         
-        // Add new meal
-        let newMeal = MealItem(
+        // Add new meal with real date
+        var newMeal = MealItem(
             id: UUID(),
             weekday: selectedDay,
             mealType: selectedMealType,
             recipe: recipe
         )
+        // Calculate the real date for this meal based on the plan's weekStart
+        if let weekStart = planVM.currentPlan?.weekStart {
+            newMeal.date = MealItem.calculateDate(for: selectedDay, weekStart: weekStart)
+        }
         
         withAnimation {
             planVM.addMeal(mealItem: newMeal)

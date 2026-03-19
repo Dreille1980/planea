@@ -175,6 +175,41 @@ struct WeekDateHelper {
         )
     }
     
+    // MARK: - Start of Week Calculation
+    
+    /// Calculate the start of the current week based on user's preference
+    /// - Parameters:
+    ///   - date: The reference date (defaults to today)
+    ///   - preferredStartDay: The user's preferred week start day (defaults to Monday)
+    /// - Returns: The start of the week (at midnight) containing the reference date
+    static func startOfWeek(from date: Date = Date(), preferredStartDay: Weekday = .monday) -> Date {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        
+        // Get the target weekday number (1=Sun, 2=Mon, ..., 7=Sat)
+        let targetWeekday: Int
+        switch preferredStartDay {
+        case .sunday: targetWeekday = 1
+        case .monday: targetWeekday = 2
+        case .tuesday: targetWeekday = 3
+        case .wednesday: targetWeekday = 4
+        case .thursday: targetWeekday = 5
+        case .friday: targetWeekday = 6
+        case .saturday: targetWeekday = 7
+        }
+        
+        // Get current weekday
+        let currentWeekday = calendar.component(.weekday, from: startOfDay)
+        
+        // Calculate days to go back
+        var daysBack = currentWeekday - targetWeekday
+        if daysBack < 0 {
+            daysBack += 7
+        }
+        
+        return calendar.date(byAdding: .day, value: -daysBack, to: startOfDay) ?? startOfDay
+    }
+    
     // MARK: - Validation
     
     /// Check if a date is in the past (before today)

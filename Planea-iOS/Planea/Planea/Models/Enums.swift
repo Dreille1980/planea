@@ -21,6 +21,15 @@ enum MealType: String, Codable, CaseIterable, Identifiable {
         case .snack: return "meal.snack".localized
         }
     }
+    
+    var sortOrder: Int {
+        switch self {
+        case .breakfast: return 0
+        case .lunch: return 1
+        case .dinner: return 2
+        case .snack: return 3
+        }
+    }
 }
 
 enum Weekday: String, Codable, CaseIterable, Identifiable {

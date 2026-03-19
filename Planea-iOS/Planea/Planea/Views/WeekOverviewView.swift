@@ -8,6 +8,7 @@ struct WeekOverviewView: View {
     @State private var regeneratingMealId: UUID?
     @State private var showUsageLimitReached = false
     @State private var showAddMealSheet = false
+    @State private var selectedDay: Weekday?
     @AppStorage("unitSystem") private var unitSystem: String = UnitSystem.metric.rawValue
     @AppStorage("appLanguage") private var appLanguage: String = AppLanguage.system.rawValue
     
@@ -100,32 +101,53 @@ struct WeekOverviewView: View {
     
     private func activeWeekView(plan: MealPlan) -> some View {
         VStack(spacing: 0) {
-            // Week calendar view
-            ScrollView {
-                VStack(spacing: 16) {
-                    // Week range header
-                    WeekRangeHeader(weekStart: plan.weekStart)
-                        .padding(.horizontal)
-                    
-                    // Calendar grid
-                    weekCalendarGrid(plan: plan)
-                        .padding(.horizontal)
-                    
-                    // Sections: Simple recipes, Meal Prep, Steps
-                    weekSections(plan: plan)
-                        .padding(.horizontal)
+            // Horizontal week calendar strip
+            WeekCalendarStrip(
+                weekdays: weekdays,
+                weekStart: plan.weekStart,
+                selectedDay: $selectedDay,
+                mealCounts: weekdays.reduce(into: [:]) { counts, day in
+                    counts[day] = plan.items.filter { $0.weekday == day }.count
                 }
-                .padding(.vertical)
+            )
+            .padding(.vertical, PlaneaSpacing.sm)
+            
+            // Week calendar view
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // Week range header
+                        WeekRangeHeader(weekStart: plan.weekStart)
+                            .padding(.horizontal)
+                        
+                        // Calendar grid
+                        weekCalendarGrid(plan: plan)
+                            .padding(.horizontal)
+                        
+                        // Sections: Simple recipes, Meal Prep, Steps
+                        weekSections(plan: plan)
+                            .padding(.horizontal)
+                    }
+                    .padding(.vertical)
+                }
+                .onChange(of: selectedDay) { newDay in
+                    if let day = newDay {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            proxy.scrollTo(day, anchor: .top)
+                        }
+                    }
+                }
             }
         }
     }
     
-    private func weekCalendarGrid(plan: MealPlan) -> some View {
+    func weekCalendarGrid(plan: MealPlan) -> some View {
         VStack(spacing: 12) {
             ForEach(weekdays.indices, id: \.self) { index in
                 let day = weekdays[index]
                 if let dayMeals = mealsForDay(day, in: plan) {
-                    let dayDate = dateForWeekday(day, startingFrom: plan.weekStart)
+                    // Use real date from first meal item if available, otherwise calculate
+                    let dayDate = dayMeals.first?.0.resolvedDate(weekStart: plan.weekStart) ?? dateForWeekday(day, startingFrom: plan.weekStart)
                     WeekDayCard(
                         day: dayLabel(for: day),
                         date: dayDate,
@@ -142,12 +164,13 @@ struct WeekOverviewView: View {
                             }
                         }
                     )
+                    .id(day) // Add ID for ScrollViewReader
                 }
             }
         }
     }
     
-    private func weekSections(plan: MealPlan) -> some View {
+    func weekSections(plan: MealPlan) -> some View {
         VStack(spacing: 24) {
             // Meal prep section with prominent button (only if meal prep recipes exist)
             let mealPrepRecipes = plan.items.filter { $0.isMealPrep }
@@ -171,7 +194,7 @@ struct WeekOverviewView: View {
         }
     }
     
-    private func recipeSection(title: String, icon: String, color: Color, items: [MealItem]) -> some View {
+    func recipeSection(title: String, icon: String, color: Color, items: [MealItem]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: icon)
@@ -228,7 +251,7 @@ struct WeekOverviewView: View {
     
     // MARK: - Meal Prep Main Section (NEW)
     
-    private func mealPrepMainSection(plan: MealPlan, items: [MealItem]) -> some View {
+    func mealPrepMainSection(plan: MealPlan, items: [MealItem]) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             // Section header
             HStack {
@@ -335,7 +358,7 @@ struct WeekOverviewView: View {
         }
     }
     
-    private func mealPrepStepsSection(items: [MealItem]) -> some View {
+    func mealPrepStepsSection(items: [MealItem]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "list.clipboard")
@@ -367,7 +390,7 @@ struct WeekOverviewView: View {
     
     // MARK: - Helper Methods
     
-    private func mealsForDay(_ day: Weekday, in plan: MealPlan) -> [(MealItem, String)]? {
+    func mealsForDay(_ day: Weekday, in plan: MealPlan) -> [(MealItem, String)]? {
         let meals = plan.items.filter { $0.weekday == day }
         guard !meals.isEmpty else { return nil }
         
@@ -376,7 +399,7 @@ struct WeekOverviewView: View {
         }
     }
     
-    private func dateForWeekday(_ weekday: Weekday, startingFrom weekStart: Date) -> Date {
+    func dateForWeekday(_ weekday: Weekday, startingFrom weekStart: Date) -> Date {
         let calendar = Calendar.current
         let startWeekday = calendar.component(.weekday, from: weekStart)
         
@@ -690,5 +713,165 @@ struct MealPrepStepsCard: View {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(Color.orange.opacity(0.3), lineWidth: 1)
         )
+    }
+}
+
+// MARK: - Week Calendar Strip (NEW)
+
+struct WeekCalendarStrip: View {
+    let weekdays: [Weekday]
+    let weekStart: Date
+    @Binding var selectedDay: Weekday?
+    let mealCounts: [Weekday: Int]
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(weekdays, id: \.self) { day in
+                    let dayDate = dateForWeekday(day, startingFrom: weekStart)
+                    let isToday = Calendar.current.isDateInToday(dayDate)
+                    let isSelected = selectedDay == day
+                    let mealCount = mealCounts[day] ?? 0
+                    
+                    WeekDayCell(
+                        weekday: day,
+                        date: dayDate,
+                        mealCount: mealCount,
+                        isToday: isToday,
+                        isSelected: isSelected
+                    )
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            selectedDay = day
+                            // TODO: Scroll to day in list
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal)
+        }
+        .background(Color.planeaBackground)
+    }
+    
+    private func dateForWeekday(_ weekday: Weekday, startingFrom weekStart: Date) -> Date {
+        let calendar = Calendar.current
+        let startWeekday = calendar.component(.weekday, from: weekStart)
+        
+        let targetWeekday: Int
+        switch weekday {
+        case .sunday: targetWeekday = 1
+        case .monday: targetWeekday = 2
+        case .tuesday: targetWeekday = 3
+        case .wednesday: targetWeekday = 4
+        case .thursday: targetWeekday = 5
+        case .friday: targetWeekday = 6
+        case .saturday: targetWeekday = 7
+        }
+        
+        var daysDifference = targetWeekday - startWeekday
+        if daysDifference < 0 {
+            daysDifference += 7
+        }
+        
+        return calendar.date(byAdding: .day, value: daysDifference, to: weekStart) ?? weekStart
+    }
+}
+
+// MARK: - Week Day Cell
+
+struct WeekDayCell: View {
+    let weekday: Weekday
+    let date: Date
+    let mealCount: Int
+    let isToday: Bool
+    let isSelected: Bool
+    
+    private var dayName: String {
+        weekday.localizedShortName
+    }
+    
+    private var dateNumber: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d"
+        return formatter.string(from: date)
+    }
+    
+    var body: some View {
+        VStack(spacing: 6) {
+            // Day name
+            Text(dayName)
+                .font(.planeaCaption)
+                .fontWeight(isToday || isSelected ? .bold : .regular)
+                .foregroundColor(textColor)
+            
+            // Date number in circle
+            ZStack {
+                Circle()
+                    .fill(backgroundColor)
+                    .frame(width: 44, height: 44)
+                
+                if isToday && !isSelected {
+                    Circle()
+                        .stroke(Color.planeaPrimary, lineWidth: 2)
+                        .frame(width: 44, height: 44)
+                }
+                
+                Text(dateNumber)
+                    .font(.planeaBody)
+                    .fontWeight(isToday || isSelected ? .bold : .semibold)
+                    .foregroundColor(isSelected ? .white : (isToday ? .planeaPrimary : .planeaTextPrimary))
+            }
+            
+            // Meal count indicator
+            if mealCount > 0 {
+                HStack(spacing: 2) {
+                    ForEach(0..<min(mealCount, 4), id: \.self) { _ in
+                        Circle()
+                            .fill(dotColor)
+                            .frame(width: 4, height: 4)
+                    }
+                }
+                .frame(height: 8)
+            } else {
+                Spacer()
+                    .frame(height: 8)
+            }
+        }
+        .frame(width: 60)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isSelected ? Color.clear : Color.clear)
+        )
+    }
+    
+    private var backgroundColor: Color {
+        if isSelected {
+            return .planeaPrimary
+        } else if isToday {
+            return Color.planeaPrimary.opacity(0.1)
+        } else {
+            return Color.planeaChipDefault
+        }
+    }
+    
+    private var textColor: Color {
+        if isSelected {
+            return .white
+        } else if isToday {
+            return .planeaPrimary
+        } else {
+            return .planeaTextSecondary
+        }
+    }
+    
+    private var dotColor: Color {
+        if isSelected {
+            return .white
+        } else if isToday {
+            return .planeaPrimary
+        } else {
+            return .planeaSecondary
+        }
     }
 }
