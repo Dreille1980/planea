@@ -9,11 +9,10 @@ struct PlannedWeek: Identifiable, Codable {
     var status: PlanStatus
     var confirmedDate: Date?
     var name: String?
-    var sourceTemplateId: UUID?  // Optional: tracks if created from template
     
     init(id: UUID = UUID(), familyId: UUID, startDate: Date, days: [PlannedDay], 
          status: PlanStatus = .draft, confirmedDate: Date? = nil, 
-         name: String? = nil, sourceTemplateId: UUID? = nil) {
+         name: String? = nil) {
         self.id = id
         self.familyId = familyId
         self.startDate = startDate
@@ -21,7 +20,6 @@ struct PlannedWeek: Identifiable, Codable {
         self.status = status
         self.confirmedDate = confirmedDate
         self.name = name
-        self.sourceTemplateId = sourceTemplateId
     }
 }
 

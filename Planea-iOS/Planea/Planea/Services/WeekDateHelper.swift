@@ -1,6 +1,6 @@
 import Foundation
 
-/// Helper utilities for working with week dates and converting between templates and planned weeks
+/// Helper utilities for working with week dates and planned weeks
 struct WeekDateHelper {
     
     // MARK: - Date Generation
@@ -122,58 +122,6 @@ struct WeekDateHelper {
         return "\(startString) – \(endString)"
     }
     
-    // MARK: - Template Application
-    
-    /// Apply a TemplateWeek to a specific start date to create a PlannedWeek
-    /// - Parameters:
-    ///   - template: The template to apply
-    ///   - startDate: The start date for the planned week
-    /// - Returns: A new PlannedWeek with real dates
-    static func applyTemplate(_ template: TemplateWeek, to startDate: Date) -> PlannedWeek {
-        // Generate 7 dates starting from startDate
-        let weekDates = generateWeekDates(from: startDate)
-        
-        // Convert template days to planned days
-        let plannedDays: [PlannedDay] = template.days.compactMap { templateDay in
-            // Validate weekdayIndex
-            guard templateDay.weekdayIndex >= 0 && templateDay.weekdayIndex < 7 else {
-                print("⚠️ Invalid weekdayIndex: \(templateDay.weekdayIndex)")
-                return nil
-            }
-            
-            let date = weekDates[templateDay.weekdayIndex]
-            
-            // Convert template meals to planned meals
-            let plannedMeals = templateDay.meals.map { templateMeal in
-                PlannedMeal(
-                    id: UUID(),  // Generate new ID for each meal
-                    mealType: templateMeal.mealType,
-                    recipe: templateMeal.recipe
-                )
-            }
-            
-            return PlannedDay(
-                id: UUID(),
-                date: date,
-                meals: plannedMeals
-            )
-        }
-        
-        // Sort days by date to ensure chronological order
-        let sortedDays = plannedDays.sorted { $0.date < $1.date }
-        
-        // Create and return PlannedWeek
-        return PlannedWeek(
-            id: UUID(),
-            familyId: template.familyId,
-            startDate: startDate,
-            days: sortedDays,
-            status: .draft,
-            confirmedDate: nil,
-            name: nil,
-            sourceTemplateId: template.id
-        )
-    }
     
     // MARK: - Start of Week Calculation
     

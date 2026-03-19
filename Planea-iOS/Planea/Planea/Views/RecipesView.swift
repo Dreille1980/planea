@@ -16,7 +16,6 @@ struct RecipesView: View {
     @State private var selectedSegment: RecipesSegment = .today
     @State private var showRecentRecipes = false
     @State private var showPlanHistory = false
-    @State private var showTemplates = false
     
     var body: some View {
         ZStack {
@@ -64,13 +63,6 @@ struct RecipesView: View {
                             }
                             .accessibilityLabel("plan.history.title".localized)
                             
-                            Button(action: {
-                                showTemplates = true
-                            }) {
-                                Image(systemName: "bookmark.fill")
-                                    .font(.planeaTitle3)
-                            }
-                            .accessibilityLabel("Templates")
                         }
                     }
                 }
@@ -91,10 +83,6 @@ struct RecipesView: View {
             }
             .sheet(isPresented: $showPlanHistory) {
                 PlanHistoryView()
-                    .environmentObject(planVM)
-            }
-            .sheet(isPresented: $showTemplates) {
-                TemplatesListView()
                     .environmentObject(planVM)
             }
             }

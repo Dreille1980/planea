@@ -1,6 +1,6 @@
 import Foundation
 
-/// Adapter to make legacy MealPlan compatible with new PlannedWeek and TemplateWeek architecture
+/// Adapter to make legacy MealPlan compatible with new PlannedWeek architecture
 /// This allows backward compatibility without destructive data migration
 struct MealPlanAdapter {
     
@@ -49,8 +49,7 @@ struct MealPlanAdapter {
             days: plannedDays.sorted { $0.date < $1.date },
             status: mealPlan.status,
             confirmedDate: mealPlan.confirmedDate,
-            name: mealPlan.name,
-            sourceTemplateId: nil
+            name: mealPlan.name
         )
     }
     
@@ -86,80 +85,6 @@ struct MealPlanAdapter {
             status: plannedWeek.status,
             confirmedDate: plannedWeek.confirmedDate,
             name: plannedWeek.name
-        )
-    }
-    
-    // MARK: - PlannedWeek → TemplateWeek
-    
-    /// Convert PlannedWeek to TemplateWeek (save as template)
-    /// - Parameters:
-    ///   - plannedWeek: The planned week to convert
-    ///   - name: Name for the template
-    /// - Returns: A new TemplateWeek
-    static func toTemplate(_ plannedWeek: PlannedWeek, name: String) -> TemplateWeek {
-        let templateDays = plannedWeek.days.map { day in
-            let weekdayIndex = WeekDateHelper.weekdayIndex(from: day.date)
-            
-            let templateMeals = day.meals.map { plannedMeal in
-                TemplateMeal(
-                    id: UUID(),  // Generate new ID for template
-                    mealType: plannedMeal.mealType,
-                    recipe: plannedMeal.recipe
-                )
-            }
-            
-            return TemplateDay(
-                id: UUID(),
-                weekdayIndex: weekdayIndex,
-                meals: templateMeals
-            )
-        }
-        
-        return TemplateWeek(
-            id: UUID(),
-            familyId: plannedWeek.familyId,
-            name: name,
-            days: templateDays
-        )
-    }
-    
-    // MARK: - Legacy MealPlan → TemplateWeek
-    
-    /// Convert legacy MealPlan to TemplateWeek
-    /// - Parameters:
-    ///   - mealPlan: The legacy meal plan
-    ///   - name: Name for the template
-    /// - Returns: A new TemplateWeek
-    static func mealPlanToTemplate(_ mealPlan: MealPlan, name: String) -> TemplateWeek {
-        // Group items by weekday
-        var dayGroups: [Int: [MealItem]] = [:]
-        for item in mealPlan.items {
-            let weekdayIndex = WeekDateHelper.weekdayToIndex(item.weekday)
-            dayGroups[weekdayIndex, default: []].append(item)
-        }
-        
-        // Create TemplateDays
-        let templateDays: [TemplateDay] = dayGroups.map { weekdayIndex, meals in
-            let templateMeals = meals.map { mealItem in
-                TemplateMeal(
-                    id: UUID(),
-                    mealType: mealItem.mealType,
-                    recipe: mealItem.recipe
-                )
-            }
-            
-            return TemplateDay(
-                id: UUID(),
-                weekdayIndex: weekdayIndex,
-                meals: templateMeals
-            )
-        }.sorted { $0.weekdayIndex < $1.weekdayIndex }
-        
-        return TemplateWeek(
-            id: UUID(),
-            familyId: mealPlan.familyId,
-            name: name,
-            days: templateDays
         )
     }
     
@@ -356,26 +281,4 @@ struct MealPlanAdapter {
         return true
     }
     
-    /// Validate that a PlannedWeek can be converted to a template
-    /// - Parameter plannedWeek: The planned week to validate
-    /// - Returns: True if conversion is safe
-    static func canConvertToTemplate(_ plannedWeek: PlannedWeek) -> Bool {
-        // Check that we have days with meals
-        guard !plannedWeek.days.isEmpty else { return false }
-        
-        // Check that at least one day has meals
-        let hasAnyMeals = plannedWeek.days.contains { !$0.meals.isEmpty }
-        guard hasAnyMeals else { return false }
-        
-        // Check that all meals have valid recipes
-        for day in plannedWeek.days {
-            for meal in day.meals {
-                if meal.recipe.title.isEmpty || meal.recipe.ingredients.isEmpty {
-                    return false
-                }
-            }
-        }
-        
-        return true
-    }
 }

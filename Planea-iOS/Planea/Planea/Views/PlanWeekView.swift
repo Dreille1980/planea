@@ -55,9 +55,6 @@ struct PlanWeekView: View {
     @State private var showPlanHistory = false
     @State private var showNamePlanDialog = false
     @State private var planName = ""
-    @State private var showTemplates = false
-    @State private var showSaveAsTemplateDialog = false
-    @State private var templateName = ""
     
     var weekdays: [Weekday] {
         PreferencesService.shared.loadPreferences().sortedWeekdays()
@@ -273,25 +270,12 @@ struct PlanWeekView: View {
                                 .font(.planeaTitle3)
                         }
                         
-                        Button(action: {
-                            showTemplates = true
-                        }) {
-                            Image(systemName: "bookmark.fill")
-                                .font(.planeaTitle3)
-                        }
                     }
                 }
                 
                 if planVM.currentPlan != nil {
                     ToolbarItem(placement: .topBarTrailing) {
                         HStack(spacing: PlaneaSpacing.md) {
-                            Button(action: {
-                                showSaveAsTemplateDialog = true
-                            }) {
-                                Image(systemName: "square.and.arrow.down")
-                                    .font(.planeaTitle3)
-                            }
-                            
                             Button(action: {
                                 let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
                                 impactGenerator.impactOccurred()
@@ -316,24 +300,6 @@ struct PlanWeekView: View {
             .sheet(isPresented: $showPlanHistory) {
                 PlanHistoryView()
                     .environmentObject(planVM)
-            }
-            .sheet(isPresented: $showTemplates) {
-                TemplatesListView()
-                    .environmentObject(planVM)
-            }
-            .alert("Sauvegarder comme template", isPresented: $showSaveAsTemplateDialog) {
-                TextField("Nom du template", text: $templateName)
-                Button("Annuler", role: .cancel) {
-                    templateName = ""
-                }
-                Button("Sauvegarder") {
-                    if !templateName.isEmpty {
-                        planVM.saveCurrentPlanAsTemplate(name: templateName)
-                        templateName = ""
-                    }
-                }
-            } message: {
-                Text("Donnez un nom à ce template pour le réutiliser plus tard")
             }
             .alert("plan.namePlan.title".localized, isPresented: $showNamePlanDialog) {
                 TextField("plan.namePlan.placeholder".localized, text: $planName)

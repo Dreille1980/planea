@@ -265,25 +265,4 @@ class AnalyticsService {
         Analytics.logEvent("rating_prompt_negative", parameters: nil)
     }
 
-    // MARK: - Templates
-    
-    func logTemplateCreated(templateName: String) {
-        Analytics.logEvent("template_created", parameters: [
-            "template_name": templateName
-        ])
-    }
-    
-    func logTemplateApplied(templateID: String, templateName: String, startDate: String) {
-        Analytics.logEvent("template_applied", parameters: [
-            "template_id": templateID,
-            "template_name": templateName,
-            "start_date": startDate
-        ])
-    }
-    
-    func logTemplateDeleted(templateID: String) {
-        Analytics.logEvent("template_deleted", parameters: [
-            "template_id": templateID
-        ])
-    }
 }
