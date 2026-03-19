@@ -11,9 +11,12 @@ enum RecipesSegment: String, CaseIterable {
 struct RecipesView: View {
     @EnvironmentObject var recipeHistoryVM: RecipeHistoryViewModel
     @EnvironmentObject var usageVM: UsageViewModel
+    @EnvironmentObject var planVM: PlanViewModel
     @StateObject private var storeManager = StoreManager.shared
     @State private var selectedSegment: RecipesSegment = .today
     @State private var showRecentRecipes = false
+    @State private var showPlanHistory = false
+    @State private var showTemplates = false
     
     var body: some View {
         ZStack {
@@ -49,6 +52,29 @@ struct RecipesView: View {
             .navigationTitle("tab.recipes".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                // History & Templates buttons for week-related segments
+                if selectedSegment == .viewWeek || selectedSegment == .generatePlan {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        HStack(spacing: PlaneaSpacing.md) {
+                            Button(action: {
+                                showPlanHistory = true
+                            }) {
+                                Image(systemName: "clock.arrow.circlepath")
+                                    .font(.planeaTitle3)
+                            }
+                            .accessibilityLabel("plan.history.title".localized)
+                            
+                            Button(action: {
+                                showTemplates = true
+                            }) {
+                                Image(systemName: "bookmark.fill")
+                                    .font(.planeaTitle3)
+                            }
+                            .accessibilityLabel("Templates")
+                        }
+                    }
+                }
+                
                 if selectedSegment == .adHoc && !recipeHistoryVM.recentRecipes.isEmpty {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button {
@@ -62,6 +88,14 @@ struct RecipesView: View {
             }
             .sheet(isPresented: $showRecentRecipes) {
                 RecentRecipesView()
+            }
+            .sheet(isPresented: $showPlanHistory) {
+                PlanHistoryView()
+                    .environmentObject(planVM)
+            }
+            .sheet(isPresented: $showTemplates) {
+                TemplatesListView()
+                    .environmentObject(planVM)
             }
             }
             

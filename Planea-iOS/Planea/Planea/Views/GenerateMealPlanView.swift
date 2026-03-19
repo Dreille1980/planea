@@ -159,8 +159,12 @@ struct GenerateMealPlanView: View {
             // Calculate servings based on number of family members (minimum 1)
             let servings = max(1, familyVM.members.count)
             
+            // Calculate correct week start based on user preference
+            let prefs = PreferencesService.shared.loadPreferences()
+            let correctWeekStart = WeekDateHelper.startOfWeek(from: Date(), preferredStartDay: prefs.weekStartDay)
+            
             let plan = try await service.generatePlan(
-                weekStart: Date(),
+                weekStart: correctWeekStart,
                 slots: selectedSlots,
                 constraints: constraintsDict,
                 servings: servings,
