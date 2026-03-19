@@ -765,14 +765,32 @@
 "meal_prep.detail.shopping_list_title" = "Liste d'ingrédients à acheter";
 "meal_prep.detail.shopping_list_header" = "Ingrédients à avoir";
 
+// Notation App Store
+"rating.title" = "Est-ce que vous aimez Planea?";
+"rating.subtitle" = "Votre avis compte beaucoup pour nous et aide les autres familles à nous trouver.";
+"rating.positive" = "Oui, j'adore! 🌟";
+"rating.negative" = "Pas vraiment...";
+"rating.later" = "Plus tard";
+"rating.feedback.subject" = "Commentaires - Planea iOS";
+
 // Mise à jour forcée
 "force_update.title" = "Mise à jour requise";
 "force_update.message" = "Une nouvelle version de Planea est disponible. Veuillez mettre à jour pour continuer à utiliser l'app et profiter des dernières fonctionnalités et améliorations.";
 "force_update.button" = "Mettre à jour maintenant";
 
 // Nouveaux segments de l'onglet Recettes
-"recipes.segment.viewWeek" = "Voir semaine";
-"recipes.segment.generatePlan" = "Générer un plan";
+"recipes.segment.today" = "Aujourd'hui";
+"recipes.segment.viewWeek" = "Ma semaine";
+"recipes.segment.generatePlan" = "Planifier";
+"recipes.segment.adHoc" = "Créer";
+
+// Vue Aujourd'hui
+"today.title" = "Aujourd'hui";
+"today.noMeals" = "Aucun repas planifié aujourd'hui";
+"today.noMeals.message" = "Vous n'avez pas de repas planifié pour aujourd'hui.";
+"today.planMeals" = "Planifier mes repas";
+"today.nextMeal" = "Prochain repas";
+"today.viewRecipe" = "Voir la recette";
 
 // Pas de semaine active
 "plan.noActiveWeek.title" = "Aucune semaine active";

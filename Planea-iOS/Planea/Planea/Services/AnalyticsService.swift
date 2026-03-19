@@ -251,6 +251,20 @@ class AnalyticsService {
         ])
     }
     
+    // MARK: - App Rating
+
+    func logRatingPromptShown() {
+        Analytics.logEvent("rating_prompt_shown", parameters: nil)
+    }
+
+    func logRatingPromptPositive() {
+        Analytics.logEvent("rating_prompt_positive", parameters: nil)
+    }
+
+    func logRatingPromptNegative() {
+        Analytics.logEvent("rating_prompt_negative", parameters: nil)
+    }
+
     // MARK: - Templates
     
     func logTemplateCreated(templateName: String) {

@@ -96,6 +96,7 @@ struct RootView: View {
     @State private var showOnboarding = false
     @State private var showFreeTrialExpiration = false
     @State private var showWhatsNew = false
+    @State private var showRatingPrompt = false
     @State private var selectedTab: Int = 0
     @StateObject private var forceUpdateService = ForceUpdateService.shared
     
@@ -146,6 +147,11 @@ struct RootView: View {
             let features = WhatsNewService.shared.getWhatsNewItems(for: version)
             WhatsNewView(version: version, features: features)
         }
+        .sheet(isPresented: $showRatingPrompt) {
+            AppRatingView(isPresented: $showRatingPrompt)
+                .presentationDetents([.height(420)])
+                .presentationDragIndicator(.hidden)
+        }
         .fullScreenCover(isPresented: $forceUpdateService.needsUpdate) {
             ForceUpdateView()
         }
@@ -158,6 +164,8 @@ struct RootView: View {
             } else {
                 // Check if we should show What's New (only if onboarding is complete)
                 checkWhatsNew()
+                // Check if we should show the rating prompt
+                checkRatingPrompt()
             }
             // Preload legal documents for offline use
             LegalDocumentService.shared.preloadDocuments()
@@ -195,6 +203,18 @@ struct RootView: View {
         }
     }
     
+    private func checkRatingPrompt() {
+        // Afficher avec un délai pour éviter les conflits avec d'autres sheets
+        // Le délai est plus long que What's New pour laisser ce dernier s'afficher en premier
+        guard AppRatingService.shared.shouldShowRatingPrompt() else { return }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            AppRatingService.shared.markPromptShown()
+            showRatingPrompt = true
+            AnalyticsService.shared.logRatingPromptShown()
+        }
+    }
+
     // MARK: - Notification Observer
     
     private func setupNotificationObserver() {
